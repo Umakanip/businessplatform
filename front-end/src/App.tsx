@@ -1,5 +1,5 @@
 import React from "react";
-import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, useLocation, Outlet } from "react-router-dom";
 import "./App.css";
 
 // Components
@@ -35,61 +35,58 @@ const App: React.FC = () => {
 
   return (
     <Router>
-      <MainLayout role={role} />
+      <Routes>
+        {/* Public Pages */}
+        <Route path="/" element={<Home />} />
+        <Route path="/auth" element={<AuthContainer />} />
+        <Route path="/invitation" element={<InvitationsList />} />
+        <Route path="/payment" element={<PaymentPage />} />
+        <Route path="/connect" element={<ConnectPage />} />
+        <Route path="/subscription" element={<Pricing />} />
+
+        {/* Idea Holder Layout with Nested Routes */}
+        <Route path="/ih" element={<MainLayout role="idea-holder" />}>
+          <Route path="dashboard" element={<IdeaHolderDashboard />} />
+          <Route path="/ih/subscription" element={<Subscription />} />
+          <Route path="connections" element={<Connections />} />
+          <Route path="notifications" element={<NotificationsIH />} />
+          <Route path="profile" element={<ProfileIH />} />
+          <Route path="settings" element={<SettingsIH />} />
+        </Route>
+
+        {/* Investor Layout with Nested Routes */}
+        <Route path="/inv" element={<MainLayout role="investor" />}>
+          <Route path="dashboard" element={<InvestorDashboard />} />
+          <Route path="investments" element={<Investments />} />
+          <Route path="notifications" element={<NotificationsInv />} />
+          <Route path="profile" element={<ProfileInv />} />
+          <Route path="settings" element={<SettingsInv />} />
+        </Route>
+
+        {/* 404 Fallback */}
+        <Route
+          path="*"
+          element={
+            <h1 className="text-gray-700 text-center mt-20 text-3xl">
+              404 - Page Not Found
+            </h1>
+          }
+        />
+      </Routes>
     </Router>
   );
 };
 
-// Layout Component
+// MainLayout Component with Outlet
 const MainLayout: React.FC<{ role: "idea-holder" | "investor" }> = ({ role }) => {
-  const location = useLocation();
-
-  // Sidebar visible only in these routes
-  const showSidebar =
-    location.pathname.startsWith("/ih/") || location.pathname.startsWith("/inv/");
-
   return (
     <div className="min-h-screen bg-white flex">
-      {/* Sidebar */}
-      {showSidebar &&
-        (role === "investor" ? <SidebarInv /> : <SidebarIh />)}
+      {/* Sidebar based on role */}
+      {role === "investor" ? <SidebarInv /> : <SidebarIh />}
 
-      {/* Main Content */}
-      <div className={`flex-1 ${showSidebar ? "ml-64" : ""} p-6`}>
-        <Routes>
-          {/* Public Pages */}
-          <Route path="/" element={<Home />} />
-          <Route path="/auth" element={<AuthContainer />} />
-          <Route path="/invitation" element={<InvitationsList />} />
-          <Route path="/payment" element={<PaymentPage />} />
-          <Route path="/connect" element={<ConnectPage />} />
-          <Route path="/subscription" element={<Pricing />} />
-
-          {/* Idea Holder Pages */}
-          <Route path="/ih/dashboard" element={<IdeaHolderDashboard />} />
-          <Route path="/ih/connections" element={<Connections />} />
-          <Route path="/ih/subscription" element={<Subscription />} />
-          <Route path="/ih/notifications" element={<NotificationsIH />} />
-          <Route path="/ih/profile" element={<ProfileIH />} />
-          <Route path="/ih/settings" element={<SettingsIH />} />
-
-          {/* Investor Pages */}
-          <Route path="/inv/dashboard" element={<InvestorDashboard />} />
-          <Route path="/inv/investments" element={<Investments />} />
-          <Route path="/inv/notifications" element={<NotificationsInv />} />
-          <Route path="/inv/profile" element={<ProfileInv />} />
-          <Route path="/inv/settings" element={<SettingsInv />} />
-
-          {/* 404 Fallback */}
-          <Route
-            path="*"
-            element={
-              <h1 className="text-gray-700 text-center mt-20 text-3xl">
-                404 - Page Not Found
-              </h1>
-            }
-          />
-        </Routes>
+      {/* Main Content Area */}
+      <div className="flex-1 ml-64 p-6">
+        <Outlet /> {/* This is where nested route components will render */}
       </div>
     </div>
   );
