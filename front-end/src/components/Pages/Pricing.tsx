@@ -1,15 +1,27 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import toast, { Toaster } from 'react-hot-toast';
 
-// Define a type for the message state to avoid TypeScript errors.
-type MessageState = {
-  text: string;
-  type: 'success' | 'error';
-};
+// Define an interface for the plan object
+interface Plan {
+  name: string;
+  price: string;
+  period: string;
+  description: string;
+  features: string[];
+}
 
-// The main application component that contains the pricing UI and subscription logic.
 const Pricing = () => {
+  const navigate = useNavigate();
+  const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+
   // Define the pricing plans data. This can be fetched from an API in a real application.
-  const plans = [
+  const plans: Plan[] = [
     {
       name: "Lite",
       price: "$19",
@@ -47,185 +59,159 @@ const Pricing = () => {
     },
   ];
 
-  // State to manage the selected plan, form input, loading status, and messages.
-  // We now use a union type for the message state: MessageState or null.
-  const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState<MessageState | null>(null);
-
-  // Function to handle the plan selection and open the subscription form.
-  // Add a type annotation for the planName parameter.
-  const handlePlanSelect = (planName: string) => {
-    setSelectedPlan(planName);
-    setMessage(null); // Clear previous messages
-  };
-
-  // Function to handle form submission and make the API call.
-  // Add a type annotation for the event parameter 'e'.
-  const handleSubscribe = async (e: React.FormEvent<HTMLFormElement>) => {
+  // Function to handle the subscription submission
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setMessage(null);
+
+    // Basic validation
+    if (!selectedPlan) {
+      toast.error('Please select a plan to continue.');
+      setLoading(false);
+      return;
+    }
 
     try {
-      const response = await fetch("http://localhost:5000/api/subscriptions/subscribe-public", {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email,
-          password,
-          plan: selectedPlan,
-        }),
+      const response = await axios.post('http://localhost:5000/api/subscriptions/subscribe-public', {
+        email,
+        password,
+        plan: selectedPlan.name.toLowerCase(), // Ensure the plan name matches the backend enum
       });
 
-      const data = await response.json();
+      // Handle successful subscription
+      if (response.status === 200) {
+        toast.success('Subscription successful! ');
+        const subscriptionId = response.data.subscriptionId; // Get the subscription ID from the response
 
-      if (response.ok) {
-        setMessage({ text: data.message, type: 'success' });
-        // Optionally reset form after successful submission
-        setEmail('');
-        setPassword('');
-        setSelectedPlan(null);
-      } else {
-        setMessage({ text: data.message || "An error occurred.", type: 'error' });
+        // Introduce a delay to allow the user to see the toast message before redirecting
+        setTimeout(() => {
+          navigate('/payment', { state: { subscriptionId } });
+        }, 2000); // 2-second delay
       }
-
     } catch (error) {
-      console.error('Subscription error:', error);
-      setMessage({ text: "Network error or server unavailable.", type: 'error' });
+      // Handle API errors
+      if (axios.isAxiosError(error) && error.response) {
+        toast.error(error.response.data.message || 'An error occurred during subscription.');
+      } else {
+        toast.error('An unexpected error occurred.');
+      }
     } finally {
       setLoading(false);
     }
   };
 
-  return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-violet-950 text-white p-4">
-      <script src="https://cdn.tailwindcss.com"></script>
-      
-      {/* Pricing section */}
-      <section id="pricing" className="py-12 w-full max-w-7xl mx-auto">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl font-bold text-white mb-4">Simple Pricing</h2>
-          <p className="text-xl text-gray-300">
-            Choose the plan that suits you best
-          </p>
-        </div>
+  // Function to handle opening the subscription modal
+  const openSubscriptionModal = (plan: Plan) => {
+    setSelectedPlan(plan);
+    setShowModal(true);
+  };
 
-        {/* Pricing Cards */}
-        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto">
+  return (
+    <div className="min-h-screen bg-gray-900 text-gray-100 flex items-center justify-center p-4">
+      {/* Toaster component to display beautiful notifications */}
+      <Toaster position="top-center" />
+      <div className="w-full max-w-6xl mx-auto rounded-xl shadow-2xl bg-gray-800 p-8">
+        <h1 className="text-4xl font-bold text-center text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-blue-500 mb-2">
+          Pricing Plans
+        </h1>
+        <p className="text-center text-gray-400 mb-10">
+          Choose the right plan for you and start connecting with idealogists today.
+        </p>
+
+        {/* Pricing Cards Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-10">
           {plans.map((plan) => (
             <div
               key={plan.name}
-              className="bg-gradient-to-br from-purple-600/20 to-blue-600/20 rounded-2xl p-8 border border-white/10 flex flex-col transform hover:scale-105 transition-transform duration-300"
+              className={`relative p-8 rounded-2xl shadow-lg border-2 transform hover:scale-105 transition-transform duration-300 cursor-pointer
+                ${selectedPlan?.name === plan.name ? 'border-purple-500 ring-4 ring-purple-500' : 'border-gray-700 hover:border-purple-500'}`}
+              onClick={() => openSubscriptionModal(plan)}
             >
-              <div className="text-center mb-8">
-                <h3 className="text-2xl font-bold text-white mb-2">
-                  {plan.name}
-                </h3>
-                <div className="text-4xl font-bold text-white mb-2">
-                  {plan.price}
-                  <span className="text-lg text-gray-300">{plan.period}</span>
-                </div>
-                <p className="text-gray-300">{plan.description}</p>
+              <h2 className="text-3xl font-extrabold text-white mb-2">{plan.name}</h2>
+              <p className="text-gray-400 mb-4">{plan.description}</p>
+              <div className="text-white text-5xl font-bold">
+                {plan.price}
+                <span className="text-xl font-normal text-gray-400">{plan.period}</span>
               </div>
-
-              <div className="space-y-4 mb-8 flex-1">
-                {plan.features.map((feature, idx) => (
-                  <div key={idx} className="flex items-center">
-                    <svg
-                      className="w-5 h-5 text-green-400 mr-3 flex-shrink-0"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M5 13l4 4L19 7"
-                      />
+              <ul className="mt-6 space-y-3 text-gray-300">
+                {plan.features.map((feature, index) => (
+                  <li key={index} className="flex items-center">
+                    <svg className="h-5 w-5 text-green-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
-                    <span className="text-gray-300">{feature}</span>
-                  </div>
+                    <span>{feature}</span>
+                  </li>
                 ))}
+              </ul>
+              <div className="mt-8 text-center">
+                <button
+                  type="button"
+                  onClick={() => openSubscriptionModal(plan)}
+                  className={`w-full py-3 rounded-lg font-semibold
+                    ${selectedPlan?.name === plan.name
+                      ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white'
+                      : 'bg-gray-700 text-gray-300 hover:text-white hover:bg-gray-600'}
+                    transition-all duration-300`}
+                >
+                  Select Plan
+                </button>
               </div>
-
-              <button 
-                onClick={() => handlePlanSelect(plan.name)}
-                className="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white py-3 rounded-lg font-semibold hover:from-purple-700 hover:to-blue-700 transition-all duration-300 transform hover:scale-105"
-              >
-                Choose {plan.name}
-              </button>
             </div>
           ))}
         </div>
-      </section>
 
-      {/* Subscription Form Modal */}
-      {selectedPlan && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-70 backdrop-blur-sm">
-          <div className="bg-gray-800 rounded-2xl p-8 w-full max-w-md border border-gray-700 shadow-xl">
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-2xl font-bold text-white">Subscribe to {selectedPlan} Plan</h3>
-              <button 
-                onClick={() => setSelectedPlan(null)}
-                className="text-gray-400 hover:text-white transition-colors duration-200"
+        {/* Modal for Subscription Form */}
+        {showModal && selectedPlan && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-75 p-4">
+            <div className="bg-gray-800 rounded-xl shadow-lg p-8 w-full max-w-sm relative">
+              <button
+                type="button"
+                onClick={() => setShowModal(false)}
+                className="absolute top-3 right-3 text-gray-400 hover:text-white transition-colors duration-200"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
-            </div>
-            
-            <form onSubmit={handleSubscribe} className="space-y-6">
-              <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-400 mb-1">Email</label>
-                <input
-                  type="email"
-                  id="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  className="w-full p-3 rounded-lg bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                />
-              </div>
-              
-              <div>
-                <label htmlFor="password" className="block text-sm font-medium text-gray-400 mb-1">Password</label>
-                <input
-                  type="password"
-                  id="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  className="w-full p-3 rounded-lg bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                />
-              </div>
+              <h3 className="text-2xl font-bold text-center text-white mb-6">Subscribe to {selectedPlan.name}</h3>
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div>
+                  <label htmlFor="email" className="block text-sm font-medium text-gray-400 mb-1">Email</label>
+                  <input
+                    type="email"
+                    id="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    className="w-full p-3 rounded-lg bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="password" className="block text-sm font-medium text-gray-400 mb-1">Password</label>
+                  <input
+                    type="password"
+                    id="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    className="w-full p-3 rounded-lg bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  />
+                </div>
 
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white py-3 rounded-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed hover:from-purple-700 hover:to-blue-700 transition-all duration-300"
-              >
-                {loading ? 'Subscribing...' : 'Subscribe'}
-              </button>
-            </form>
-            
-            {message && (
-              <div className={`mt-4 p-4 rounded-lg text-sm text-center font-medium ${message.type === 'success' ? 'bg-green-600 text-white' : 'bg-red-600 text-white'}`}>
-                {message.text}
-              </div>
-            )}
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white py-3 rounded-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed hover:from-purple-700 hover:to-blue-700 transition-all duration-300"
+                >
+                  {loading ? 'Subscribing...' : 'Subscribe'}
+                </button>
+              </form>
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 };
 
 export default Pricing;
-

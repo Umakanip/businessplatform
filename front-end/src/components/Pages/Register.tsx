@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
 import axiosInstance from '../../utils/axiosInstance';
+import { useNavigate } from 'react-router-dom'; // Import useNavigate hook
 
 // Interfaces for component props and form data
 interface RegisterProps {
@@ -19,6 +20,8 @@ interface FormData {
 }
 
 const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
+  const navigate = useNavigate(); // Initialize the useNavigate hook
+
   // State for form data
   const [formData, setFormData] = useState<FormData>({
     role: 'investor',
@@ -148,20 +151,23 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
 
       // Handle successful registration
       console.log('Registration successful!', response.data);
-      // You might want to automatically log the user in or redirect them here
-      onSwitchToLogin();
+      
+      // Check the user's role and redirect accordingly
+      if (formData.role === 'investor') {
+        // Redirect to the Login page for investors
+        onSwitchToLogin();
+      } else if (formData.role === 'ideaholder') {
+        // Redirect to the Pricing page for idea holders
+        navigate('/subscription');
+      }
 
     } catch (error: any) {
       // Handle network errors or specific API errors
       if (error.response) {
-        // The request was made and the server responded with a status code
-        // that falls out of the range of 2xx
         setApiError(error.response.data.message || 'Registration failed.');
       } else if (error.request) {
-        // The request was made but no response was received
         setApiError('No response received from server. Please try again.');
       } else {
-        // Something happened in setting up the request that triggered an Error
         setApiError(error.message);
       }
       console.error('Registration error:', error);
