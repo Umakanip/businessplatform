@@ -26,6 +26,7 @@ import Investments from "./pages/investor/Investments";
 import NotificationsInv from "./pages/investor/Notifications";
 import ProfileInv from "./pages/investor/Profile";
 import SettingsInv from "./pages/investor/Settings";
+import Pricing from "./components/Pages/Pricing";
 
 // Common
 
@@ -62,6 +63,7 @@ const MainLayout: React.FC<{ role: "idea-holder" | "investor" }> = ({ role }) =>
           <Route path="/invitation" element={<InvitationsList />} />
           <Route path="/payment" element={<PaymentPage />} />
           <Route path="/connect" element={<ConnectPage />} />
+          <Route path="subscription" element={<Pricing />} />
 
           {/* Idea Holder Routes */}
           <Route path="/ih/dashboard" element={<IdeaHolderDashboard />} />
