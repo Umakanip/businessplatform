@@ -1,5 +1,6 @@
 import React from "react";
-import Sidebar from "./Sidebar";
+import SidebarInv from "./SidebarInv";
+import SidebarIh from "./SidebarIh";
 
 type LayoutProps = {
   role: "idea-holder" | "investor";
@@ -9,7 +10,7 @@ type LayoutProps = {
 const Layout: React.FC<LayoutProps> = ({ role, children }) => {
   return (
     <div className="flex">
-      <Sidebar role={role} />
+      {role === "investor" ? <SidebarInv /> : <SidebarIh />}
       <main className="ml-64 w-full min-h-screen bg-gray-100 p-6">{children}</main>
     </div>
   );
