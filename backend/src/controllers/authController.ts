@@ -8,13 +8,25 @@ import { isActive } from "../utils/dates";
 // ========================== REGISTER ==========================
 export const register = async (req: Request, res: Response) => {
   try {
-    const { name, email, password, role } = req.body;
+    const { 
+      name, 
+      email, 
+      password, 
+      role, 
+      primaryPhone, 
+      secondaryPhone, 
+      category, 
+      profileImage 
+    } = req.body;
 
     if (!name || !email || !password || !role) {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
-    if (!["investor", "idealogist"].includes(role)) {
+    // Normalize role
+    const normalizedRole = role === "ideaholder" ? "idealogist" : role;
+
+    if (!["investor", "idealogist"].includes(normalizedRole)) {
       return res.status(400).json({ message: "Invalid role" });
     }
 
@@ -24,11 +36,29 @@ export const register = async (req: Request, res: Response) => {
     }
 
     const hash = await bcrypt.hash(password, 10);
-    const user = await User.create({ name, email, password: hash, role });
+    const user = await User.create({ 
+      name: name, 
+      email, 
+      password: hash, 
+      role: normalizedRole, 
+      primaryPhone, 
+      secondaryPhone, 
+      category, 
+      profileImage 
+    });
 
     return res.status(201).json({
       message: "Registered successfully. Idealogists must subscribe before login.",
-      user: { id: user.id, name: user.name, email: user.email, role: user.role },
+      user: { 
+        id: user.id, 
+        name: user.name, 
+        email: user.email, 
+        role: user.role,
+        primaryPhone: user.primaryPhone,
+        secondaryPhone: user.secondaryPhone,
+        category: user.category,
+        profileImage: user.profileImage
+      },
     });
   } catch (error) {
     console.error("Register error:", error);

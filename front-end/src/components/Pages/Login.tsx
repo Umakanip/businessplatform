@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import axios from 'axios';
+import axiosInstance from '../../utils/axiosInstance';
 
 interface LoginProps {
   onSwitchToRegister: () => void;
@@ -10,23 +12,51 @@ const Login: React.FC<LoginProps> = ({ onSwitchToRegister }) => {
     password: '',
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [apiError, setApiError] = useState<string | null>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
     });
+    setApiError(null); // Clear any previous API error when user starts typing
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    
-    // Simulate API call
-    setTimeout(() => {
+    setApiError(null);
+
+    // Prepare data for the API call
+    const loginData = {
+      email: formData.email,
+      password: formData.password,
+    };
+
+    try {
+      const response = await axiosInstance.post('/auth/Login', loginData);
+
+      // Handle successful login
+      console.log('Login successful:', response.data);
+      // You can store the authentication token (e.g., in localStorage or context) here
+      // For example: localStorage.setItem('token', response.data.token);
+
+    } catch (error: any) {
+      // Axios provides a structured error object.
+      if (error.response) {
+        // The server responded with a status code outside the 2xx range
+        setApiError(error.response.data.message || 'Login failed. Please check your credentials.');
+      } else if (error.request) {
+        // The request was made but no response was received (e.g., network error)
+        setApiError('No response received from server. Please check your network connection.');
+      } else {
+        // Something else happened while setting up the request
+        setApiError(error.message || 'An unexpected error occurred.');
+      }
+      console.error('Login error:', error);
+    } finally {
       setIsLoading(false);
-      console.log('Login attempt:', formData);
-    }, 1000);
+    }
   };
 
   return (
@@ -50,6 +80,11 @@ const Login: React.FC<LoginProps> = ({ onSwitchToRegister }) => {
         {/* Login Form */}
         <div className="bg-white/10 backdrop-blur-lg rounded-2xl shadow-2xl p-8 border border-white/20">
           <form className="space-y-6" onSubmit={handleSubmit}>
+            {apiError && (
+              <div className="bg-red-500/20 text-red-400 p-3 rounded-lg text-center">
+                {apiError}
+              </div>
+            )}
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-200 mb-2">
                 Email Address
@@ -147,4 +182,4 @@ const Login: React.FC<LoginProps> = ({ onSwitchToRegister }) => {
   );
 };
 
-export default Login; 
+export default Login;

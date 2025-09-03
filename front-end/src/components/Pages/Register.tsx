@@ -1,12 +1,14 @@
 import React, { useState, useRef } from 'react';
+import axiosInstance from '../../utils/axiosInstance';
 
+// Interfaces for component props and form data
 interface RegisterProps {
   onSwitchToLogin: () => void;
 }
 
 interface FormData {
   role: 'investor' | 'ideaholder';
-  fullName: string;
+  name: string;
   email: string;
   confirmEmail: string;
   password: string;
@@ -17,9 +19,10 @@ interface FormData {
 }
 
 const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
+  // State for form data
   const [formData, setFormData] = useState<FormData>({
     role: 'investor',
-    fullName: '',
+    name: '',
     email: '',
     confirmEmail: '',
     password: '',
@@ -28,10 +31,16 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
     category: '',
     profileImage: null,
   });
+
+  // State for managing loading and errors
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Partial<FormData>>({});
+  const [apiError, setApiError] = useState<string | null>(null);
+
+  // Ref for the hidden file input
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Array of categories for the select input
   const categories = [
     'IT & Technology',
     'Business & Finance',
@@ -47,6 +56,7 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
     'Other'
   ];
 
+  // Handles changes to form inputs, clearing errors as the user types
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData({
@@ -54,15 +64,18 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
       [name]: value,
     });
     
-    // Clear error when user starts typing
+    // Clear the specific error for this input
     if (errors[name as keyof FormData]) {
       setErrors({
         ...errors,
         [name]: undefined,
       });
     }
+    // Clear any general API error
+    setApiError(null);
   };
 
+  // Handles changes to the file input
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] || null;
     setFormData({
@@ -71,11 +84,12 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
     });
   };
 
+  // Validates the form fields before submission
   const validateForm = (): boolean => {
     const newErrors: Partial<FormData> = {};
 
-    if (!formData.fullName.trim()) {
-      newErrors.fullName = 'Full name is required';
+    if (!formData.name.trim()) {
+      newErrors.name = 'Full name is required';
     }
 
     if (!formData.email) {
@@ -106,22 +120,57 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
     return Object.keys(newErrors).length === 0;
   };
 
+  // Handles form submission, including API call
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Validate the form before attempting submission
     if (!validateForm()) {
       return;
     }
 
     setIsLoading(true);
-    
-    // Simulate API call
-    setTimeout(() => {
+    setApiError(null);
+
+    // Prepare data for the API call
+    const dataToSubmit = {
+      role: formData.role,
+      name: formData.name,
+      email: formData.email,
+      password: formData.password,
+      primaryPhone: formData.primaryPhone,
+      secondaryPhone: formData.secondaryPhone,
+      category: formData.category,
+    };
+
+    try {
+      const response = await axiosInstance.post('/auth/Register', dataToSubmit);
+
+      // Handle successful registration
+      console.log('Registration successful!', response.data);
+      // You might want to automatically log the user in or redirect them here
+      onSwitchToLogin();
+
+    } catch (error: any) {
+      // Handle network errors or specific API errors
+      if (error.response) {
+        // The request was made and the server responded with a status code
+        // that falls out of the range of 2xx
+        setApiError(error.response.data.message || 'Registration failed.');
+      } else if (error.request) {
+        // The request was made but no response was received
+        setApiError('No response received from server. Please try again.');
+      } else {
+        // Something happened in setting up the request that triggered an Error
+        setApiError(error.message);
+      }
+      console.error('Registration error:', error);
+    } finally {
       setIsLoading(false);
-      console.log('Registration data:', formData);
-    }, 1000);
+    }
   };
 
+  // Triggers the hidden file input click
   const triggerFileInput = () => {
     fileInputRef.current?.click();
   };
@@ -147,6 +196,13 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
         {/* Registration Form */}
         <div className="bg-white/10 backdrop-blur-lg rounded-2xl shadow-2xl p-8 border border-white/20">
           <form onSubmit={handleSubmit} className="space-y-6">
+            {/* General API error message */}
+            {apiError && (
+              <div className="bg-red-500/20 text-red-400 p-3 rounded-lg text-center">
+                {apiError}
+              </div>
+            )}
+
             {/* Role Selection */}
             <div className="grid grid-cols-2 gap-4">
               <button
@@ -189,21 +245,21 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
             {/* Personal Information */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label htmlFor="fullName" className="block text-sm font-medium text-gray-200 mb-2">
+                <label htmlFor="name" className="block text-sm font-medium text-gray-200 mb-2">
                   Full Name *
                 </label>
                 <input
                   type="text"
-                  id="fullName"
-                  name="fullName"
-                  value={formData.fullName}
+                  id="name"
+                  name="name"
+                  value={formData.name}
                   onChange={handleChange}
                   className={`w-full px-4 py-3 bg-white/10 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 ${
-                    errors.fullName ? 'border-red-500' : 'border-white/20'
+                    errors.name ? 'border-red-500' : 'border-white/20'
                   }`}
                   placeholder="Enter your full name"
                 />
-                {errors.fullName && <p className="mt-1 text-sm text-red-400">{errors.fullName}</p>}
+                {errors.name && <p className="mt-1 text-sm text-red-400">{errors.name}</p>}
               </div>
 
               <div>
@@ -411,4 +467,4 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
   );
 };
 
-export default Register; 
+export default Register;

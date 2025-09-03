@@ -8,7 +8,7 @@ const Header: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center py-4">
           <div className="flex items-center">
-            <a href="#" className="text-2xl font-bold text-white hover:text-purple-300 transition-colors">
+            <a href="/" className="text-2xl font-bold text-white hover:text-purple-300 transition-colors">
               StartupConnect
             </a>
           </div>

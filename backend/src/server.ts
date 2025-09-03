@@ -10,7 +10,17 @@ import subscriptionRoutes from "./routes/subscriptionRoutes";
 dotenv.config();
 
 const app = express();
-app.use(cors());
+
+// Configure CORS to allow your React app to send credentials (like cookies)
+const corsOptions = {
+  // Replace with the exact URL of your React app
+  origin: "http://localhost:3000",
+  // This is required to allow cookies/credentials to be sent with requests
+  credentials: true,
+};
+app.use(cors(corsOptions));
+
+// This middleware parses the incoming JSON payload from the request body
 app.use(express.json());
 
 // Routes
@@ -31,3 +41,5 @@ app.use("/api/subscriptions", subscriptionRoutes);
     process.exit(1);
   }
 })();
+
+
