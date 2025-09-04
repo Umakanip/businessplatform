@@ -34,6 +34,8 @@ import SettingsInv from "./pages/investor/Settings";
 import HeaderInv from "./components/Header/HeaderInv";
 import HeaderIh from "./components/Header/HeaderIh";
 import InvConnections from "./pages/investor/InvConnection";
+import IhApproch from "./pages/ideaHolder/Approch";
+import InvApproch from "./pages/investor/Approch";
 
 const App: React.FC = () => {
   // ⚡ Later, get this from auth/login state
@@ -53,6 +55,7 @@ const App: React.FC = () => {
         {/* Idea Holder Layout with Nested Routes */}
         <Route path="/ih" element={<MainLayout role="idealogist"/>}>
           <Route path="subscription" element={<Subscription />} />
+          <Route path="approach" element={<IhApproch />} />
           <Route path="connections" element={<Connections />} />
           <Route path="notifications" element={<NotificationsIH />} />
           <Route path="profile" element={<ProfileIH />} />
@@ -62,6 +65,7 @@ const App: React.FC = () => {
         {/* Investor Layout with Nested Routes */}
         <Route path="/inv" element={<MainLayout role="investor" />}>
           <Route path="connections" element={<InvConnections />} />
+          <Route path="approach" element={<InvApproch/>} />
           <Route path="notifications" element={<NotificationsInv />} />
           <Route path="profile" element={<ProfileInv />} />
           <Route path="settings" element={<SettingsInv />} />
