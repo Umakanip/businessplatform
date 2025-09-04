@@ -51,9 +51,9 @@ const Login: React.FC<LoginProps> = ({ onSwitchToRegister }) => {
 
       // ✅ Navigate based on role
       if (role === 'investor') {
-        navigate("/inv/connections", { state: { userId: id } });
+        navigate("/inv/approach", { state: { userId: id } });
       } else if (role === "idealogist") {
-        navigate("/ih/connections", { state: { userId: id } });
+        navigate("/ih/approach", { state: { userId: id } });
       } else {
         setApiError('Invalid role received from server.');
       }
