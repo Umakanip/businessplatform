@@ -9,7 +9,7 @@ import "./App.css";
 
 // Components
 import AuthContainer from "./components/Pages/AuthContainer";
-import InvitationsList from "./components/Pages/profile";
+import InvitationsList from "./components/Pages/subscription";
 import PaymentPage from "./components/Pages/Payment";
 import ConnectPage from "./components/Pages/Connect";
 import Pricing from "./components/Pages/Pricing";
