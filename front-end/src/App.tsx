@@ -1,10 +1,13 @@
 import React from "react";
-import { BrowserRouter as Router, Routes, Route, useLocation, Outlet } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Outlet,
+} from "react-router-dom";
 import "./App.css";
 
 // Components
-import SidebarInv from "./components/Sidebar/SidebarInv";
-import SidebarIh from "./components/Sidebar/SidebarIh";
 import AuthContainer from "./components/Pages/AuthContainer";
 import InvitationsList from "./components/Pages/profile";
 import PaymentPage from "./components/Pages/Payment";
@@ -29,6 +32,10 @@ import NotificationsInv from "./pages/investor/Notifications";
 import ProfileInv from "./pages/investor/Profile";
 import SettingsInv from "./pages/investor/Settings";
 
+// Headers
+import HeaderInv from "./components/Header/HeaderInv";
+import HeaderIh from "./components/Header/HeaderIh";
+
 const App: React.FC = () => {
   // ⚡ Later, get this from auth/login state
   const role: "idea-holder" | "investor" = "idea-holder";
@@ -47,7 +54,7 @@ const App: React.FC = () => {
         {/* Idea Holder Layout with Nested Routes */}
         <Route path="/ih" element={<MainLayout role="idea-holder" />}>
           <Route path="dashboard" element={<IdeaHolderDashboard />} />
-          <Route path="/ih/subscription" element={<Subscription />} />
+          <Route path="subscription" element={<Subscription />} />
           <Route path="connections" element={<Connections />} />
           <Route path="notifications" element={<NotificationsIH />} />
           <Route path="profile" element={<ProfileIH />} />
@@ -78,15 +85,18 @@ const App: React.FC = () => {
 };
 
 // MainLayout Component with Outlet
-const MainLayout: React.FC<{ role: "idea-holder" | "investor" }> = ({ role }) => {
+const MainLayout: React.FC<{ role: "idea-holder" | "investor" }> = ({
+  role,
+}) => {
   return (
-    <div className="min-h-screen bg-white flex">
-      {/* Sidebar based on role */}
-      {role === "investor" ? <SidebarInv /> : <SidebarIh />}
+    <div className="min-h-screen bg-white flex flex-col">
+      {/* Header based on role */}
+      {role === "investor" ? <HeaderInv /> : <HeaderIh />}
 
       {/* Main Content Area */}
-      <div className="flex-1 ml-64 p-6">
-        <Outlet /> {/* This is where nested route components will render */}
+      <div className="flex-1 pt-16 px-6">
+        {/* pt-16 = padding for fixed header height */}
+        <Outlet />
       </div>
     </div>
   );
