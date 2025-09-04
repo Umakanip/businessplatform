@@ -85,11 +85,34 @@ export const login = async (req: Request, res: Response) => {
       }
     }
 
+    // Generate token
     const token = generateToken(user.id, user.role);
+
+    let investors: any[] = [];
+    if (user.role === "idealogist") {
+      if (!user.category) {
+        return res.status(400).json({ message: "Idealogist does not have a category set" });
+      }
+
+      // Fetch investors with same category
+      investors = await User.findAll({
+        where: { role: "investor", category: user.category },
+        attributes: ["id", "name", "email", "category", "profileImage"]
+      });
+    }
+
     return res.status(200).json({
       token,
-      user: { id: user.id, name: user.name, email: user.email, role: user.role },
+      user: { 
+        id: user.id, 
+        name: user.name, 
+        email: user.email, 
+        role: user.role, 
+        category: user.category || null 
+      },
+      investors // empty if role != idealogist
     });
+
   } catch (error) {
     console.error("Login error:", error);
     return res.status(500).json({ message: "Internal server error" });

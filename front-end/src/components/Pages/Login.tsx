@@ -1,6 +1,7 @@
+
 import React, { useState } from 'react';
 import axiosInstance from '../../utils/axiosInstance';
-import { useNavigate } from 'react-router-dom'; 
+import { useNavigate } from 'react-router-dom';
 interface LoginProps {
   onSwitchToRegister: () => void;
 }
@@ -39,10 +40,18 @@ const Login: React.FC<LoginProps> = ({ onSwitchToRegister }) => {
       console.log('Login successful:', response.data.user);
 
       const { id, role } = response.data.user;
-      
+
+      const token = response.data.token; // 👈 backend la token return aagum
+
+      // 🔑 Save token in localStorage
+      if (token) {
+        localStorage.setItem("token", token);
+      }
+
+
       // ✅ Navigate based on role
       if (role === 'investor') {
-        navigate("/inv/connections",{ state: { userId: id } });
+        navigate("/inv/connections", { state: { userId: id } });
       } else if (role === "idealogist") {
         navigate("/ih/connections", { state: { userId: id } });
       } else {
