@@ -3,20 +3,21 @@ import { Link, useLocation } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faHome,
-  faChartLine,
   faBell,
   faUser,
   faCog,
   faSignOutAlt,
-  faLink
+  faLink,
+  faLightbulb,
 } from "@fortawesome/free-solid-svg-icons";
 
 const HeaderInv: React.FC = () => {
   const location = useLocation();
 
   const investorMenu = [
-        { name: "My Connections", path: "/inv/connections", icon: faLink },
-    
+    { name: "Home", path: "/inv/home", icon: faHome },
+    { name: "Our Approach", path: "/inv/approach", icon: faLightbulb },
+    { name: "My Connections", path: "/inv/connections", icon: faLink },
     { name: "Notifications", path: "/inv/notifications", icon: faBell },
     { name: "Profile", path: "/inv/profile", icon: faUser },
     { name: "Settings", path: "/inv/settings", icon: faCog },
@@ -29,16 +30,17 @@ const HeaderInv: React.FC = () => {
       <div className="font-extrabold text-2xl tracking-wide">Investor</div>
 
       {/* Navigation */}
-      <nav className="flex items-center gap-8">
+      <nav className="flex items-center gap-6">
         {investorMenu.map((item) => (
           <Link
             key={item.name}
             to={item.path}
-            className={`flex items-center gap-2 px-3 py-2 rounded-md transition-all ${
-              location.pathname === item.path
-                ? "bg-white/20 text-yellow-300 shadow-md"
-                : "hover:bg-white/10"
-            }`}
+            className={`flex items-center gap-2 px-3 py-2 rounded-md transition-all duration-300
+              ${
+                location.pathname === item.path
+                  ? "bg-purple-700/50 text-white shadow-md"
+                  : "hover:bg-purple-600/30"
+              }`}
           >
             <FontAwesomeIcon icon={item.icon} />
             <span className="hidden md:inline font-medium">{item.name}</span>
