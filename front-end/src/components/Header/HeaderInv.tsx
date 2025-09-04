@@ -14,8 +14,6 @@ const HeaderInv: React.FC = () => {
   const location = useLocation();
 
   const investorMenu = [
-    { name: "Dashboard", path: "/inv/dashboard", icon: faHome },
-    { name: "My Investments", path: "/inv/investments", icon: faChartLine },
     { name: "Notifications", path: "/inv/notifications", icon: faBell },
     { name: "Profile", path: "/inv/profile", icon: faUser },
     { name: "Settings", path: "/inv/settings", icon: faCog },

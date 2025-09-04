@@ -15,7 +15,6 @@ const HeaderIh: React.FC = () => {
   const location = useLocation();
 
   const ideaHolderMenu = [
-    { name: "Dashboard", path: "/ih/dashboard", icon: faHome },
     { name: "My Connections", path: "/ih/connections", icon: faLink },
     { name: "Subscription", path: "/ih/subscription", icon: faCreditCard },
     { name: "Notifications", path: "/ih/notifications", icon: faBell },

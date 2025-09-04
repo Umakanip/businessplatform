@@ -18,7 +18,6 @@ import Pricing from "./components/Pages/Pricing";
 import Home from "./components/Pages/Home";
 
 // Idea Holder
-import IdeaHolderDashboard from "./pages/ideaHolder/Dashboard";
 import Connections from "./pages/ideaHolder/Connections";
 import Subscription from "./pages/ideaHolder/Subscription";
 import NotificationsIH from "./pages/ideaHolder/Notifications";
@@ -26,8 +25,6 @@ import ProfileIH from "./pages/ideaHolder/Profile";
 import SettingsIH from "./pages/ideaHolder/Settings";
 
 // Investor
-import InvestorDashboard from "./pages/investor/Dashboard";
-import Investments from "./pages/investor/Investments";
 import NotificationsInv from "./pages/investor/Notifications";
 import ProfileInv from "./pages/investor/Profile";
 import SettingsInv from "./pages/investor/Settings";
@@ -45,7 +42,7 @@ const App: React.FC = () => {
       <Routes>
         {/* Public Pages */}
         <Route path="/" element={<Home />} />
-        <Route path="/auth" element={<AuthContainer />} />
+        <Route path="/auth" element={<AuthContainer />} />  
         <Route path="/invitation" element={<InvitationsList />} />
         <Route path="/payment" element={<PaymentPage />} />
         <Route path="/connect" element={<ConnectPage />} />
@@ -53,7 +50,6 @@ const App: React.FC = () => {
 
         {/* Idea Holder Layout with Nested Routes */}
         <Route path="/ih" element={<MainLayout role="idea-holder" />}>
-          <Route path="dashboard" element={<IdeaHolderDashboard />} />
           <Route path="subscription" element={<Subscription />} />
           <Route path="connections" element={<Connections />} />
           <Route path="notifications" element={<NotificationsIH />} />
@@ -63,8 +59,6 @@ const App: React.FC = () => {
 
         {/* Investor Layout with Nested Routes */}
         <Route path="/inv" element={<MainLayout role="investor" />}>
-          <Route path="dashboard" element={<InvestorDashboard />} />
-          <Route path="investments" element={<Investments />} />
           <Route path="notifications" element={<NotificationsInv />} />
           <Route path="profile" element={<ProfileInv />} />
           <Route path="settings" element={<SettingsInv />} />
