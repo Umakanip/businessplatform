@@ -1,4 +1,4 @@
-# Business Platform - Authentication UI
+# Busines   s Platform - Authentication UI
 
 A modern, responsive authentication system for a business platform that connects Investors with Idea Holders.
 
@@ -11,7 +11,7 @@ A modern, responsive authentication system for a business platform that connects
 - Forgot password link
 - Smooth transitions and hover effects
 - Responsive design for all devices
-
+ 
 ### Register Screen
 - Role selection (Investor or Idea Holder)
 - Comprehensive form with all required fields:
@@ -21,7 +21,8 @@ A modern, responsive authentication system for a business platform that connects
   - Phone Numbers (primary and secondary)
   - Category selection dropdown
   - Profile image upload
-- Form validation with error messages
+- Form validation with error mes
+sages
 - Professional startup theme
 
 ## Design Features
