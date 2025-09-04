@@ -9,10 +9,6 @@ import { addMonths, isActive } from "../utils/dates";
 interface AuthRequest extends Request {
   user: User;
 }
-
-/**
- * Authenticated idealogist: subscribe/renew
- */
 export const subscribe = async (req: AuthRequest, res: Response) => {
   try {
     const user = req.user;
@@ -54,7 +50,14 @@ export const subscribe = async (req: AuthRequest, res: Response) => {
     });
 
     await sub.reload();
-    return res.json({ message: "Subscription active", subscription: sub });
+    return res.json({
+      success: true,
+      message: "Subscription active",
+      subscriptionId: sub.id,
+      amount: PLAN_PRICE[plan],
+      status: "success",
+      subscription: sub,
+    });
   } catch (e) {
     console.error(e);
     return res.status(500).json({ message: "Server error" });
@@ -117,7 +120,11 @@ export const subscribePublic = async (req: Request, res: Response) => {
 
     await sub.reload();
     return res.json({
+      success: true,
       message: "Subscription activated. You can now login.",
+      subscriptionId: sub.id,
+      amount: PLAN_PRICE[plan],
+      status: "success",
       subscription: sub,
     });
   } catch (e) {
@@ -146,3 +153,4 @@ export const status = async (req: AuthRequest, res: Response) => {
     return res.status(500).json({ message: "Server error" });
   }
 };
+

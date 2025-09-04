@@ -6,6 +6,7 @@ import authRoutes from "./routes/authRoutes";
 import investorRoutes from "./routes/investorRoutes";
 import idealogistRoutes from "./routes/idealogistRoutes";
 import subscriptionRoutes from "./routes/subscriptionRoutes";
+import paymentRoutes from "./routes/paymentRoutes";
 import path from "path";
 
 dotenv.config();
@@ -30,6 +31,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/investors", investorRoutes);
 app.use("/api/idealogists", idealogistRoutes);
 app.use("/api/subscriptions", subscriptionRoutes);
+app.use ("/api/payments",paymentRoutes);
 
 // DB sync & start
 (async () => {

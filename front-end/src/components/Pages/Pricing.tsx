@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import toast, { Toaster } from 'react-hot-toast';
 
+
 // Define an interface for the plan object
 interface Plan {
   name: string;
@@ -84,9 +85,14 @@ const Pricing = () => {
         const subscriptionId = response.data.subscriptionId; // Get the subscription ID from the response
 
         // Introduce a delay to allow the user to see the toast message before redirecting
-        setTimeout(() => {
-          navigate('/payment', { state: { subscriptionId } });
-        }, 2000); // 2-second delay
+  navigate("/payment", { 
+  state: { 
+    subscriptionId: response.data.subscriptionId,
+    amount: response.data.amount 
+  }
+});
+
+ // 2-second delay
       }
     } catch (error) {
       // Handle API errors
