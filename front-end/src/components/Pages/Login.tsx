@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
-import axios from 'axios';
 import axiosInstance from '../../utils/axiosInstance';
-
+import { useNavigate } from 'react-router-dom'; 
 interface LoginProps {
   onSwitchToRegister: () => void;
 }
@@ -14,12 +13,14 @@ const Login: React.FC<LoginProps> = ({ onSwitchToRegister }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
 
+  const navigate = useNavigate(); // ✅ Hook for navigation
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
     });
-    setApiError(null); // Clear any previous API error when user starts typing
+    setApiError(null);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -27,30 +28,33 @@ const Login: React.FC<LoginProps> = ({ onSwitchToRegister }) => {
     setIsLoading(true);
     setApiError(null);
 
-    // Prepare data for the API call
     const loginData = {
       email: formData.email,
       password: formData.password,
     };
 
     try {
-      const response = await axiosInstance.post('/auth/Login', loginData);
+      const response = await axiosInstance.post('/auth/login', loginData);
 
-      // Handle successful login
-      console.log('Login successful:', response.data);
-      // You can store the authentication token (e.g., in localStorage or context) here
-      // For example: localStorage.setItem('token', response.data.token);
+      console.log('Login successful:', response.data.user);
+
+      const { id, role } = response.data.user;
+      
+      // ✅ Navigate based on role
+      if (role === 'investor') {
+        navigate(`/invconnections/${id}`);
+      } else if (role === "idealogist") {
+        navigate(`/ihconnections/${id}`);
+      } else {
+        setApiError('Invalid role received from server.');
+      }
 
     } catch (error: any) {
-      // Axios provides a structured error object.
       if (error.response) {
-        // The server responded with a status code outside the 2xx range
         setApiError(error.response.data.message || 'Login failed. Please check your credentials.');
       } else if (error.request) {
-        // The request was made but no response was received (e.g., network error)
         setApiError('No response received from server. Please check your network connection.');
       } else {
-        // Something else happened while setting up the request
         setApiError(error.message || 'An unexpected error occurred.');
       }
       console.error('Login error:', error);
