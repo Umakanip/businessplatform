@@ -6,6 +6,7 @@ import authRoutes from "./routes/authRoutes";
 import investorRoutes from "./routes/investorRoutes";
 import idealogistRoutes from "./routes/idealogistRoutes";
 import subscriptionRoutes from "./routes/subscriptionRoutes";
+import path from "path";
 
 dotenv.config();
 
@@ -22,6 +23,7 @@ app.use(cors(corsOptions));
 
 // This middleware parses the incoming JSON payload from the request body
 app.use(express.json());
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // Routes
 app.use("/api/auth", authRoutes);

@@ -15,9 +15,11 @@ export const register = async (req: Request, res: Response) => {
       role, 
       primaryPhone, 
       secondaryPhone, 
-      category, 
-      profileImage 
+      category
     } = req.body;
+
+    // file comes from multer
+   const profileImage = req.file ? req.file.filename : "";
 
     if (!name || !email || !password || !role) {
       return res.status(400).json({ message: "Missing required fields" });
@@ -26,10 +28,6 @@ export const register = async (req: Request, res: Response) => {
     // Normalize role
     const normalizedRole = role === "ideaholder" ? "idealogist" : role;
 
-    if (!["investor", "idealogist"].includes(normalizedRole)) {
-      return res.status(400).json({ message: "Invalid role" });
-    }
-
     const exists = await User.findOne({ where: { email } });
     if (exists) {
       return res.status(409).json({ message: "Email already registered" });
@@ -37,7 +35,7 @@ export const register = async (req: Request, res: Response) => {
 
     const hash = await bcrypt.hash(password, 10);
     const user = await User.create({ 
-      name: name, 
+      name, 
       email, 
       password: hash, 
       role: normalizedRole, 
@@ -48,17 +46,8 @@ export const register = async (req: Request, res: Response) => {
     });
 
     return res.status(201).json({
-      message: "Registered successfully. Idealogists must subscribe before login.",
-      user: { 
-        id: user.id, 
-        name: user.name, 
-        email: user.email, 
-        role: user.role,
-        primaryPhone: user.primaryPhone,
-        secondaryPhone: user.secondaryPhone,
-        category: user.category,
-        profileImage: user.profileImage
-      },
+      message: "Registered successfully",
+      user
     });
   } catch (error) {
     console.error("Register error:", error);

@@ -135,19 +135,25 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
     setIsLoading(true);
     setApiError(null);
 
-    // Prepare data for the API call
-    const dataToSubmit = {
-      role: formData.role,
-      name: formData.name,
-      email: formData.email,
-      password: formData.password,
-      primaryPhone: formData.primaryPhone,
-      secondaryPhone: formData.secondaryPhone,
-      category: formData.category,
-    };
+  try {
+    const formDataToSend = new FormData();
+    formDataToSend.append("role", formData.role);
+    formDataToSend.append("name", formData.name);
+    formDataToSend.append("email", formData.email);
+    formDataToSend.append("password", formData.password);
+    formDataToSend.append("primaryPhone", formData.primaryPhone);
+    formDataToSend.append("secondaryPhone", formData.secondaryPhone);
+    formDataToSend.append("category", formData.category);
+  
+    if (formData.profileImage) {
+      formDataToSend.append("profileImage", formData.profileImage);
+    }
 
-    try {
-      const response = await axiosInstance.post('/auth/Register', dataToSubmit);
+    const response = await axiosInstance.post("/auth/register", formDataToSend, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
 
       // Handle successful registration
       console.log('Registration successful!', response.data);
