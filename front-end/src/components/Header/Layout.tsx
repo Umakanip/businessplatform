@@ -1,6 +1,6 @@
 import React from "react";
-import SidebarInv from "./HeaderIh";
-import SidebarIh from "./HeaderInv";
+import HeaderInv from "./HeaderInv";
+import HeaderIh from "./HeaderIh";
 
 type LayoutProps = {
   role: "idea-holder" | "investor";
@@ -9,9 +9,9 @@ type LayoutProps = {
 
 const Layout: React.FC<LayoutProps> = ({ role, children }) => {
   return (
-    <div className="flex">
-      {role === "investor" ? <SidebarInv /> : <SidebarIh />}
-      <main className="ml-64 w-full min-h-screen bg-gray-100 p-6">{children}</main>
+    <div> {/* Changed from <div className="flex"> */}
+      {role === "investor" ? <HeaderInv /> : <HeaderIh />}
+        {children}
     </div>
   );
 };

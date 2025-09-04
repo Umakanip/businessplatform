@@ -83,12 +83,12 @@ const MainLayout: React.FC<{ role: "idea-holder" | "investor" }> = ({
   role,
 }) => {
   return (
-    <div className="min-h-screen bg-white flex flex-col">
+    <div className="">
       {/* Header based on role */}
       {role === "investor" ? <HeaderInv /> : <HeaderIh />}
 
       {/* Main Content Area */}
-      <div className="flex-1 pt-16 px-6">
+      <div >
         {/* pt-16 = padding for fixed header height */}
         <Outlet />
       </div>
