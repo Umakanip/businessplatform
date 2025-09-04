@@ -1,33 +1,112 @@
 import React from "react";
 
-const Connections: React.FC = () => {
-  const connections = [
-    { id: 1, name: "Investor A", status: "Connected" },
-    { id: 2, name: "Investor B", status: "Pending" },
-    { id: 3, name: "Investor C", status: "Connected" },
-  ];
+type Profile = {
+  id: number;
+  name: string;
+  role: string;
+  image: string;
+};
 
-  return (
-    <div className="bg-white p-6 shadow rounded-lg">
-      <h1 className="text-2xl font-bold text-purple-700 mb-4">My Connections</h1>
-      <table className="w-full border">
-        <thead>
-          <tr className="bg-gray-100">
-            <th className="p-2 border">Name</th>
-            <th className="p-2 border">Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          {connections.map((c) => (
-            <tr key={c.id} className="text-center">
-              <td className="p-2 border">{c.name}</td>
-              <td className="p-2 border">{c.status}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
+const profiles: Profile[] = [
+  {
+    id: 1,
+    name: "John Doe",
+    role: "IT Consultant",
+    image: "https://randomuser.me/api/portraits/men/32.jpg",
+  },
+  {
+    id: 2,
+    name: "Jane Smith",
+    role: "Business Strategist",
+    image: "https://randomuser.me/api/portraits/women/44.jpg",
+  },
+  {
+    id: 3,
+    name: "Mike Brown",
+    role: "UI/UX Designer",
+    image: "https://randomuser.me/api/portraits/men/52.jpg",
+  },
+  {
+    id: 4,
+    name: "Emily Davis",
+    role: "HR Specialist",
+    image: "https://randomuser.me/api/portraits/women/68.jpg",
+  },
+  {
+    id: 5,
+    name: "David Lee",
+    role: "Software Engineer",
+    image: "https://randomuser.me/api/portraits/men/77.jpg",
+  },
+  {
+    id: 6,
+    name: "Olivia Garcia",
+    role: "Product Manager",
+    image: "https://randomuser.me/api/portraits/women/65.jpg",
+  },
+  {
+    id: 7,
+    name: "Alex Kim",
+    role: "Marketing Lead",
+    image: "https://randomuser.me/api/portraits/men/11.jpg",
+  },
+  {
+    id: 8,
+    name: "Sophia Chen",
+    role: "Data Scientist",
+    image: "https://randomuser.me/api/portraits/women/22.jpg",
+  },
+  {
+    id: 9,
+    name: "Samuel Evans",
+    role: "Cloud Architect",
+    image: "https://randomuser.me/api/portraits/men/83.jpg",
+  },
+  {
+    id: 10,
+    name: "Laura Martin",
+    role: "Sales Director",
+    image: "https://randomuser.me/api/portraits/women/23.jpg",
+  },
+];
+
+const Connections: React.FC = () => {
+  return (
+    <div className="bg-gray-100 ">
+      {/* Header Section */}
+      <div className="max-w-7xl mx-auto mb-8">
+        <h1 className="text-2xl font-bold text-gray-800">More suggestions for you</h1>
+      </div>
+
+      {/* Compact Design for Connecting Profiles */}
+      <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+        {profiles.map((profile) => (
+          <div
+            key={profile.id}
+            className="relative bg-white rounded-2xl shadow-lg px-4 py-3 overflow-hidden transition-all duration-300 transform hover:scale-105 hover:shadow-2xl"
+          >
+            {/* Background Gradient Circle */}
+            <div className="absolute top-0 right-0 w-20 h-20 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 transform translate-x-1/2 -translate-y-1/2 opacity-50"></div>
+
+            <div className="flex flex-col items-center z-10 relative">
+              <img
+                src={profile.image}
+                alt={profile.name}
+                className="w-14 h-14 rounded-full object-cover mb-2 ring-1 ring-white shadow-lg"
+              />
+              <h3 className="text-sm font-semibold text-gray-900">{profile.name}</h3>
+              <p className="text-xs text-gray-500 mb-2">{profile.role}</p>
+              <button
+                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold py-1.5 rounded-full shadow-lg hover:shadow-xl transition-all duration-300"
+              >
+                Connect
+              </button>
+          </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 };
 
 export default Connections;
