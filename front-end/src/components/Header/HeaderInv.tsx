@@ -8,12 +8,15 @@ import {
   faUser,
   faCog,
   faSignOutAlt,
+  faLink
 } from "@fortawesome/free-solid-svg-icons";
 
 const HeaderInv: React.FC = () => {
   const location = useLocation();
 
   const investorMenu = [
+        { name: "My Connections", path: "/inv/connections", icon: faLink },
+    
     { name: "Notifications", path: "/inv/notifications", icon: faBell },
     { name: "Profile", path: "/inv/profile", icon: faUser },
     { name: "Settings", path: "/inv/settings", icon: faCog },
