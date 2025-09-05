@@ -1,6 +1,8 @@
 import React, { useState, useRef } from 'react';
 import axiosInstance from '../../utils/axiosInstance';
 import { useNavigate } from 'react-router-dom'; // Import useNavigate hook
+import Swal from "sweetalert2";
+import "sweetalert2/dist/sweetalert2.min.css";
 
 // Interfaces for component props and form data
 interface RegisterProps {
@@ -88,99 +90,117 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
   };
 
   // Validates the form fields before submission
-  const validateForm = (): boolean => {
-    const newErrors: Partial<FormData> = {};
+const validateForm = (): boolean => {
+  const newErrors: Partial<FormData> = {};
 
-    if (!formData.name.trim()) {
-      newErrors.name = 'Full name is required';
-    }
+  if (!formData.name.trim()) {
+    newErrors.name = "Full name is required";
+  }
 
-    if (!formData.email) {
-      newErrors.email = 'Email is required';
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Email is invalid';
-    }
+  if (!formData.email) {
+    newErrors.email = "Email is required";
+  } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+    newErrors.email = "Email is invalid";
+  }
 
-    if (formData.email !== formData.confirmEmail) {
-      newErrors.confirmEmail = 'Emails do not match';
-    }
+  if (formData.email !== formData.confirmEmail) {
+    newErrors.confirmEmail = "Emails do not match";
+  }
 
-    if (!formData.password) {
-      newErrors.password = 'Password is required';
-    } else if (formData.password.length < 8) {
-      newErrors.password = 'Password must be at least 8 characters';
-    }
+  if (!formData.password) {
+    newErrors.password = "Password is required";
+  } else if (formData.password.length < 8) {
+    newErrors.password = "Password must be at least 8 characters";
+  }
 
-    if (!formData.primaryPhone) {
-      newErrors.primaryPhone = 'Primary phone is required';
-    }
+  if (!formData.primaryPhone) {
+    newErrors.primaryPhone = "Primary phone is required";
+  } else if (!/^\d{10}$/.test(formData.primaryPhone)) {
+    newErrors.primaryPhone = "Phone must be exactly 10 digits";
+  }
 
-    if (!formData.category) {
-      newErrors.category = 'Category is required';
-    }
+  if (!formData.category) {
+    newErrors.category = "Category is required";
+  }
 
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
+  setErrors(newErrors);
+
+  // ❌ Show alert if validation failed
+  if (Object.keys(newErrors).length > 0) {
+    Swal.fire({
+      icon: "error",
+      title: "Oops!",
+      text: "Please fix the errors in the form.",
+      timer: 2000,
+      showConfirmButton: false,
+    });
+    return false;
+  }
+
+  return true;
+};
+
 
   // Handles form submission, including API call
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    // Validate the form before attempting submission
-    if (!validateForm()) {
-      return;
-    }
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
 
-    setIsLoading(true);
-    setApiError(null);
+  if (!validateForm()) return;
+
+  setIsLoading(true);
+  setApiError(null);
+
+  const formDataToSend = new FormData();
+  formDataToSend.append("role", formData.role);
+  formDataToSend.append("name", formData.name);
+  formDataToSend.append("email", formData.email);
+  formDataToSend.append("password", formData.password);
+  formDataToSend.append("primaryPhone", formData.primaryPhone);
+  formDataToSend.append("secondaryPhone", formData.secondaryPhone);
+  formDataToSend.append("category", formData.category);
+
+  if (formData.profileImage) {
+    formDataToSend.append("profileImage", formData.profileImage);
+  }
 
   try {
-    const formDataToSend = new FormData();
-    formDataToSend.append("role", formData.role);
-    formDataToSend.append("name", formData.name);
-    formDataToSend.append("email", formData.email);
-    formDataToSend.append("password", formData.password);
-    formDataToSend.append("primaryPhone", formData.primaryPhone);
-    formDataToSend.append("secondaryPhone", formData.secondaryPhone);
-    formDataToSend.append("category", formData.category);
-  
-    if (formData.profileImage) {
-      formDataToSend.append("profileImage", formData.profileImage);
-    }
+    const response = await axiosInstance.post(
+      "/auth/register",
+      formDataToSend,
+      { headers: { "Content-Type": "multipart/form-data" } }
+    );
 
-    const response = await axiosInstance.post("/auth/register", formDataToSend, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
+    // ✅ Success alert
+    Swal.fire({
+      icon: "success",
+      title: "Registration Successful!",
+      text: "Your account has been created.",
+      timer: 2000,
+      showConfirmButton: false,
+      position: "center",
     });
 
-      // Handle successful registration
-      console.log('Registration successful!', response.data);
-      
-      // Check the user's role and redirect accordingly
-      if (formData.role === 'investor') {
-        // Redirect to the Login page for investors
-        onSwitchToLogin();
-      } else if (formData.role === 'ideaholder') {
-        // Redirect to the Pricing page for idea holders
-        navigate('/subscription');
-      }
-
-    } catch (error: any) {
-      // Handle network errors or specific API errors
-      if (error.response) {
-        setApiError(error.response.data.message || 'Registration failed.');
-      } else if (error.request) {
-        setApiError('No response received from server. Please try again.');
-      } else {
-        setApiError(error.message);
-      }
-      console.error('Registration error:', error);
-    } finally {
-      setIsLoading(false);
+    if (formData.role === "investor") {
+      onSwitchToLogin();
+    } else if (formData.role === "ideaholder") {
+      navigate("/subscription");
     }
-  };
+  } catch (error: any) {
+    console.error("Registration error:", error);
+
+    Swal.fire({
+      icon: "error",
+      title: "Registration Failed",
+      text:
+        error.response?.data?.message ||
+        "Something went wrong. Please try again.",
+      confirmButtonText: "Close",
+      position: "center",
+    });
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   // Triggers the hidden file input click
   const triggerFileInput = () => {

@@ -1,7 +1,8 @@
 import React, { useState, useRef } from "react";
 import axios from "axios";
 import { useLocation,useNavigate} from "react-router-dom";
-
+import Swal from "sweetalert2";
+import "sweetalert2/dist/sweetalert2.min.css";
 // ---------------- ICONS ----------------
 function BankIcon({ color = "#2563eb" }: { color?: string }) {
   return (
@@ -196,16 +197,48 @@ const handlePayment = async (e: React.FormEvent) => {
   try {
     const response = await axios.post("http://localhost:5000/api/payments", payload);
     if (response.data.success) {
-      setPaymentStatus("success");
-      console.log("Payment successful:", response.data.data);
+     if (response.data.success) {
+  setPaymentStatus("success");
 
-      // 👇 Redirect to login page after 2 seconds
-      setTimeout(() => {
-        navigate("/auth");
-      }, 2000);
+  Swal.fire({
+    icon: "success",
+    title: "Payment Successful ",
+    text: "Your subscription has been activated!",
+    timer: 2000,
+    showConfirmButton: false,
+    width: "500px",         // kutty size
+    padding: "1rem",        // small box
+    iconColor: "#4ade80",   // green tick
+    position: "center",     // always center
+    background: "#ffffff",
+    customClass: {
+      popup: "animate__animated animate__bounceIn",
+    },
+  });
+
+  setTimeout(() => {
+    navigate("/auth");
+  }, 2000);
+}
+
+      
     } else {
-      setPaymentStatus("failed");
-      console.error("Payment failed:", response.data.message);
+     Swal.fire({
+  icon: "error",
+  title: "Payment Failed ❌",
+  text: "Please try again!",
+  width: "300px",
+  padding: "1rem",
+  showConfirmButton: true,
+  confirmButtonColor: "#ef4444", // red button
+  iconColor: "#f87171",
+  position: "center",
+  background: "#ffffff",
+  customClass: {
+    popup: "animate__animated animate__shakeX",
+  },
+});
+
     }
   } catch (error) {
     setPaymentStatus("failed");
