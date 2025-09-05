@@ -94,11 +94,11 @@ const MainLayout: React.FC<{ role: "idealogist" | "investor" }> = ({
       {role === "investor" ? <HeaderInv /> : <HeaderIh />}
 
       {/* Main Content Area */}
-      <div>
-        {/* pt-16 = padding for fixed header height */}
-        <Outlet />
-      </div>
+  <div className="pt-15"> {/* 👈 header height ku padding-top */}
+            <Outlet />
     </div>
+        </div>
+
   );
 };
 

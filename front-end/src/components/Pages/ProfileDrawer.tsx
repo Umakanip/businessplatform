@@ -1,6 +1,16 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faTimes,
+  faCamera,
+  faEdit,
+  faSave,
+  faSignOutAlt,
+  faCheckCircle,
+  faUserCircle,
+} from "@fortawesome/free-solid-svg-icons";
 
 interface UserProfile {
   id: string;
@@ -16,6 +26,7 @@ interface UserProfile {
 interface ProfileDrawerProps {
   isOpen: boolean;
   onClose: () => void;
+  showLogout?: boolean;  // 👈 add this line
 }
 
 const ProfileDrawer: React.FC<ProfileDrawerProps> = ({ isOpen, onClose }) => {
@@ -24,7 +35,9 @@ const ProfileDrawer: React.FC<ProfileDrawerProps> = ({ isOpen, onClose }) => {
   const [editing, setEditing] = useState(false);
   const [newPassword, setNewPassword] = useState("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-const [showSuccess, setShowSuccess] = useState(false);
+  const [preview, setPreview] = useState<string | null>(null);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   // ✅ Fetch user profile
   useEffect(() => {
@@ -34,7 +47,7 @@ const [showSuccess, setShowSuccess] = useState(false);
     const token = localStorage.getItem("token");
 
     if (!storedUser || !token) {
-      navigate("/login");
+      navigate("/auth");
       return;
     }
 
@@ -47,7 +60,7 @@ const [showSuccess, setShowSuccess] = useState(false);
       .then((res) => setUser(res.data))
       .catch((err) => {
         console.error("Profile fetch failed:", err);
-        navigate("/login");
+        navigate("/auth");
       });
   }, [isOpen, navigate]);
 
@@ -56,62 +69,75 @@ const [showSuccess, setShowSuccess] = useState(false);
     setUser({ ...user, [e.target.name]: e.target.value });
   };
 
- const handleSave = async () => {
-  if (!user) return;
-  const token = localStorage.getItem("token");
+  // ✅ Preview when file selected
+  useEffect(() => {
+    if (!selectedFile) return;
+    const url = URL.createObjectURL(selectedFile);
+    setPreview(url);
+    return () => URL.revokeObjectURL(url);
+  }, [selectedFile]);
 
-  const form = new FormData();
-  form.append("name", user.name);
-  form.append("primaryPhone", user.primaryPhone);
-  if (user.secondaryPhone) form.append("secondaryPhone", user.secondaryPhone);
-  form.append("category", user.category);
-  form.append("email", user.email);
-  if (newPassword) form.append("password", newPassword);
-  if (selectedFile) form.append("profileImage", selectedFile);
+  const handleSave = async () => {
+    if (!user) return;
+    const token = localStorage.getItem("token");
 
-  await axios.put(
-    `http://localhost:5000/api/auth/profile/${user.id}`,
-    form,
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "multipart/form-data",
-      },
-    }
-  );
+    const form = new FormData();
+    form.append("name", user.name);
+    form.append("primaryPhone", user.primaryPhone);
+    if (user.secondaryPhone) form.append("secondaryPhone", user.secondaryPhone);
+    form.append("category", user.category);
+    form.append("email", user.email);
+    if (newPassword) form.append("password", newPassword);
+    if (selectedFile) form.append("profileImage", selectedFile);
 
-  setEditing(false);
-  setNewPassword("");
-  setSelectedFile(null);
+    await axios.put(
+      `http://localhost:5000/api/auth/profile/${user.id}`,
+      form,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    );
 
-  // ✅ Show success popup
-  setShowSuccess(true);
-  setTimeout(() => setShowSuccess(false), 2500);
-};
+    setEditing(false);
+    setNewPassword("");
+    setSelectedFile(null);
 
+    // ✅ Success popup
+    setShowSuccess(true);
+    setTimeout(() => setShowSuccess(false), 2500);
+  };
 
-   if (!isOpen) return null;
+  const handleLogout = () => {
+    localStorage.removeItem("user");
+    localStorage.removeItem("token");
+    navigate("/auth");
+  };
+
+  if (!isOpen) return null;
 
   return (
     <div className="fixed top-16 right-0 bottom-0 z-40 flex">
-      {/* Overlay (drawerக்கு பின்புறம் semi-transparent bg) */}
+      {/* Overlay */}
       <div
-        className="absolute inset-0 bg-black/30 transition-opacity"
+        className="absolute inset-0 bg-black/40 transition-opacity"
         onClick={onClose}
       />
 
-      {/* Drawer (Swiggy style, header கீழே மட்டும் slide ஆகும்) */}
+      {/* Drawer */}
       <div
-        className={`relative ml-auto w-96 bg-white h-full shadow-2xl transform transition-transform duration-300 ease-in-out ${
+        className={`relative ml-auto w-96 bg-white h-full shadow-2xl rounded-l-xl transform transition-transform duration-300 ease-in-out ${
           isOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >
-        {/* Close button */}
+        {/* Close */}
         <button
           onClick={onClose}
           className="absolute top-3 right-3 text-gray-500 hover:text-black"
         >
-          ✕
+          <FontAwesomeIcon icon={faTimes} size="lg" />
         </button>
 
         <div className="p-6 overflow-y-auto h-full flex flex-col items-center">
@@ -120,57 +146,40 @@ const [showSuccess, setShowSuccess] = useState(false);
           ) : (
             <>
               {/* Avatar */}
-           {/* Avatar with camera icon overlay */}
-<div className="relative w-28 h-28 rounded-full overflow-hidden border-4 border-pink-400 shadow mb-4">
-  {/* Profile Picture */}
-  <img
-    src={
-      user.profileImage
-        ? `http://localhost:5000/uploads/${user.profileImage}`
-        : "https://images.unsplash.com/photo-1544005313-94ddf0286df2"
-    }
-    alt="Profile"
-    className="w-full h-full object-cover"
-  />
+              <div className="relative w-28 h-28 rounded-full overflow-hidden border-4 border-pink-400 shadow-lg mb-4">
+                <img
+                  src={
+                    preview
+                      ? preview
+                      : user.profileImage
+                      ? `http://localhost:5000/uploads/${user.profileImage}`
+                      : "https://via.placeholder.com/150"
+                  }
+                  alt="Profile"
+                  className="w-full h-full object-cover"
+                />
 
-  {/* Hidden File Input */}
-  <input
-    type="file"
-    id="profilePicInput"
-    accept="image/*"
-    onChange={(e) =>
-      e.target.files && setSelectedFile(e.target.files[0])
-    }
-    className="hidden"
-  />
+                {/* Hidden input */}
+                <input
+                  type="file"
+                  id="profilePicInput"
+                  accept="image/*"
+                  onChange={(e) =>
+                    e.target.files && setSelectedFile(e.target.files[0])
+                  }
+                  className="hidden"
+                />
 
-  {/* Camera Icon Overlay (bottom-right of circle) */}
-  {editing && (
-    <label
-      htmlFor="profilePicInput"
-      className="absolute bottom-2 right-2 bg-pink-500 text-white p-2 rounded-full shadow-lg cursor-pointer hover:bg-pink-600 transition"
-    >
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        className="h-4 w-4"
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth={2}
-          d="M3 7h4l2-3h6l2 3h4v13H3V7z"
-        />
-        <circle cx="12" cy="13" r="4" />
-      </svg>
-    </label>
-  )}
-</div>
-
-
-             
+                {/* Camera overlay */}
+                {editing && (
+                  <label
+                    htmlFor="profilePicInput"
+                    className="absolute bottom-2 right-2 bg-gradient-to-r from-pink-500 to-purple-500 text-gray-700 p-2 rounded-full shadow-lg cursor-pointer hover:scale-110 transition"
+                  >
+                    <FontAwesomeIcon icon={faCamera} />
+                  </label>
+                )}
+              </div>
 
               {/* Name + Role */}
               {editing ? (
@@ -181,7 +190,7 @@ const [showSuccess, setShowSuccess] = useState(false);
                   className="px-3 py-1 rounded bg-gray-100 text-gray-800 text-center"
                 />
               ) : (
-                <h2 className="text-xl font-semibold">{user.name}</h2>
+                <h2 className="text-xl font-semibold text-gray-600">{user.name}</h2>
               )}
               <p className="text-pink-500">{user.role}</p>
               <p className="text-gray-500">{user.category}</p>
@@ -243,44 +252,69 @@ const [showSuccess, setShowSuccess] = useState(false);
                   </div>
                 )}
               </div>
-{/* ✅ Success Popup */}
-{showSuccess && (
-  <div className="fixed top-20 right-5 bg-green-500 text-white px-5 py-3 rounded-lg shadow-lg flex items-center gap-2 animate-bounce z-50">
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      className="h-5 w-5 text-white"
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-    >
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-    </svg>
-    <span>Profile updated successfully!</span>
-  </div>
-)}
+
+              {/* Success Popup */}
+              {showSuccess && (
+                <div className="fixed top-20 right-5 bg-green-500 text-white px-5 py-3 rounded-lg shadow-lg flex items-center gap-2 animate-bounce z-50">
+                  <FontAwesomeIcon icon={faCheckCircle} />
+                  <span>Profile updated successfully!</span>
+                </div>
+              )}
 
               {/* Buttons */}
               <div className="mt-6 flex gap-3">
                 {!editing ? (
                   <button
                     onClick={() => setEditing(true)}
-                    className="bg-pink-500 text-white px-4 py-2 rounded hover:bg-pink-600"
+                    className="bg-gradient-to-r from-pink-500 to-purple-500 text-white px-4 py-2 rounded shadow hover:opacity-90 flex items-center gap-2"
                   >
-                    Edit Profile
+                    <FontAwesomeIcon icon={faEdit} /> Edit
                   </button>
                 ) : (
                   <button
                     onClick={handleSave}
-                    className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+                    className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-4 py-2 rounded shadow hover:opacity-90 flex items-center gap-2"
                   >
-                    Save Changes
+                    <FontAwesomeIcon icon={faSave} /> Save
                   </button>
                 )}
+
+                <button
+                  onClick={() => setShowLogoutConfirm(true)}
+                  className="bg-gradient-to-r from-red-500 to-pink-600 text-white px-4 py-2 rounded shadow hover:opacity-90 flex items-center gap-2"
+                >
+                  <FontAwesomeIcon icon={faSignOutAlt} /> Logout
+                </button>
               </div>
             </>
           )}
         </div>
       </div>
+
+      {/* Logout Confirmation */}
+      {showLogoutConfirm && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-white text-gray-60 p-6 rounded-lg shadow-xl text-center">
+            <h3 className="text-lg  text-gray-600 font-semibold mb-4">
+              Are you sure you want to logout?
+            </h3>
+            <div className="flex gap-4 justify-center">
+              <button
+                onClick={() => setShowLogoutConfirm(false)}
+                className="px-4 py-2 rounded bg-gray-300 hover:bg-gray-400"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleLogout}
+                className="px-4 py-2 rounded bg-red-500 text-white hover:bg-red-600"
+              >
+                Logout
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

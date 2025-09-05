@@ -1,45 +1,73 @@
-import { Request, Response } from "express";
-import ConnectionRequest from "../models/connectionrequests";
-import Connection from "../models/connection";
-import User from "../models/user";
 
+import { Request, Response } from "express";
+import { Op } from "sequelize";
+import ConnectionRequest from "../models/connectionrequests";
+import User from "../models/user";
+import "../models/associations";
+import Connection from "../models/connection";
+
+// Send a connection request
+// Send a connection request
 export const sendRequest = async (req: Request, res: Response) => {
   try {
     const senderId = (req as any).user.id;
     const { receiverId } = req.body;
 
-    if (senderId === receiverId) {
+    if (senderId === receiverId)
       return res.status(400).json({ message: "Cannot connect with yourself" });
+
+    // 🔍 Check if request already exists (any status)
+    const exists = await ConnectionRequest.findOne({
+      where: { senderId, receiverId },
+    });
+
+    if (exists) {
+      if (exists.status === "pending") {
+        return res.status(400).json({ message: "Request already sent" });
+      }
+      if (exists.status === "accepted") {
+        return res.status(400).json({ message: "You are already connected" });
+      }
+      if (exists.status === "rejected") {
+        return res.status(400).json({ message: "Request was rejected" });
+      }
     }
 
-    const exists = await ConnectionRequest.findOne({
-      where: { senderId, receiverId, status: "pending" },
-    });
-    if (exists) return res.status(400).json({ message: "Request already sent" });
-
+    // ✅ If no existing request → create new
     const request = await ConnectionRequest.create({ senderId, receiverId });
-    return res.json({ message: "Request sent", request });
+    res.json({ message: "Request sent", request });
   } catch (err) {
-    return res.status(500).json({ message: "Error sending request", error: err });
+    console.error(err);
+    res.status(500).json({ message: "Error sending request", error: err });
   }
 };
 
+// Get pending connection requests for notifications
 export const getRequests = async (req: Request, res: Response) => {
   try {
     const userId = (req as any).user.id;
+    console.log("🔍 Logged-in userId:", userId);
+
     const requests = await ConnectionRequest.findAll({
       where: { receiverId: userId, status: "pending" },
-      include: [{ model: User, as: "sender", attributes: ["id", "name", "email"] }],
+      include: [
+        {
+          model: User,
+          as: "sender",
+          attributes: ["id", "name", "profileImage"],
+        },
+      ],
     });
+
     res.json(requests);
   } catch (err) {
+    console.error(err);
     res.status(500).json({ message: "Error fetching requests", error: err });
   }
 };
-
 export const respondRequest = async (req: Request, res: Response) => {
   try {
-    const { requestId, action } = req.body; // action = "accept" or "reject"
+    const { requestId, action } = req.body;
     const request = await ConnectionRequest.findByPk(requestId);
 
     if (!request) return res.status(404).json({ message: "Request not found" });
@@ -47,29 +75,24 @@ export const respondRequest = async (req: Request, res: Response) => {
     if (action === "accept") {
       request.status = "accepted";
       await request.save();
+
+      // ✅ Store into connections table
       await Connection.create({
         user1Id: request.senderId,
         user2Id: request.receiverId,
       });
-    } else {
-      request.status = "rejected";
-      await request.save();
+
+      // 🔹 Return the requestId and action
+      return res.json({ message: "Request accepted successfully", requestId, action });
+    } else if (action === "reject") { // 🔹 You are using "reject" in your frontend, but "ignore" in your backend. Let's make it consistent.
+      // request.status = "rejected";
+      // await request.save();
+      await request.destroy();
+      
+      return res.json({ message: "Request ignored successfully", requestId, action });
     }
-
-    res.json({ message: `Request ${action}ed` });
   } catch (err) {
+    console.error(err);
     res.status(500).json({ message: "Error responding to request", error: err });
-  }
-};
-
-export const getConnections = async (req: Request, res: Response) => {
-  try {
-    const userId = (req as any).user.id;
-    const connections = await Connection.findAll({
-      where: { user1Id: userId },
-    });
-    res.json(connections);
-  } catch (err) {
-    res.status(500).json({ message: "Error fetching connections", error: err });
   }
 };

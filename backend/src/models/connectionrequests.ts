@@ -1,3 +1,4 @@
+
 import { DataTypes, Model, Optional } from "sequelize";
 import sequelize from "../config/db";
 
@@ -27,19 +28,12 @@ class ConnectionRequest
 
 ConnectionRequest.init(
   {
-    id: {
-      type: DataTypes.INTEGER.UNSIGNED,
-      autoIncrement: true,
-      primaryKey: true,
-    },
+    id: { type: DataTypes.INTEGER.UNSIGNED, autoIncrement: true, primaryKey: true },
     senderId: { type: DataTypes.INTEGER.UNSIGNED, allowNull: false },
     receiverId: { type: DataTypes.INTEGER.UNSIGNED, allowNull: false },
-    status: {
-      type: DataTypes.ENUM("pending", "accepted", "rejected"),
-      defaultValue: "pending",
-    },
+    status: { type: DataTypes.ENUM("pending", "accepted", "rejected"), defaultValue: "pending" },
   },
-  { sequelize, modelName: "connectionRequest" }
+  { sequelize, modelName: "ConnectionRequest", tableName: "connectionrequests", timestamps: true }
 );
 
 export default ConnectionRequest;
