@@ -91,13 +91,13 @@ const Header: React.FC = () => {
 
             {/* Desktop Navigation */}
             <nav className="hidden md:flex space-x-8">
-              <a href="#features" className="text-sm sm:text-base font-bold text-gray-600 hover:text-white">
+              <a href="#features" className="text-sm sm:text-base font-bold text-gray-600 ">
                 Features
               </a>
-              <a href="#roles" className="text-sm sm:text-base font-bold text-gray-600 hover:text-white">
+              <a href="#roles" className="text-sm sm:text-base font-bold text-gray-600 ">
                 Roles
               </a>
-              <a href="#pricing" className="text-sm sm:text-base font-bold text-gray-600 hover:text-white">
+              <a href="#pricing" className="text-sm sm:text-base font-bold text-gray-600 ">
                 Pricing
               </a>
             </nav>
@@ -105,7 +105,7 @@ const Header: React.FC = () => {
             {/* Right Side Desktop */}
             <div className="hidden md:flex items-center space-x-4">
               <button
-                className="flex items-center gap-2 text-sm sm:text-base font-bold text-gray-600 hover:text-white"
+                className="flex items-center gap-2 text-sm sm:text-base font-bold text-gray-600 "
                 onClick={handleAuthClick}
               >
                 {user ? (

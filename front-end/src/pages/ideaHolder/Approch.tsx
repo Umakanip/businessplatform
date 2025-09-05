@@ -156,11 +156,11 @@ const IhApproch: React.FC = () => {
     const fetchInvestors = async () => {
       try {
         const token = localStorage.getItem("token");
-        const res = await axiosInstance.get("/idealogists/investors/category", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+      const res = await axiosInstance.get("/idealogists/matching-investors", {
+  headers: { Authorization: `Bearer ${token}` },
+});
+setProfiles(res.data.investors || []);
+
         console.log("API Response:", res.data); // 🔍 debug
         setProfiles(res.data.investors || []);
       } catch (error) {
