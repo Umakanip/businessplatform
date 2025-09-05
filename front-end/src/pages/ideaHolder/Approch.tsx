@@ -7,7 +7,9 @@ type Profile = {
   email: string;
   category: string;
   profileImage: string | null;
+  connect?: number;
 };
+
 
 const IhApproch: React.FC = () => {
   const [profiles, setProfiles] = useState<Profile[]>([]);
@@ -36,6 +38,24 @@ const IhApproch: React.FC = () => {
   if (loading) {
     return <p className="text-center py-10">Loading suggestions...</p>;
   }
+  const handleConnect = async (id: number) => {
+  try {
+    const token = localStorage.getItem("token");
+    const res = await axiosInstance.post(`/idealogists/investors/${id}/toggle-connect`, {}, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    // Update local state
+    setProfiles((prev) =>
+      prev.map((p) =>
+        p.id === id ? { ...p, connect: res.data.connect } : p
+      )
+    );
+  } catch (error) {
+    console.error("Connect/unconnect error:", error);
+  }
+};
+
 
   return (
     <div className="bg-gray-100 min-h-screen">
@@ -76,9 +96,17 @@ const IhApproch: React.FC = () => {
                 </p>
               </div>
 
-              <button className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold py-2 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 text-sm mt-4">
-                Connect
-              </button>
+             <button
+  onClick={() => handleConnect(profile.id)}
+  className={`w-full font-semibold py-2 rounded-full shadow-lg text-sm mt-4 ${
+    profile.connect === 1
+      ? "bg-red-500 text-white hover:bg-red-600"
+      : "bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:shadow-xl"
+  }`}
+>
+  {profile.connect === 1 ? "Disconnect" : "Connect"}
+</button>
+
             </div>
           </div>
         ))}

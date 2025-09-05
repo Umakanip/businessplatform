@@ -9,6 +9,7 @@ if (!fs.existsSync(uploadDir)) {
 }
 
 // storage config
+// storage config 
 const storage = multer.diskStorage({
   destination: function (_req, _file, cb) {
     cb(null, uploadDir);
@@ -20,7 +21,7 @@ const storage = multer.diskStorage({
 
 // file filter (only images)
 const fileFilter = (_req: any, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
-  const allowedTypes = ["image/jpeg", "image/png", "image/gif"];
+  const allowedTypes = ["image/jpeg", "image/png", "image/gif", "image/jfif"];
   if (allowedTypes.includes(file.mimetype)) {
     cb(null, true);
   } else {
