@@ -117,14 +117,14 @@ const IhApproch: React.FC = () => {
               {profile.status === "accepted" ? (
                 <button
                   disabled
-                className="w-full font-semibold py-2 rounded-full shadow text-sm bg-green-200 "
+                className="w-full font-semibold py-2 rounded-full shadow text-sm bg-gradient-to-r from-purple-600 to-blue-600 text-white "
                 >
                   Connected
                 </button>
               ) : profile.status === "pending" ? (
                 <button
                   disabled
-                                  className="w-full font-semibold py-2 rounded-full shadow text-sm bg-yellow-500 "
+                className="w-full font-semibold py-2 rounded-full shadow text-sm bg-yellow-300 "
 
                 >
                   Pending...
@@ -156,7 +156,7 @@ const IhApproch: React.FC = () => {
                       console.error(err);
                     }
                   }}
-                                  className="w-full font-semibold py-2 rounded-full shadow text-sm bg-blue-200 "
+                className="w-full font-semibold py-2 rounded-full shadow text-sm bg-gradient-to-r from-purple-600 to-blue-600 text-white "
                 >
                   Connect
                 </button>
