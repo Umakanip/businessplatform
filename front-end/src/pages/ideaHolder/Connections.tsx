@@ -1,116 +1,211 @@
 
 
+import React, { useEffect, useState } from "react";
+import axiosInstance from "../../utils/axiosInstance";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faEnvelope,
+  faPhone,
+  faUserTag,
+  faLayerGroup,
+  faTimes,
+} from "@fortawesome/free-solid-svg-icons";
 
-import React from "react";
-
-type Profile = {
-  id: number;
-  name: string;
-  role: string;
-  image: string;
+type ConnectionType = {
+  id: number;
+  name: string;
+  category: string;
+  profileImage: string | null;
+  status: string;
 };
 
-const profiles: Profile[] = [
-  {
-    id: 1,
-    name: "John Doe",
-    role: "IT Consultant",
-    image: "https://randomuser.me/api/portraits/men/32.jpg",
-  },
-  {
-    id: 2,
-    name: "Jane Smith",
-    role: "Business Strategist",
-    image: "https://randomuser.me/api/portraits/women/44.jpg",
-  },
-  {
-    id: 3,
-    name: "Mike Brown",
-    role: "UI/UX Designer",
-    image: "https://randomuser.me/api/portraits/men/52.jpg",
-  },
-  {
-    id: 4,
-    name: "Emily Davis",
-    role: "HR Specialist",
-    image: "https://randomuser.me/api/portraits/women/68.jpg",
-  },
-  {
-    id: 5,
-    name: "David Lee",
-    role: "Software Engineer",
-    image: "https://randomuser.me/api/portraits/men/77.jpg",
-  },
-  {
-    id: 6,
-    name: "Olivia Garcia",
-    role: "Product Manager",
-    image: "https://randomuser.me/api/portraits/women/65.jpg",
-  },
-  {
-    id: 7,
-    name: "Alex Kim",
-    role: "Marketing Lead",
-    image: "https://randomuser.me/api/portraits/men/11.jpg",
-  },
-  {
-    id: 8,
-    name: "Sophia Chen",
-    role: "Data Scientist",
-    image: "https://randomuser.me/api/portraits/women/22.jpg",
-  },
-  {
-    id: 9,
-    name: "Samuel Evans",
-    role: "Cloud Architect",
-    image: "https://randomuser.me/api/portraits/men/83.jpg",
-  },
-  {
-    id: 10,
-    name: "Laura Martin",
-    role: "Sales Director",
-    image: "https://randomuser.me/api/portraits/women/23.jpg",
-  },
-];
-
+type ProfileDetail = ConnectionType & {
+  email?: string;
+  primaryPhone?: string;
+  secondaryPhone?: string;
+  role?: string;
+};
 
 const Connections: React.FC = () => {
-  return (
-    <div className="bg-gray-100 min-h-screen py-8 px-4">
-      {/* Header Section */}
-      <div className="max-w-7xl mx-auto mb-8">
-        <h1 className="text-2xl font-bold text-gray-800">More suggestions for you</h1>
-      </div>
+  const [connections, setConnections] = useState<ConnectionType[]>([]);
+  const [loading, setLoading] = useState(true);
 
-      {/* Compact Design for Connecting Profiles */}
-      <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-        {profiles.map((profile) => (
-          <div
-            key={profile.id}
-            className="relative bg-white rounded-2xl shadow-lg px-4 py-3 overflow-hidden transition-all duration-300 transform hover:scale-105 hover:shadow-2xl"
-          >
-            {/* Background Gradient Circle */}
-            <div className="absolute top-0 right-0 w-20 h-20 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 transform translate-x-1/2 -translate-y-1/2 opacity-50"></div>
+  const [selectedProfile, setSelectedProfile] = useState<ProfileDetail | null>(
+    null
+  );
+  const [showModal, setShowModal] = useState(false);
 
-            <div className="flex flex-col items-center z-10 relative">
-              <img
-                src={profile.image}
-                alt={profile.name}
-                className="w-14 h-14 rounded-full object-cover mb-2 ring-1 ring-white shadow-lg"
-              />
-              <h3 className="text-sm font-semibold text-gray-900">{profile.name}</h3>
-              <p className="text-xs text-gray-500 mb-2">{profile.role}</p>
-              <button
-                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold py-1.5 rounded-full shadow-lg hover:shadow-xl transition-all duration-300"
-              >
-                Connect
-              </button>
-          </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
+  useEffect(() => {
+    const fetchConnections = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const res = await axiosInstance.get("/connections/connections/my", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setConnections(res.data);
+      } catch (error) {
+        console.error("Error fetching connections:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchConnections();
+  }, []);
+
+  const handleViewProfile = async (id: number) => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await axiosInstance.get(`/auth/profile/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setSelectedProfile(res.data);
+      setShowModal(true);
+    } catch (error) {
+      console.error("Error fetching profile:", error);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <p className="text-gray-500 text-lg animate-pulse">
+          Loading connections...
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-5xl mx-auto px-6 py-12">
+      {/* Page Title */}
+      <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-10 text-center">
+        My <span className="text-purple-600">Connections</span>
+      </h1>
+
+      {connections.length === 0 ? (
+        <p className="text-center text-gray-500 text-lg">
+          You don’t have any connections yet.
+        </p>
+      ) : (
+        <div className="space-y-6">
+          {connections.map((c) => (
+            <div
+              key={c.id}
+              className="flex items-center bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 p-5"
+            >
+              {/* Profile Image */}
+              <div className="relative flex-shrink-0">
+                <img
+                  src={
+                    c.profileImage
+                      ? `http://localhost:5000/uploads/${c.profileImage}`
+                      : "https://via.placeholder.com/100"
+                  }
+                  alt={c.name}
+                  className="w-20 h-20 rounded-full object-cover border-2 border-purple-200 shadow-sm"
+                />
+                <span
+                  className={`absolute bottom-1 right-1 w-4 h-4 rounded-full border-2 border-white ${
+                    c.status === "connected" ? "bg-green-500" : "bg-yellow-400"
+                  }`}
+                  title={c.status}
+                ></span>
+              </div>
+
+              {/* Details */}
+              <div className="ml-6 flex-1">
+                <h2 className="text-lg font-semibold text-gray-900">{c.name}</h2>
+                <p className="text-sm text-gray-500">{c.category}</p>
+
+                <span
+                  className={`inline-block mt-2 px-3 py-1 rounded-full text-xs font-medium ${
+                    c.status === "connected"
+                      ? "bg-green-100 text-green-600"
+                      : "bg-yellow-100 text-yellow-600"
+                  }`}
+                >
+                  {c.status}
+                </span>
+              </div>
+
+              {/* Buttons */}
+              <div className="flex gap-3">
+                <button
+                  onClick={() => handleViewProfile(c.id)}
+                  className="px-4 py-2 rounded-lg text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 transition-colors shadow-sm"
+                >
+                  View Profile
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Modal */}
+      {showModal && selectedProfile && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden relative">
+            {/* Header */}
+            <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-6 text-center relative">
+              <button
+                onClick={() => setShowModal(false)}
+                className="absolute top-4 right-4 text-white hover:text-gray-200 text-lg"
+              >
+                <FontAwesomeIcon icon={faTimes} />
+              </button>
+              <img
+                src={
+                  selectedProfile.profileImage
+                    ? `http://localhost:5000/uploads/${selectedProfile.profileImage}`
+                    : "https://via.placeholder.com/100"
+                }
+                alt={selectedProfile.name}
+                className="w-24 h-24 rounded-full object-cover border-4 border-white mx-auto shadow-lg"
+              />
+              <h2 className="text-2xl font-bold text-white mt-4">
+                {selectedProfile.name}
+              </h2>
+              <p className="text-indigo-100">{selectedProfile.role}</p>
+              <p className="text-indigo-200 text-sm">
+                {selectedProfile.category}
+              </p>
+            </div>
+
+            {/* Body */}
+            <div className="p-6 space-y-4">
+              <div className="flex items-center space-x-3 text-gray-700">
+                <FontAwesomeIcon icon={faEnvelope} className="text-blue-600" />
+                <span className="font-medium">Email:</span>
+                <span>{selectedProfile.email || "-"}</span>
+              </div>
+              <div className="flex items-center space-x-3 text-gray-700">
+                <FontAwesomeIcon icon={faPhone} className="text-green-600" />
+                <span className="font-medium">Primary Phone:</span>
+                <span>{selectedProfile.primaryPhone || "-"}</span>
+              </div>
+              <div className="flex items-center space-x-3 text-gray-700">
+                <FontAwesomeIcon icon={faPhone} className="text-purple-600" />
+                <span className="font-medium">Secondary Phone:</span>
+                <span>{selectedProfile.secondaryPhone || "-"}</span>
+              </div>
+              <div className="flex items-center space-x-3 text-gray-700">
+                <FontAwesomeIcon icon={faUserTag} className="text-orange-600" />
+                <span className="font-medium">Role:</span>
+                <span>{selectedProfile.role || "-"}</span>
+              </div>
+              <div className="flex items-center space-x-3 text-gray-700">
+                <FontAwesomeIcon icon={faLayerGroup} className="text-pink-600" />
+                <span className="font-medium">Category:</span>
+                <span>{selectedProfile.category}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 };
 
 export default Connections;

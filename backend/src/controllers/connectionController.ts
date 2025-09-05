@@ -96,3 +96,47 @@ export const respondRequest = async (req: Request, res: Response) => {
     res.status(500).json({ message: "Error responding to request", error: err });
   }
 };
+// Get my connections
+export const getMyConnections = async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).user.id;
+
+    const connections = await Connection.findAll({
+      where: {
+        [Op.or]: [{ user1Id: userId }, { user2Id: userId }],
+      },
+      include: [
+        {
+          model: User,
+          as: "user1",
+          attributes: ["id", "name", "profileImage", "category"],
+        },
+        {
+          model: User,
+          as: "user2",
+          attributes: ["id", "name", "profileImage", "category"],
+        },
+      ],
+    });
+
+    // 🔹 Return the "other" user as the connection
+    const formatted = connections.map((conn) => {
+      const connJson = conn.toJSON() as any;
+      const otherUser =
+        connJson.user1.id === userId ? connJson.user2 : connJson.user1;
+
+      return {
+        id: otherUser.id,
+        name: otherUser.name,
+        category: otherUser.category,
+        profileImage: otherUser.profileImage,
+        status: "connected",
+      };
+    });
+
+    res.json(formatted);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Error fetching connections", error: err });
+  }
+};

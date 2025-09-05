@@ -1,5 +1,13 @@
 import React, { useEffect, useState } from "react";
 import axiosInstance from "../../utils/axiosInstance";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faEnvelope,
+  faPhone,
+  faUserTag,
+  faLayerGroup,
+  faTimes,
+} from "@fortawesome/free-solid-svg-icons";
 
 type Profile = {
   id: number;
@@ -9,12 +17,22 @@ type Profile = {
   profileImage: string | null;
   status?: "pending" | "accepted" | "rejected" | "none";
 };
+type ProfileDetail = Profile & {
+  primaryPhone?: string;
+  secondaryPhone?: string;
+  role?: string;
+};
 
-const InvApproch: React.FC = () => {
+const IhApproch: React.FC = () => {
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
+ // modal state
+  const [selectedProfile, setSelectedProfile] = useState<ProfileDetail | null>(
+    null
+  );
+  const [showModal, setShowModal] = useState(false);
 
-  useEffect(() => {
+   useEffect(() => {
     const fetchInvestors = async () => {
       try {
         const token = localStorage.getItem("token");
@@ -34,19 +52,30 @@ const InvApproch: React.FC = () => {
 
     fetchInvestors();
   }, []);
-
+ const handleViewProfile = async (id: number) => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await axiosInstance.get(`/auth/profile/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setSelectedProfile(res.data);
+      setShowModal(true);
+    } catch (error) {
+      console.error("Error fetching profile:", error);
+    }
+  };
   if (loading) {
     return <p className="text-center py-10">Loading suggestions...</p>;
   }
 
   return (
     <div className="bg-gray-100 min-h-screen">
-      {/* Header Section */}
-      <div className="max-w-7xl mx-auto mb-8">
-        <h1 className="text-2xl font-bold text-gray-800">
-          More suggestions for you
-        </h1>
-      </div>
+          {/* Header Section */}
+<div className="max-w-7xl mx-auto mb-8 pt-8">
+  <h1 className="text-2xl font-bold text-gray-800">
+    More suggestions for you
+  </h1>
+</div>
 
       {/* Card Grid */}
       <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
@@ -76,19 +105,27 @@ const InvApproch: React.FC = () => {
                   {profile.category}
                 </p>
               </div>
-
+            <div className="space-y-2 mt-4 w-full">
+              <button
+                onClick={() => handleViewProfile(profile.id)}
+                className="w-full font-semibold py-2 rounded-full shadow text-sm bg-gray-200 hover:bg-gray-300"
+              >
+                View Profile
+              </button>
+              </div>
               {/* ✅ Button section based on status */}
               {profile.status === "accepted" ? (
                 <button
                   disabled
-                  className="bg-green-500 text-white px-4 py-2 rounded cursor-not-allowed"
+                className="w-full font-semibold py-2 rounded-full shadow text-sm bg-green-200 "
                 >
                   Connected
                 </button>
               ) : profile.status === "pending" ? (
                 <button
                   disabled
-                  className="bg-yellow-500 text-white px-4 py-2 rounded cursor-not-allowed"
+                                  className="w-full font-semibold py-2 rounded-full shadow text-sm bg-yellow-500 "
+
                 >
                   Pending...
                 </button>
@@ -119,7 +156,7 @@ const InvApproch: React.FC = () => {
                       console.error(err);
                     }
                   }}
-                  className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                                  className="w-full font-semibold py-2 rounded-full shadow text-sm bg-blue-200 "
                 >
                   Connect
                 </button>
@@ -128,8 +165,72 @@ const InvApproch: React.FC = () => {
           </div>
         ))}
       </div>
+         {/* Modal */}
+            {showModal && selectedProfile && (
+              <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+                <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden relative">
+                  {/* Header with gradient */}
+                  <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-6 text-center relative">
+                    <button
+                      onClick={() => setShowModal(false)}
+                      className="absolute top-4 right-4 text-white hover:text-gray-200 text-lg"
+                    >
+                      <FontAwesomeIcon icon={faTimes} />
+                    </button>
+                    <img
+                      src={
+                        selectedProfile.profileImage
+                          ? `http://localhost:5000/uploads/${selectedProfile.profileImage}`
+                          : "https://via.placeholder.com/100"
+                      }
+                      alt={selectedProfile.name}
+                      className="w-24 h-24 rounded-full object-cover border-4 border-white mx-auto shadow-lg"
+                    />
+                    <h2 className="text-2xl font-bold text-white mt-4">
+                      {selectedProfile.name}
+                    </h2>
+                    <p className="text-indigo-100">{selectedProfile.role}</p>
+                    <p className="text-indigo-200 text-sm">
+                      {selectedProfile.category}
+                    </p>
+                  </div>
+      
+                  {/* Body */}
+                  <div className="p-6 space-y-4">
+                    <div className="flex items-center space-x-3 text-gray-700">
+                      <FontAwesomeIcon icon={faEnvelope} className="text-blue-600" />
+                      <span className="font-medium">Email:</span>
+                      <span>{selectedProfile.email}</span>
+                    </div>
+                    <div className="flex items-center space-x-3 text-gray-700">
+                      <FontAwesomeIcon icon={faPhone} className="text-green-600" />
+                      <span className="font-medium">Primary Phone:</span>
+                      <span>{selectedProfile.primaryPhone || "-"}</span>
+                    </div>
+                    <div className="flex items-center space-x-3 text-gray-700">
+                      <FontAwesomeIcon icon={faPhone} className="text-purple-600" />
+                      <span className="font-medium">Secondary Phone:</span>
+                      <span>{selectedProfile.secondaryPhone || "-"}</span>
+                    </div>
+                    <div className="flex items-center space-x-3 text-gray-700">
+                      <FontAwesomeIcon icon={faUserTag} className="text-orange-600" />
+                      <span className="font-medium">Role:</span>
+                      <span>{selectedProfile.role || "-"}</span>
+                    </div>
+                    <div className="flex items-center space-x-3 text-gray-700">
+                      <FontAwesomeIcon
+                        icon={faLayerGroup}
+                        className="text-pink-600"
+                      />
+                      <span className="font-medium">Category:</span>
+                      <span>{selectedProfile.category}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
     </div>
   );
 };
 
-export default InvApproch;
+export default IhApproch;
