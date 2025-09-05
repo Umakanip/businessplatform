@@ -9,7 +9,6 @@ import "./App.css";
 
 // Components
 import AuthContainer from "./components/Pages/AuthContainer";
-import InvitationsList from "./components/Pages/subscription";
 import PaymentPage from "./components/Pages/Payment";
 import ConnectPage from "./components/Pages/Connect";
 import Pricing from "./components/Pages/Pricing";
@@ -36,7 +35,6 @@ import HeaderIh from "./components/Header/HeaderIh";
 import InvConnections from "./pages/investor/InvConnection";
 import IhApproch from "./pages/ideaHolder/Approch";
 import InvApproch from "./pages/investor/Approch";
-
 const App: React.FC = () => {
   // ⚡ Later, get this from auth/login state
   const role: "idealogist" | "investor" = "idealogist";
@@ -47,7 +45,6 @@ const App: React.FC = () => {
         {/* Public Pages */}
         <Route path="/" element={<Home />} />
         <Route path="/auth" element={<AuthContainer />} />  
-        <Route path="/invitation" element={<InvitationsList />} />
         <Route path="/payment" element={<PaymentPage />} />
         <Route path="/connect" element={<ConnectPage />} />
         <Route path="/subscription" element={<Pricing />} />
@@ -55,20 +52,22 @@ const App: React.FC = () => {
         {/* Idea Holder Layout with Nested Routes */}
         <Route path="/ih" element={<MainLayout role="idealogist"/>}>
           <Route path="subscription" element={<Subscription />} />
-          <Route path="approach" element={<IhApproch />} />
           <Route path="connections" element={<Connections />} />
           <Route path="notifications" element={<NotificationsIH />} />
           <Route path="profile" element={<ProfileIH />} />
           <Route path="settings" element={<SettingsIH />} />
+          <Route path="approach" element={<IhApproch />} />
+
         </Route>
 
         {/* Investor Layout with Nested Routes */}
         <Route path="/inv" element={<MainLayout role="investor" />}>
           <Route path="connections" element={<InvConnections />} />
-          <Route path="approach" element={<InvApproch/>} />
           <Route path="notifications" element={<NotificationsInv />} />
           <Route path="profile" element={<ProfileInv />} />
           <Route path="settings" element={<SettingsInv />} />
+          <Route path="approach" element={<InvApproch/>} />
+
         </Route>
 
         {/* 404 Fallback */}
@@ -90,12 +89,12 @@ const MainLayout: React.FC<{ role: "idealogist" | "investor" }> = ({
   role,
 }) => {
   return (
-    <div className="">
+    <div >
       {/* Header based on role */}
       {role === "investor" ? <HeaderInv /> : <HeaderIh />}
 
       {/* Main Content Area */}
-      <div >
+      <div>
         {/* pt-16 = padding for fixed header height */}
         <Outlet />
       </div>

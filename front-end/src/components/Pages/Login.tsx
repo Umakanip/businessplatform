@@ -1,7 +1,7 @@
-
 import React, { useState } from 'react';
 import axiosInstance from '../../utils/axiosInstance';
 import { useNavigate } from 'react-router-dom';
+
 interface LoginProps {
   onSwitchToRegister: () => void;
 }
@@ -14,7 +14,7 @@ const Login: React.FC<LoginProps> = ({ onSwitchToRegister }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
 
-  const navigate = useNavigate(); // ✅ Hook for navigation
+  const navigate = useNavigate();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -37,23 +37,17 @@ const Login: React.FC<LoginProps> = ({ onSwitchToRegister }) => {
     try {
       const response = await axiosInstance.post('/auth/login', loginData);
 
-      console.log('Login successful:', response.data.user);
+      // Store the token and the entire user object in localStorage
+      localStorage.setItem('token', response.data.token);
+      localStorage.setItem('user', JSON.stringify(response.data.user)); // ✅ Store the user object
 
-      const { id, role } = response.data.user;
+      const { role } = response.data.user;
 
-      const token = response.data.token; // 👈 backend la token return aagum
-
-      // 🔑 Save token in localStorage
-      if (token) {
-        localStorage.setItem("token", token);
-      }
-
-
-      // ✅ Navigate based on role
+      // Navigate based on role
       if (role === 'investor') {
-        navigate("/inv/approach", { state: { userId: id } });
+        navigate(`/inv/approach`); // ✅ Navigate to the new profile page
       } else if (role === "idealogist") {
-        navigate("/ih/approach", { state: { userId: id } });
+        navigate(`/ih/approach`); // ✅ Navigate to the new profile page
       } else {
         setApiError('Invalid role received from server.');
       }
@@ -82,26 +76,17 @@ const Login: React.FC<LoginProps> = ({ onSwitchToRegister }) => {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
           </div>
-          <h2 className="mt-6 text-3xl font-bold text-white">
-            Welcome Back
-          </h2>
-          <p className="mt-2 text-sm text-gray-300">
-            Sign in to your account to continue
-          </p>
+          <h2 className="mt-6 text-3xl font-bold text-white">Welcome Back</h2>
+          <p className="mt-2 text-sm text-gray-300">Sign in to your account to continue</p>
         </div>
-
         {/* Login Form */}
         <div className="bg-white/10 backdrop-blur-lg rounded-2xl shadow-2xl p-8 border border-white/20">
           <form className="space-y-6" onSubmit={handleSubmit}>
             {apiError && (
-              <div className="bg-red-500/20 text-red-400 p-3 rounded-lg text-center">
-                {apiError}
-              </div>
+              <div className="bg-red-500/20 text-red-400 p-3 rounded-lg text-center">{apiError}</div>
             )}
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-200 mb-2">
-                Email Address
-              </label>
+              <label htmlFor="email" className="block text-sm font-medium text-gray-200 mb-2">Email Address</label>
               <input
                 id="email"
                 name="email"
@@ -114,11 +99,8 @@ const Login: React.FC<LoginProps> = ({ onSwitchToRegister }) => {
                 placeholder="Enter your email"
               />
             </div>
-
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-200 mb-2">
-                Password
-              </label>
+              <label htmlFor="password" className="block text-sm font-medium text-gray-200 mb-2">Password</label>
               <input
                 id="password"
                 name="password"
@@ -131,26 +113,15 @@ const Login: React.FC<LoginProps> = ({ onSwitchToRegister }) => {
                 placeholder="Enter your password"
               />
             </div>
-
             <div className="flex items-center justify-between">
               <div className="flex items-center">
-                <input
-                  id="remember-me"
-                  name="remember-me"
-                  type="checkbox"
-                  className="h-4 w-4 text-purple-500 focus:ring-purple-500 border-gray-300 rounded"
-                />
-                <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-300">
-                  Remember me
-                </label>
+                <input id="remember-me" name="remember-me" type="checkbox" className="h-4 w-4 text-purple-500 focus:ring-purple-500 border-gray-300 rounded" />
+                <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-300">Remember me</label>
               </div>
               <div className="text-sm">
-                <a href="#" className="font-medium text-purple-400 hover:text-purple-300 transition-colors duration-200">
-                  Forgot password?
-                </a>
+                <a href="#" className="font-medium text-purple-400 hover:text-purple-300 transition-colors duration-200">Forgot password?</a>
               </div>
             </div>
-
             <button
               type="submit"
               disabled={isLoading}
@@ -169,7 +140,6 @@ const Login: React.FC<LoginProps> = ({ onSwitchToRegister }) => {
               )}
             </button>
           </form>
-
           {/* Switch to Register */}
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-300">
@@ -183,7 +153,6 @@ const Login: React.FC<LoginProps> = ({ onSwitchToRegister }) => {
             </p>
           </div>
         </div>
-
         {/* Footer */}
         <div className="text-center">
           <p className="text-xs text-gray-400">

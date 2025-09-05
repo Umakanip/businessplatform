@@ -114,7 +114,7 @@ const InvApproch: React.FC = () => {
             Authorization: `Bearer ${token}`,
           },
         });
-        setProfiles(res.data.investors || []);
+        setProfiles(res.data.idealogists || []);
       } catch (error) {
         console.error("Error fetching investors:", error);
       } finally {

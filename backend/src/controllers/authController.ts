@@ -133,3 +133,80 @@ export const me = async (req: Request & { user?: any }, res: Response) => {
     return res.status(500).json({ message: "Internal server error" });
   }
 };
+// ========================== GET PROFILE ==========================
+export const getProfile = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    const user = await User.findByPk(id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Never send hashed password
+    const { password, ...userData } = user.get({ plain: true });
+
+    return res.status(200).json(userData);
+  } catch (error) {
+    console.error("Profile fetch error:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+
+// ========================== UPDATE PROFILE ==========================
+export const updateProfile = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    const user = await User.findByPk(id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // New values from frontend
+    const { name, primaryPhone, secondaryPhone, category, email, password } = req.body;
+    const profileImage = req.file ? req.file.filename : user.profileImage;
+
+    // Check if email already exists (if updated)
+    if (email && email !== user.email) {
+      const exists = await User.findOne({ where: { email } });
+      if (exists) {
+        return res.status(409).json({ message: "Email already in use" });
+      }
+      user.email = email;
+    }
+
+    // Update fields
+    user.name = name || user.name;
+    user.primaryPhone = primaryPhone || user.primaryPhone;
+    user.secondaryPhone = secondaryPhone || user.secondaryPhone;
+    user.category = category || user.category;
+    user.profileImage = profileImage;
+
+    // Password update (hash)
+    if (password) {
+      const hash = await bcrypt.hash(password, 10);
+      user.password = hash;
+    }
+
+    await user.save();
+
+    return res.status(200).json({
+      message: "Profile updated successfully",
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        primaryPhone: user.primaryPhone,
+        secondaryPhone: user.secondaryPhone,
+        category: user.category,
+        profileImage: user.profileImage,
+      },
+    });
+  } catch (error) {
+    console.error("Update profile error:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
