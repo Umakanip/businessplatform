@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -9,7 +9,6 @@ import {
   faSave,
   faSignOutAlt,
   faCheckCircle,
-  faUserCircle,
 } from "@fortawesome/free-solid-svg-icons";
 
 interface UserProfile {
@@ -19,14 +18,14 @@ interface UserProfile {
   role: string;
   primaryPhone: string;
   secondaryPhone?: string;
-  category: string;
+  category: string[];
   profileImage?: string;
 }
 
 interface ProfileDrawerProps {
   isOpen: boolean;
   onClose: () => void;
-  showLogout?: boolean;  // 👈 add this line
+  showLogout?: boolean;
 }
 
 const ProfileDrawer: React.FC<ProfileDrawerProps> = ({ isOpen, onClose }) => {
@@ -37,9 +36,25 @@ const ProfileDrawer: React.FC<ProfileDrawerProps> = ({ isOpen, onClose }) => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
-  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [isCategoriesDropdownOpen, setIsCategoriesDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // ✅ Fetch user profile
+  const categoriesList = [
+    'IT & Technology',
+    'Business & Finance',
+    'Healthcare & Medicine',
+    'Education & Training',
+    'Real Estate',
+    'Manufacturing',
+    'Retail & E-commerce',
+    'Entertainment & Media',
+    'Food & Beverage',
+    'Transportation & Logistics',
+    'Energy & Environment',
+    'Other'
+  ];
+
+  // Fetch user profile
   useEffect(() => {
     if (!isOpen) return;
 
@@ -64,18 +79,45 @@ const ProfileDrawer: React.FC<ProfileDrawerProps> = ({ isOpen, onClose }) => {
       });
   }, [isOpen, navigate]);
 
+  // Handle outside click for categories dropdown
+  useEffect(() => {
+    const handleOutsideClick = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsCategoriesDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleOutsideClick);
+    return () => document.removeEventListener("mousedown", handleOutsideClick);
+  }, []);
+
+  // Handle input changes
   const handleEditChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!user) return;
     setUser({ ...user, [e.target.name]: e.target.value });
   };
 
-  // ✅ Preview when file selected
+  // File preview
   useEffect(() => {
     if (!selectedFile) return;
     const url = URL.createObjectURL(selectedFile);
     setPreview(url);
     return () => URL.revokeObjectURL(url);
   }, [selectedFile]);
+
+  // Toggle category selection
+  const handleCategorySelection = (category: string) => {
+    if (!user) return;
+    const isSelected = user.category.includes(category);
+    const newCategories = isSelected
+      ? user.category.filter((c) => c !== category)
+      : [...user.category, category];
+    setUser({ ...user, category: newCategories });
+  };
+
+  const getSelectedCategoriesText = () => {
+    if (!user || user.category.length === 0) return "Select categories...";
+    return user.category.join(", ");
+  };
 
   const handleSave = async () => {
     if (!user) return;
@@ -85,29 +127,32 @@ const ProfileDrawer: React.FC<ProfileDrawerProps> = ({ isOpen, onClose }) => {
     form.append("name", user.name);
     form.append("primaryPhone", user.primaryPhone);
     if (user.secondaryPhone) form.append("secondaryPhone", user.secondaryPhone);
-    form.append("category", user.category);
+    form.append("category", JSON.stringify(user.category));
     form.append("email", user.email);
     if (newPassword) form.append("password", newPassword);
     if (selectedFile) form.append("profileImage", selectedFile);
 
-    await axios.put(
-      `http://localhost:5000/api/auth/profile/${user.id}`,
-      form,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "multipart/form-data",
-        },
-      }
-    );
+    try {
+      await axios.put(
+        `http://localhost:5000/api/auth/profile/${user.id}`,
+        form,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
 
-    setEditing(false);
-    setNewPassword("");
-    setSelectedFile(null);
+      setEditing(false);
+      setNewPassword("");
+      setSelectedFile(null);
 
-    // ✅ Success popup
-    setShowSuccess(true);
-    setTimeout(() => setShowSuccess(false), 2500);
+      setShowSuccess(true);
+      setTimeout(() => setShowSuccess(false), 2500);
+    } catch (err) {
+      console.error("Profile update failed:", err);
+    }
   };
 
   const handleLogout = () => {
@@ -128,11 +173,10 @@ const ProfileDrawer: React.FC<ProfileDrawerProps> = ({ isOpen, onClose }) => {
 
       {/* Drawer */}
       <div
-        className={`relative ml-auto w-96 bg-white h-full shadow-2xl rounded-l-xl transform transition-transform duration-300 ease-in-out ${
-          isOpen ? "translate-x-0" : "translate-x-full"
-        }`}
+        className={`relative ml-auto w-96 bg-white h-full shadow-2xl rounded-l-xl transform transition-transform duration-300 ease-in-out ${isOpen ? "translate-x-0" : "translate-x-full"
+          }`}
       >
-        {/* Close */}
+        {/* Close button */}
         <button
           onClick={onClose}
           className="absolute top-3 right-3 text-gray-500 hover:text-black"
@@ -152,8 +196,8 @@ const ProfileDrawer: React.FC<ProfileDrawerProps> = ({ isOpen, onClose }) => {
                     preview
                       ? preview
                       : user.profileImage
-                      ? `http://localhost:5000/uploads/${user.profileImage}`
-                      : "https://via.placeholder.com/150"
+                        ? `http://localhost:5000/uploads/${user.profileImage}`
+                        : "https://via.placeholder.com/150"
                   }
                   alt="Profile"
                   className="w-full h-full object-cover"
@@ -174,7 +218,7 @@ const ProfileDrawer: React.FC<ProfileDrawerProps> = ({ isOpen, onClose }) => {
                 {editing && (
                   <label
                     htmlFor="profilePicInput"
-                    className="absolute bottom-2 right-2 bg-gradient-to-r from-pink-500 to-purple-500 text-gray-700 p-2 rounded-full shadow-lg cursor-pointer hover:scale-110 transition"
+                    className="absolute bottom-2 right-2 bg-gradient-to-r from-pink-500 to-purple-500 text-white p-2 rounded-full shadow-lg cursor-pointer hover:scale-110 transition"
                   >
                     <FontAwesomeIcon icon={faCamera} />
                   </label>
@@ -193,9 +237,40 @@ const ProfileDrawer: React.FC<ProfileDrawerProps> = ({ isOpen, onClose }) => {
                 <h2 className="text-xl font-semibold text-gray-600">{user.name}</h2>
               )}
               <p className="text-pink-500">{user.role}</p>
-              <p className="text-gray-500">{user.category}</p>
 
-              {/* Details */}
+              {/* Categories */}
+              <div className="relative w-full mt-4" ref={dropdownRef}>
+                <label className="block font-semibold text-gray-700 mb-1">Categories</label>
+                <div
+                  onClick={() => editing && setIsCategoriesDropdownOpen(!isCategoriesDropdownOpen)}
+                  className="w-full text-left px-4 py-2 bg-gray-100 rounded border border-gray-300 cursor-pointer"
+                >
+                  <span className={`${user.category.length === 0 ? 'text-gray-400' : 'text-gray-800'}`}>
+                    {getSelectedCategoriesText()}
+                  </span>
+                </div>
+                {editing && isCategoriesDropdownOpen && (
+                  <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded shadow max-h-48 overflow-y-auto">
+                    {categoriesList.map((c) => (
+                      <div
+                        key={c}
+                        onClick={() => handleCategorySelection(c)}
+                        className="flex items-center px-4 py-2 cursor-pointer hover:bg-gray-100"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={user.category.includes(c)}
+                          readOnly
+                          className="mr-2 accent-pink-500"
+                        />
+                        <span className="text-gray-700">{c}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Other Details */}
               <div className="mt-6 w-full space-y-4 text-sm text-gray-700">
                 <div>
                   <span className="font-semibold">Email:</span>
@@ -280,7 +355,7 @@ const ProfileDrawer: React.FC<ProfileDrawerProps> = ({ isOpen, onClose }) => {
                 )}
 
                 <button
-                  onClick={() => setShowLogoutConfirm(true)}
+                  onClick={handleLogout}
                   className="bg-gradient-to-r from-red-500 to-pink-600 text-white px-4 py-2 rounded shadow hover:opacity-90 flex items-center gap-2"
                 >
                   <FontAwesomeIcon icon={faSignOutAlt} /> Logout
@@ -290,31 +365,6 @@ const ProfileDrawer: React.FC<ProfileDrawerProps> = ({ isOpen, onClose }) => {
           )}
         </div>
       </div>
-
-      {/* Logout Confirmation */}
-      {showLogoutConfirm && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white text-gray-60 p-6 rounded-lg shadow-xl text-center">
-            <h3 className="text-lg  text-gray-600 font-semibold mb-4">
-              Are you sure you want to logout?
-            </h3>
-            <div className="flex gap-4 justify-center">
-              <button
-                onClick={() => setShowLogoutConfirm(false)}
-                className="px-4 py-2 rounded bg-gray-300 hover:bg-gray-400"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleLogout}
-                className="px-4 py-2 rounded bg-red-500 text-white hover:bg-red-600"
-              >
-                Logout
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

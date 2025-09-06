@@ -14,12 +14,11 @@ export const register = async (req: Request, res: Response) => {
       password, 
       role, 
       primaryPhone, 
-      secondaryPhone, 
-      category
+      secondaryPhone,
+      categories 
     } = req.body;
 
-    // file comes from multer
-   const profileImage = req.file ? req.file.filename : "";
+    const profileImage = req.file ? req.file.filename : "";
 
     if (!name || !email || !password || !role) {
       return res.status(400).json({ message: "Missing required fields" });
@@ -28,12 +27,26 @@ export const register = async (req: Request, res: Response) => {
     // Normalize role
     const normalizedRole = role === "ideaholder" ? "idealogist" : role;
 
+    // Parse categories (array sent as JSON string from frontend)
+    let parsedCategories: string[] = [];
+    if (categories) {
+      try {
+        parsedCategories = JSON.parse(categories); 
+        if (!Array.isArray(parsedCategories)) {
+          return res.status(400).json({ message: "Categories must be an array" });
+        }
+      } catch (err) {
+        return res.status(400).json({ message: "Invalid categories format" });
+      }
+    }
+
     const exists = await User.findOne({ where: { email } });
     if (exists) {
       return res.status(409).json({ message: "Email already registered" });
     }
 
     const hash = await bcrypt.hash(password, 10);
+
     const user = await User.create({ 
       name, 
       email, 
@@ -41,7 +54,7 @@ export const register = async (req: Request, res: Response) => {
       role: normalizedRole, 
       primaryPhone, 
       secondaryPhone, 
-      category, 
+      category: parsedCategories, 
       profileImage 
     });
 
@@ -153,7 +166,6 @@ export const getProfile = async (req: Request, res: Response) => {
   }
 };
 
-
 // ========================== UPDATE PROFILE ==========================
 export const updateProfile = async (req: Request, res: Response) => {
   try {
@@ -177,12 +189,24 @@ export const updateProfile = async (req: Request, res: Response) => {
       user.email = email;
     }
 
-    // Update fields
+    // Update basic fields
     user.name = name || user.name;
     user.primaryPhone = primaryPhone || user.primaryPhone;
     user.secondaryPhone = secondaryPhone || user.secondaryPhone;
-    user.category = category || user.category;
     user.profileImage = profileImage;
+
+    // Parse categories if sent
+    if (category) {
+      try {
+        const parsedCategories = JSON.parse(category);
+        if (!Array.isArray(parsedCategories)) {
+          return res.status(400).json({ message: "Categories must be an array" });
+        }
+        user.category = parsedCategories;
+      } catch (err) {
+        return res.status(400).json({ message: "Invalid categories format" });
+      }
+    }
 
     // Password update (hash)
     if (password) {

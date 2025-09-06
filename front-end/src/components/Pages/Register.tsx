@@ -1,6 +1,8 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import axiosInstance from '../../utils/axiosInstance';
-import { useNavigate } from 'react-router-dom'; // Import useNavigate hook
+import { useNavigate } from 'react-router-dom';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faCheckCircle, faCaretDown } from '@fortawesome/free-solid-svg-icons';
 
 // Interfaces for component props and form data
 interface RegisterProps {
@@ -15,12 +17,12 @@ interface FormData {
   password: string;
   primaryPhone: string;
   secondaryPhone: string;
-  category: string;
+  categories: string[];
   profileImage: File | null;
 }
 
 const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
-  const navigate = useNavigate(); // Initialize the useNavigate hook
+  const navigate = useNavigate();
 
   // State for form data
   const [formData, setFormData] = useState<FormData>({
@@ -31,7 +33,7 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
     password: '',
     primaryPhone: '',
     secondaryPhone: '',
-    category: '',
+    categories: [],
     profileImage: null,
   });
 
@@ -39,10 +41,11 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Partial<FormData>>({});
   const [apiError, setApiError] = useState<string | null>(null);
+  const [isCategoriesDropdownOpen, setIsCategoriesDropdownOpen] = useState(false);
 
   // Ref for the hidden file input
   const fileInputRef = useRef<HTMLInputElement>(null);
-
+  const dropdownRef = useRef<HTMLDivElement>(null);
   // Array of categories for the select input
   const categories = [
     'IT & Technology',
@@ -59,22 +62,23 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
     'Other'
   ];
 
+  useEffect(() => {
+    const handleOutsideClick = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsCategoriesDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleOutsideClick);
+    return () => document.removeEventListener("mousedown", handleOutsideClick);
+  }, [dropdownRef]);
+
   // Handles changes to form inputs, clearing errors as the user types
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value,
-    });
-    
-    // Clear the specific error for this input
+    setFormData({ ...formData, [name]: value });
     if (errors[name as keyof FormData]) {
-      setErrors({
-        ...errors,
-        [name]: undefined,
-      });
+      setErrors({ ...errors, [name]: undefined });
     }
-    // Clear any general API error
     setApiError(null);
   };
 
@@ -85,6 +89,19 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
       ...formData,
       profileImage: file,
     });
+  };
+
+  // Category selection handler for dropdown
+  const handleCategorySelection = (category: string) => {
+    const isSelected = formData.categories.includes(category);
+    const newCategories = isSelected
+      ? formData.categories.filter((c) => c !== category)
+      : [...formData.categories, category];
+
+    setFormData({ ...formData, categories: newCategories });
+    if (newCategories.length > 0) {
+      setErrors({ ...errors, categories: undefined });
+    }
   };
 
   // Validates the form fields before submission
@@ -115,8 +132,8 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
       newErrors.primaryPhone = 'Primary phone is required';
     }
 
-    if (!formData.category) {
-      newErrors.category = 'Category is required';
+    if (formData.categories.length === 0) {
+      newErrors.categories = ['Please select at least one category'];
     }
 
     setErrors(newErrors);
@@ -126,8 +143,7 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
   // Handles form submission, including API call
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Validate the form before attempting submission
+
     if (!validateForm()) {
       return;
     }
@@ -135,29 +151,31 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
     setIsLoading(true);
     setApiError(null);
 
-  try {
-    const formDataToSend = new FormData();
-    formDataToSend.append("role", formData.role);
-    formDataToSend.append("name", formData.name);
-    formDataToSend.append("email", formData.email);
-    formDataToSend.append("password", formData.password);
-    formDataToSend.append("primaryPhone", formData.primaryPhone);
-    formDataToSend.append("secondaryPhone", formData.secondaryPhone);
-    formDataToSend.append("category", formData.category);
-  
-    if (formData.profileImage) {
-      formDataToSend.append("profileImage", formData.profileImage);
-    }
+    try {
+      const formDataToSend = new FormData();
+      formDataToSend.append("role", formData.role);
+      formDataToSend.append("name", formData.name);
+      formDataToSend.append("email", formData.email);
+      formDataToSend.append("password", formData.password);
+      formDataToSend.append("primaryPhone", formData.primaryPhone);
+      formDataToSend.append("secondaryPhone", formData.secondaryPhone);
 
-    const response = await axiosInstance.post("/auth/register", formDataToSend, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    });
+      // Convert array to JSON string before sending
+      formDataToSend.append("categories", JSON.stringify(formData.categories));
+
+      if (formData.profileImage) {
+        formDataToSend.append("profileImage", formData.profileImage);
+      }
+
+      const response = await axiosInstance.post("/auth/register", formDataToSend, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
 
       // Handle successful registration
       console.log('Registration successful!', response.data);
-      
+
       // Check the user's role and redirect accordingly
       if (formData.role === 'investor') {
         // Redirect to the Login page for investors
@@ -185,6 +203,17 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
   // Triggers the hidden file input click
   const triggerFileInput = () => {
     fileInputRef.current?.click();
+  };
+
+  const getSelectedCategoriesText = () => {
+    if (formData.categories.length === 0) {
+      return "Select categories...";
+    }
+    const selectedCount = formData.categories.length;
+    const firstCategory = formData.categories[0];
+    return selectedCount > 1
+      ? `${firstCategory} + ${selectedCount - 1} more`
+      : firstCategory;
   };
 
   return (
@@ -220,11 +249,10 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
               <button
                 type="button"
                 onClick={() => setFormData({ ...formData, role: 'investor' })}
-                className={`p-4 rounded-lg border-2 transition-all duration-200 ${
-                  formData.role === 'investor'
-                    ? 'border-purple-500 bg-purple-500/20 text-white'
-                    : 'border-white/20 bg-white/5 text-gray-300 hover:border-white/40'
-                }`}
+                className={`p-4 rounded-lg border-2 transition-all duration-200 ${formData.role === 'investor'
+                  ? 'border-purple-500 bg-purple-500/20 text-white'
+                  : 'border-white/20 bg-white/5 text-gray-300 hover:border-white/40'
+                  }`}
               >
                 <div className="text-center">
                   <svg className="mx-auto h-8 w-8 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -234,15 +262,14 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
                   <div className="text-sm opacity-75">Fund innovative ideas</div>
                 </div>
               </button>
-              
+
               <button
                 type="button"
                 onClick={() => setFormData({ ...formData, role: 'ideaholder' })}
-                className={`p-4 rounded-lg border-2 transition-all duration-200 ${
-                  formData.role === 'ideaholder'
-                    ? 'border-purple-500 bg-purple-500/20 text-white'
-                    : 'border-white/20 bg-white/5 text-gray-300 hover:border-white/40'
-                }`}
+                className={`p-4 rounded-lg border-2 transition-all duration-200 ${formData.role === 'ideaholder'
+                  ? 'border-purple-500 bg-purple-500/20 text-white'
+                  : 'border-white/20 bg-white/5 text-gray-300 hover:border-white/40'
+                  }`}
               >
                 <div className="text-center">
                   <svg className="mx-auto h-8 w-8 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -266,39 +293,65 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
                   name="name"
                   value={formData.name}
                   onChange={handleChange}
-                  className={`w-full px-4 py-3 bg-white/10 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 ${
-                    errors.name ? 'border-red-500' : 'border-white/20'
-                  }`}
+                  className={`w-full px-4 py-3 bg-white/10 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 ${errors.name ? 'border-red-500' : 'border-white/20'
+                    }`}
                   placeholder="Enter your full name"
                 />
                 {errors.name && <p className="mt-1 text-sm text-red-400">{errors.name}</p>}
               </div>
 
-              <div>
-                <label htmlFor="category" className="block text-sm font-medium text-gray-200 mb-2">
-                  Category *
+              {/* Categories Field - IMPROVED */}
+              <div className="relative" ref={dropdownRef}>
+                <label className="block text-sm text-gray-200 mb-2">
+                  Categories *
                 </label>
-                <select
-                  id="category"
-                  name="category"
-                  value={formData.category}
-                  onChange={handleChange}
-                  className={`w-full px-4 py-3 bg-white/10 border rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 ${
-                    errors.category ? 'border-red-500' : 'border-white/20'
-                  }`}
+                <button
+                  type="button"
+                  onClick={() => setIsCategoriesDropdownOpen(!isCategoriesDropdownOpen)}
+                  className={`w-full text-left px-4 py-3 bg-white/10 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all duration-200 flex justify-between items-center ${errors.categories ? 'border-red-500' : 'border-white/20'
+                    }`}
                 >
-                  <option value="">Select a category</option>
-                  {categories.map((category) => (
-                    <option key={category} value={category} className="bg-gray-800 text-white">
-                      {category}
-                    </option>
-                  ))}
-                </select>
-                {errors.category && <p className="mt-1 text-sm text-red-400">{errors.category}</p>}
+                  <span className="truncate">
+                    {getSelectedCategoriesText()}
+                  </span>
+                  <FontAwesomeIcon icon={faCaretDown} className="ml-2 text-gray-400" />
+                </button>
+                {isCategoriesDropdownOpen && (
+                  <div className="absolute z-10 w-full mt-2 bg-white/100 backdrop-blur-lg rounded-lg shadow-lg max-h-48 overflow-y-auto border border-white/20">
+                    <ul className="py-1">
+                      {categories.map((c) => (
+                        <li
+                          key={c}
+                          onClick={() => handleCategorySelection(c)}
+                          className="flex items-center px-4 py-2 cursor-pointer text-black hover:bg-white/20 transition-colors duration-200"
+                        >
+
+                          <input
+                            type="checkbox"
+                            checked={formData.categories.includes(c)}
+                            onChange={() => { }} // This is a dummy handler, actual logic is in the li's onClick
+                            className="mr-3 h-4 w-4 text-purple-600 bg-white/10 border-gray-300 rounded focus:ring-purple-500"
+                          />
+                          {c}
+                          {/* {formData.categories.includes(c) && (
+                            <FontAwesomeIcon
+                              icon={faCheckCircle}
+                              className="ml-auto text-purple-500"
+                            />
+                          )} */}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                {errors.categories && (
+                  <p className="mt-1 text-sm text-red-400">
+                    {errors.categories}
+                  </p>
+                )}
               </div>
             </div>
 
-            {/* Email Fields */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label htmlFor="email" className="block text-sm font-medium text-gray-200 mb-2">
@@ -310,9 +363,8 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
                   name="email"
                   value={formData.email}
                   onChange={handleChange}
-                  className={`w-full px-4 py-3 bg-white/10 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 ${
-                    errors.email ? 'border-red-500' : 'border-white/20'
-                  }`}
+                  className={`w-full px-4 py-3 bg-white/10 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 ${errors.email ? 'border-red-500' : 'border-white/20'
+                    }`}
                   placeholder="Enter your email"
                 />
                 {errors.email && <p className="mt-1 text-sm text-red-400">{errors.email}</p>}
@@ -328,9 +380,8 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
                   name="confirmEmail"
                   value={formData.confirmEmail}
                   onChange={handleChange}
-                  className={`w-full px-4 py-3 bg-white/10 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 ${
-                    errors.confirmEmail ? 'border-red-500' : 'border-white/20'
-                  }`}
+                  className={`w-full px-4 py-3 bg-white/10 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 ${errors.confirmEmail ? 'border-red-500' : 'border-white/20'
+                    }`}
                   placeholder="Confirm your email"
                 />
                 {errors.confirmEmail && <p className="mt-1 text-sm text-red-400">{errors.confirmEmail}</p>}
@@ -348,9 +399,8 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
-                className={`w-full px-4 py-3 bg-white/10 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 ${
-                  errors.password ? 'border-red-500' : 'border-white/20'
-                }`}
+                className={`w-full px-4 py-3 bg-white/10 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 ${errors.password ? 'border-red-500' : 'border-white/20'
+                  }`}
                 placeholder="Create a strong password"
               />
               {errors.password && <p className="mt-1 text-sm text-red-400">{errors.password}</p>}
@@ -369,9 +419,8 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
                   name="primaryPhone"
                   value={formData.primaryPhone}
                   onChange={handleChange}
-                  className={`w-full px-4 py-3 bg-white/10 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 ${
-                    errors.primaryPhone ? 'border-red-500' : 'border-white/20'
-                  }`}
+                  className={`w-full px-4 py-3 bg-white/10 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 ${errors.primaryPhone ? 'border-red-500' : 'border-white/20'
+                    }`}
                   placeholder="Enter primary phone"
                 />
                 {errors.primaryPhone && <p className="mt-1 text-sm text-red-400">{errors.primaryPhone}</p>}

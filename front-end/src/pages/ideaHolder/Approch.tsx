@@ -16,7 +16,7 @@ type Profile = {
   id: number;
   name: string;
   email: string;
-  category: string;
+  category: string[];
   profileImage: string | null;
   status?: "pending" | "accepted" | "rejected" | "none";
 };
@@ -29,7 +29,7 @@ type ProfileDetail = Profile & {
 const IhApproch: React.FC = () => {
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
- // modal state
+  // modal state
   const [selectedProfile, setSelectedProfile] = useState<ProfileDetail | null>(
     null
   );
@@ -39,10 +39,10 @@ const IhApproch: React.FC = () => {
     const fetchInvestors = async () => {
       try {
         const token = localStorage.getItem("token");
-      const res = await axiosInstance.get("/idealogists/matching-investors", {
-  headers: { Authorization: `Bearer ${token}` },
-});
-setProfiles(res.data.investors || []);
+        const res = await axiosInstance.get("/idealogists/matching-investors", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setProfiles(res.data.investors || []);
 
         console.log("API Response:", res.data); // 🔍 debug
         setProfiles(res.data.investors || []);
@@ -55,30 +55,29 @@ setProfiles(res.data.investors || []);
 
     fetchInvestors();
   }, []);
- const handleViewProfile = async (id: number) => {
-    try {
-      const token = localStorage.getItem("token");
-      const res = await axiosInstance.get(`/auth/profile/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setSelectedProfile(res.data);
+  const handleViewProfile = (id: number) => {
+    // Find the selected profile in the existing profiles list
+    const profile = profiles.find((p) => p.id === id);
+    if (profile) {
+      setSelectedProfile(profile);
       setShowModal(true);
-    } catch (error) {
-      console.error("Error fetching profile:", error);
+    } else {
+      console.error("Profile not found in current data");
     }
   };
+
   if (loading) {
     return <p className="text-center py-10">Loading suggestions...</p>;
   }
 
   return (
     <div className="bg-gray-100 min-h-screen">
-     {/* Header Section */}
-<div className="max-w-7xl mx-auto mb-8 pt-8">
-  <h1 className="text-2xl font-bold text-gray-800">
-    More suggestions for you
-  </h1>
-</div>
+      {/* Header Section */}
+      <div className="max-w-7xl mx-auto mb-8 pt-8">
+        <h1 className="text-2xl font-bold text-gray-800">
+          More suggestions for you
+        </h1>
+      </div>
 
 
       {/* Card Grid */}
@@ -105,30 +104,38 @@ setProfiles(res.data.investors || []);
                 <h3 className="text-md font-semibold text-gray-900 text-center">
                   {profile.name}
                 </h3>
-                <p className="text-sm text-gray-500 text-center">
-                  {profile.category}
-                </p>
+                <div className="flex flex-wrap justify-center gap-1 mt-2">
+                  {profile.category.map((cat) => (
+                    <span
+                      key={cat}
+                      className="bg-blue-100 text-blue-800 text-xs font-medium px-2 py-1 rounded-full"
+                    >
+                      {cat}
+                    </span>
+                  ))}
+                </div>
+
               </div>
-            <div className="space-y-2 mt-4 w-full">
-              <button
-                onClick={() => handleViewProfile(profile.id)}
-                className="w-full font-semibold py-2 rounded-full shadow text-sm bg-gray-200 hover:bg-gray-300"
-              >
-                View Profile
-              </button>
+              <div className="space-y-2 mt-4 w-full">
+                <button
+                  onClick={() => handleViewProfile(profile.id)}
+                  className="w-full font-semibold py-2 rounded-full shadow text-sm bg-gray-200 hover:bg-gray-300"
+                >
+                  View Profile
+                </button>
               </div>
               {/* ✅ Button section based on status */}
               {profile.status === "accepted" ? (
                 <button
                   disabled
-                className="w-full font-semibold py-2 rounded-full shadow text-sm bg-gradient-to-r from-purple-600 to-blue-600 text-white "
+                  className="w-full font-semibold py-2 rounded-full shadow text-sm bg-gradient-to-r from-purple-600 to-blue-600 text-white "
                 >
                   Connected
                 </button>
               ) : profile.status === "pending" ? (
                 <button
                   disabled
-                className="w-full font-semibold py-2 rounded-full shadow text-sm bg-yellow-300 "
+                  className="w-full font-semibold py-2 rounded-full shadow text-sm bg-yellow-300 "
 
                 >
                   Pending...
@@ -160,7 +167,7 @@ setProfiles(res.data.investors || []);
                       console.error(err);
                     }
                   }}
-                className="w-full font-semibold py-2 rounded-full shadow text-sm bg-gradient-to-r from-purple-600 to-blue-600 text-white "
+                  className="w-full font-semibold py-2 rounded-full shadow text-sm bg-gradient-to-r from-purple-600 to-blue-600 text-white "
                 >
                   Connect
                 </button>
@@ -169,70 +176,80 @@ setProfiles(res.data.investors || []);
           </div>
         ))}
       </div>
-         {/* Modal */}
-            {showModal && selectedProfile && (
-              <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-                <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden relative">
-                  {/* Header with gradient */}
-                  <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-6 text-center relative">
-                    <button
-                      onClick={() => setShowModal(false)}
-                      className="absolute top-4 right-4 text-white hover:text-gray-200 text-lg"
-                    >
-                      <FontAwesomeIcon icon={faTimes} />
-                    </button>
-                    <img
-                      src={
-                        selectedProfile.profileImage
-                          ? `http://localhost:5000/uploads/${selectedProfile.profileImage}`
-                          : "https://via.placeholder.com/100"
-                      }
-                      alt={selectedProfile.name}
-                      className="w-24 h-24 rounded-full object-cover border-4 border-white mx-auto shadow-lg"
-                    />
-                    <h2 className="text-2xl font-bold text-white mt-4">
-                      {selectedProfile.name}
-                    </h2>
-                    <p className="text-indigo-100">{selectedProfile.role}</p>
-                    <p className="text-indigo-200 text-sm">
-                      {selectedProfile.category}
-                    </p>
-                  </div>
-      
-                  {/* Body */}
-                  <div className="p-6 space-y-4">
-                    <div className="flex items-center space-x-3 text-gray-700">
-                      <FontAwesomeIcon icon={faEnvelope} className="text-blue-600" />
-                      <span className="font-medium">Email:</span>
-                      <span>{selectedProfile.email}</span>
-                    </div>
-                    <div className="flex items-center space-x-3 text-gray-700">
-                      <FontAwesomeIcon icon={faPhone} className="text-green-600" />
-                      <span className="font-medium">Primary Phone:</span>
-                      <span>{selectedProfile.primaryPhone || "-"}</span>
-                    </div>
-                    <div className="flex items-center space-x-3 text-gray-700">
-                      <FontAwesomeIcon icon={faPhone} className="text-purple-600" />
-                      <span className="font-medium">Secondary Phone:</span>
-                      <span>{selectedProfile.secondaryPhone || "-"}</span>
-                    </div>
-                    <div className="flex items-center space-x-3 text-gray-700">
-                      <FontAwesomeIcon icon={faUserTag} className="text-orange-600" />
-                      <span className="font-medium">Role:</span>
-                      <span>{selectedProfile.role || "-"}</span>
-                    </div>
-                    <div className="flex items-center space-x-3 text-gray-700">
-                      <FontAwesomeIcon
-                        icon={faLayerGroup}
-                        className="text-pink-600"
-                      />
-                      <span className="font-medium">Category:</span>
-                      <span>{selectedProfile.category}</span>
-                    </div>
-                  </div>
-                </div>
+      {/* Modal */}
+      {showModal && selectedProfile && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden relative">
+            {/* Header with gradient */}
+            <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-6 text-center relative">
+              <button
+                onClick={() => setShowModal(false)}
+                className="absolute top-4 right-4 text-white hover:text-gray-200 text-lg"
+              >
+                <FontAwesomeIcon icon={faTimes} />
+              </button>
+              <img
+                src={
+                  selectedProfile.profileImage
+                    ? `http://localhost:5000/uploads/${selectedProfile.profileImage}`
+                    : "https://via.placeholder.com/100"
+                }
+                alt={selectedProfile.name}
+                className="w-24 h-24 rounded-full object-cover border-4 border-white mx-auto shadow-lg"
+              />
+              <h2 className="text-2xl font-bold text-white mt-4">
+                {selectedProfile.name}
+              </h2>
+              <p className="text-indigo-100">{selectedProfile.role}</p>
+              <p className="text-indigo-200 text-sm">
+                {selectedProfile.category}
+              </p>
+            </div>
+
+            {/* Body */}
+            <div className="p-6 space-y-4">
+              <div className="flex items-center space-x-3 text-gray-700">
+                <FontAwesomeIcon icon={faEnvelope} className="text-blue-600" />
+                <span className="font-medium">Email:</span>
+                <span>{selectedProfile.email}</span>
               </div>
-            )}
+              <div className="flex items-center space-x-3 text-gray-700">
+                <FontAwesomeIcon icon={faPhone} className="text-green-600" />
+                <span className="font-medium">Primary Phone:</span>
+                <span>{selectedProfile.primaryPhone || "-"}</span>
+              </div>
+              <div className="flex items-center space-x-3 text-gray-700">
+                <FontAwesomeIcon icon={faPhone} className="text-purple-600" />
+                <span className="font-medium">Secondary Phone:</span>
+                <span>{selectedProfile.secondaryPhone || "-"}</span>
+              </div>
+              <div className="flex items-center space-x-3 text-gray-700">
+                <FontAwesomeIcon icon={faUserTag} className="text-orange-600" />
+                <span className="font-medium">Role:</span>
+                <span>{selectedProfile.role || "-"}</span>
+              </div>
+              <div className="flex items-center space-x-3 text-gray-700">
+                <FontAwesomeIcon
+                  icon={faLayerGroup}
+                  className="text-pink-600"
+                />
+                <span className="font-medium">Category:</span>
+                <div className="flex flex-wrap gap-2 mt-1">
+                  {selectedProfile.category.map((cat) => (
+                    <span
+                      key={cat}
+                      className="bg-indigo-100 text-indigo-800 text-xs font-medium px-2 py-1 rounded-full"
+                    >
+                      {cat}
+                    </span>
+                  ))}
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
