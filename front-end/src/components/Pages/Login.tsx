@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import axiosInstance from '../../utils/axiosInstance';
 import { useNavigate } from 'react-router-dom';
+import Swal from "sweetalert2";
+import "sweetalert2/dist/sweetalert2.min.css";
 
 interface LoginProps {
   onSwitchToRegister: () => void;
@@ -37,30 +39,40 @@ const Login: React.FC<LoginProps> = ({ onSwitchToRegister }) => {
     try {
       const response = await axiosInstance.post('/auth/login', loginData);
 
-      // Store the token and the entire user object in localStorage
+      // Store the token and user
       localStorage.setItem('token', response.data.token);
-      localStorage.setItem('user', JSON.stringify(response.data.user)); // ✅ Store the user object
+      localStorage.setItem('user', JSON.stringify(response.data.user));
 
       const { role } = response.data.user;
 
-      // Navigate based on role
+      // ✅ Cute success alert (center tick)
+      Swal.fire({
+        icon: "success",
+        title: "Welcome ",
+        text: "Login successful",
+        timer: 2000,
+        showConfirmButton: false,
+        position: "center",
+      });
+
       if (role === 'investor') {
-        navigate(`/inv/approach`); // ✅ Navigate to the new profile page
+        navigate(`/inv/approach`);
       } else if (role === "idealogist") {
-        navigate(`/ih/approach`); // ✅ Navigate to the new profile page
+        navigate(`/ih/approach`);
       } else {
         setApiError('Invalid role received from server.');
       }
 
     } catch (error: any) {
-      if (error.response) {
-        setApiError(error.response.data.message || 'Login failed. Please check your credentials.');
-      } else if (error.request) {
-        setApiError('No response received from server. Please check your network connection.');
-      } else {
-        setApiError(error.message || 'An unexpected error occurred.');
-      }
       console.error('Login error:', error);
+
+      Swal.fire({
+        icon: "error",
+        title: "Oops!",
+        text: error.response?.data?.message || "Login failed. Please try again.",
+        confirmButtonText: "Close",
+        position: "center",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -79,6 +91,7 @@ const Login: React.FC<LoginProps> = ({ onSwitchToRegister }) => {
           <h2 className="mt-6 text-3xl font-bold text-white">Welcome Back</h2>
           <p className="mt-2 text-sm text-gray-300">Sign in to your account to continue</p>
         </div>
+
         {/* Login Form */}
         <div className="bg-white/10 backdrop-blur-lg rounded-2xl shadow-2xl p-8 border border-white/20">
           <form className="space-y-6" onSubmit={handleSubmit}>
@@ -140,6 +153,7 @@ const Login: React.FC<LoginProps> = ({ onSwitchToRegister }) => {
               )}
             </button>
           </form>
+
           {/* Switch to Register */}
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-300">
@@ -153,6 +167,7 @@ const Login: React.FC<LoginProps> = ({ onSwitchToRegister }) => {
             </p>
           </div>
         </div>
+
         {/* Footer */}
         <div className="text-center">
           <p className="text-xs text-gray-400">

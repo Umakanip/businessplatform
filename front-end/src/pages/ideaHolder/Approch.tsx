@@ -1,6 +1,4 @@
-
-
-
+// @/pages/ideaHolder/IhApproch.tsx
 import React, { useEffect, useState } from "react";
 import axiosInstance from "../../utils/axiosInstance";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -11,6 +9,7 @@ import {
   faLayerGroup,
   faTimes,
 } from "@fortawesome/free-solid-svg-icons";
+import Swal from "sweetalert2";
 
 type Profile = {
   id: number;
@@ -47,7 +46,12 @@ const IhApproch: React.FC = () => {
         console.log("API Response:", res.data); // 🔍 debug
         setProfiles(res.data.investors || []);
       } catch (error) {
-        console.error("Error fetching investors:", error);
+        Swal.fire({
+          title: "Error",
+          text: "Failed to fetch investors.",
+          icon: "error",
+          confirmButtonColor: "#d33",
+        });
       } finally {
         setLoading(false);
       }
@@ -56,15 +60,24 @@ const IhApproch: React.FC = () => {
     fetchInvestors();
   }, []);
   const handleViewProfile = (id: number) => {
-    // Find the selected profile in the existing profiles list
-    const profile = profiles.find((p) => p.id === id);
-    if (profile) {
-      setSelectedProfile(profile);
-      setShowModal(true);
-    } else {
-      console.error("Profile not found in current data");
+    try {
+      const profile = profiles.find((p) => p.id === id);
+      if (profile) {
+        setSelectedProfile(profile);
+        setShowModal(true);
+      } else {
+        throw new Error("Profile not found");
+      }
+    } catch (error) {
+      Swal.fire({
+        title: "Error",
+        text: "Unable to fetch profile details.",
+        icon: "error",
+        confirmButtonColor: "#d33",
+      });
     }
   };
+
 
   if (loading) {
     return <p className="text-center py-10">Loading suggestions...</p>;
@@ -78,7 +91,6 @@ const IhApproch: React.FC = () => {
           More suggestions for you
         </h1>
       </div>
-
 
       {/* Card Grid */}
       <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
@@ -124,6 +136,7 @@ const IhApproch: React.FC = () => {
                   View Profile
                 </button>
               </div>
+
               {/* ✅ Button section based on status */}
               {profile.status === "accepted" ? (
                 <button
@@ -136,7 +149,6 @@ const IhApproch: React.FC = () => {
                 <button
                   disabled
                   className="w-full font-semibold py-2 rounded-full shadow text-sm bg-yellow-300 "
-
                 >
                   Pending...
                 </button>
@@ -155,7 +167,17 @@ const IhApproch: React.FC = () => {
                           },
                         }
                       );
-                      alert("Request sent. Status: pending");
+
+                      await Swal.fire({
+                        title: "Request Sent!",
+                        text: "Connection request sent successfully.",
+                        icon: "success",
+                        position: "center",
+                        showConfirmButton: false,
+                        timer: 2000,
+                        timerProgressBar: true,
+                        background: "#f0f9ff",
+                      });
 
                       // ✅ Update local state → mark this profile as pending
                       setProfiles((prev) =>
@@ -164,7 +186,14 @@ const IhApproch: React.FC = () => {
                         )
                       );
                     } catch (err) {
-                      console.error(err);
+                      Swal.fire({
+                        title: "Error",
+                        text: "Unable to send request.",
+                        icon: "error",
+                        position: "center",
+                        confirmButtonColor: "#d33",
+                        background: "#fff5f5",
+                      });
                     }
                   }}
                   className="w-full font-semibold py-2 rounded-full shadow text-sm bg-gradient-to-r from-purple-600 to-blue-600 text-white "

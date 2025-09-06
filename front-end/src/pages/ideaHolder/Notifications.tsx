@@ -1,7 +1,7 @@
 // @/components/Notifications.tsx
 import React, { useEffect, useState } from "react";
 import axiosInstance from "../../utils/axiosInstance";
-
+import Swal from "sweetalert2";
 type ConnectionRequestType = {
   id: number;
   sender: {
@@ -35,21 +35,51 @@ const Notifications: React.FC = () => {
     fetchInvites();
   }, []);
 
-  const handleRespond = async (requestId: number, action: "accept" | "reject") => {
-    try {
-      const token = localStorage.getItem("token");
-      const res = await axiosInstance.post(
-        "/connections/respond",
-        { requestId, action },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
 
-      alert(res.data.message); // 🔹 notification
-      setInvites(invites.filter((invite) => invite.id !== requestId));
-    } catch (error: any) {
-      alert(error.response?.data?.message || "Error responding to invite");
-    }
-  };
+
+
+const handleRespond = async (requestId: number, action: "accept" | "reject") => {
+  try {
+    const token = localStorage.getItem("token");
+    const res = await axiosInstance.post(
+      "/connections/respond",
+      { requestId, action },
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+
+    // ✅ colorful auto-close toast
+  Swal.fire({
+  title: action === "accept" ? "Accepted " : "Rejected 🚫",
+  text: res.data.message || 
+        (action === "accept" ? "Connection accepted successfully!" : "Invite rejected."),
+  icon: "success",
+  showConfirmButton: false,  // OK button கிடையாது
+  timer: 2000,               // 2 sec auto-close
+  timerProgressBar: true,
+  background: action === "accept" 
+     ? "linear-gradient(135deg, #d3f5e7ff, #8db3f0ff)" 
+     : "linear-gradient(135deg, #FCA5A5, #e7bcbcff)",
+  color: "#fff",
+});
+
+
+    setInvites(invites.filter((invite) => invite.id !== requestId));
+  } catch (error: any) {
+    // ❌ colorful error toast
+   Swal.fire({
+  title: "Error ⚠️",
+  text: error.response?.data?.message || "Error responding to invite",
+  icon: "error",
+  showConfirmButton: false,
+  timer: 2500,
+  timerProgressBar: true,
+  background: "linear-gradient(135deg, #f3e29dff, #eeb34eff)",
+  color: "#000",
+});
+
+  }
+};
+
 
   if (loading) {
     return <p className="text-center py-10 text-gray-400">Loading invites...</p>;

@@ -249,6 +249,8 @@ import {
   faLayerGroup,
   faTimes,
 } from "@fortawesome/free-solid-svg-icons";
+import Swal from "sweetalert2";
+import "sweetalert2/dist/sweetalert2.min.css";
 
 type Profile = {
   id: number;
@@ -258,6 +260,7 @@ type Profile = {
   profileImage: string | null;
   status?: "pending" | "accepted" | "rejected" | "none";
 };
+
 type ProfileDetail = Profile & {
   primaryPhone?: string;
   secondaryPhone?: string;
@@ -300,6 +303,7 @@ const InvApproach: React.FC = () => {
       console.error("Profile not found in current data");
     }
   };
+
 
   if (loading) {
     return <p className="text-center py-10">Loading suggestions...</p>;
@@ -359,6 +363,7 @@ const InvApproach: React.FC = () => {
                   View Profile
                 </button>
               </div>
+
               {/* ✅ Button section based on status */}
               {profile.status === "accepted" ? (
                 <button
@@ -371,7 +376,6 @@ const InvApproach: React.FC = () => {
                 <button
                   disabled
                   className="w-full font-semibold py-2 rounded-full shadow text-sm bg-yellow-300 "
-
                 >
                   Pending...
                 </button>
@@ -390,16 +394,39 @@ const InvApproach: React.FC = () => {
                           },
                         }
                       );
-                      alert("Request sent. Status: pending");
 
-                      // ✅ Update local state → mark this profile as pending
+                      // ✅ Success popup
+                           await Swal.fire({
+                                             title: "Request Sent!",
+                                             text: "Connection request sent successfully.",
+                                             icon: "success",
+                                             position: "center",
+                                             showConfirmButton: false,
+                                             timer: 2000,
+                                             timerProgressBar: true,
+                                             background: "#f0f9ff",
+                                           });
+
+                      // update local state
                       setProfiles((prev) =>
                         prev.map((p) =>
-                          p.id === profile.id ? { ...p, status: "pending" } : p
+                          p.id === profile.id
+                            ? { ...p, status: "pending" }
+                            : p
                         )
                       );
-                    } catch (err) {
+                    } catch (err: any) {
                       console.error(err);
+
+                      // ❌ Error popup
+                     Swal.fire({
+                                             title: "Error",
+                                             text: "Unable to send request.",
+                                             icon: "error",
+                                             position: "center",
+                                             confirmButtonColor: "#d33",
+                                             background: "#fff5f5",
+                                           });
                     }
                   }}
                   className="w-full font-semibold py-2 rounded-full shadow text-sm bg-gradient-to-r from-purple-600 to-blue-600 text-white "
