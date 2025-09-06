@@ -57,7 +57,7 @@ useEffect(() => {
 
   const investorMenu = [
     { name: "Home", path: "/", icon: faHome },
-    { name: "Our Approach", path: "/inv/approach", icon: faLightbulb },
+    { name: "Ideas Hub", path: "/inv/approach", icon: faLightbulb },
     { name: "My Connections", path: "/inv/connections", icon: faLink },
     { name: "Notifications", path: "/inv/notifications", icon: faBell },
     { name: "Profile", path: "#", icon: faUser, action: () => setShowProfile(true) },
