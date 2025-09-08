@@ -156,70 +156,53 @@ export const getProfile = async (req: Request, res: Response) => {
 };
 
 // ========================== UPDATE PROFILE ==========================
-export const updateProfile = async (req: Request, res: Response) => {
+export const updateProfile = async (req: Request & { user?: any }, res: Response) => {
   try {
-    const { id } = req.params;
+    if (!req.user) return res.status(401).json({ message: "Unauthorized" });
 
-    const user = await User.findByPk(id);
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
+    const { name, email, primaryPhone, secondaryPhone, category, bio, password } = req.body;
+    const profileImage = req.file ? req.file.filename : undefined;
 
-    // New values from frontend
-    const { name, primaryPhone, secondaryPhone, category, email, password } = req.body;
-    const profileImage = req.file ? req.file.filename : user.profileImage;
-
-    // Check if email already exists (if updated)
-    if (email && email !== user.email) {
-      const exists = await User.findOne({ where: { email } });
-      if (exists) {
-        return res.status(409).json({ message: "Email already in use" });
-      }
-      user.email = email;
-    }
-
-    // Update basic fields
-    user.name = name || user.name;
-    user.primaryPhone = primaryPhone || user.primaryPhone;
-    user.secondaryPhone = secondaryPhone || user.secondaryPhone;
-    user.profileImage = profileImage;
-
-    // Parse categories if sent
+    // ✅ Parse categories if it's a JSON string
+    let parsedCategories: string[] = [];
     if (category) {
-      try {
-        const parsedCategories = JSON.parse(category);
-        if (!Array.isArray(parsedCategories)) {
-          return res.status(400).json({ message: "Categories must be an array" });
+      if (typeof category === "string") {
+        try {
+          parsedCategories = JSON.parse(category);
+          if (!Array.isArray(parsedCategories)) {
+            return res.status(400).json({ message: "Categories must be an array" });
+          }
+        } catch (err) {
+          return res.status(400).json({ message: "Invalid categories format" });
         }
-        user.category = parsedCategories;
-      } catch (err) {
-        return res.status(400).json({ message: "Invalid categories format" });
+      } else if (Array.isArray(category)) {
+        parsedCategories = category;
       }
     }
 
-    // Password update (hash)
+    const updates: any = {
+      name,
+      email,
+      primaryPhone,
+      secondaryPhone,
+      category: parsedCategories, // ✅ Correctly store as array
+      bio,
+    };
+
     if (password) {
       const hash = await bcrypt.hash(password, 10);
-      user.password = hash;
+      updates.password = hash;
     }
+    if (profileImage) updates.profileImage = profileImage;
 
-    await user.save();
+    await User.update(updates, { where: { id: req.user.id } });
 
-    return res.status(200).json({
-      message: "Profile updated successfully",
-      user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        primaryPhone: user.primaryPhone,
-        secondaryPhone: user.secondaryPhone,
-        category: user.category,
-        profileImage: user.profileImage,
-      },
-    });
-  } catch (error) {
-    console.error("Update profile error:", error);
-    return res.status(500).json({ message: "Internal server error" });
+    const updatedUser = await User.findByPk(req.user.id);
+    res.json(updatedUser);
+  } catch (err) {
+    console.error("Profile update error:", err);
+    res.status(500).json({ message: "Internal server error" });
   }
 };
+
+

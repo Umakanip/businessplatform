@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -10,12 +9,10 @@ import {
   faHome,
   faLightbulb,
 } from "@fortawesome/free-solid-svg-icons";
-import ProfileDrawer from "../Pages/ProfileDrawer";
 import axiosInstance from "../../utils/axiosInstance";
 
 const HeaderIh: React.FC = () => {
   const location = useLocation();
-  const [showProfile, setShowProfile] = useState(false);
   const [inviteCount, setInviteCount] = useState(0);
 
   // 🔹 Fetch invites count
@@ -51,13 +48,14 @@ const HeaderIh: React.FC = () => {
     };
   }, []);
 
+  // ✅ Direct profile page instead of drawer
   const ideaHolderMenu = [
     { name: "Home", path: "/", icon: faHome },
     { name: "Investers Hub", path: "/ih/approach", icon: faLightbulb },
     { name: "My Connections", path: "/ih/connections", icon: faLink },
     { name: "Subscription", path: "/ih/subscription", icon: faCreditCard },
     { name: "Notifications", path: "/ih/notifications", icon: faBell },
-    { name: "Profile", path: "#", icon: faUser, action: () => setShowProfile(true) },
+    { name: "Profile", path: "/ih/profile", icon: faUser },
   ];
 
   return (
@@ -68,12 +66,6 @@ const HeaderIh: React.FC = () => {
           <Link
             key={item.name}
             to={item.path}
-            onClick={(e) => {
-              if (item.action) {
-                e.preventDefault();
-                item.action();
-              }
-            }}
             className={`relative flex items-center justify-center px-3 py-2 rounded-lg font-medium transition-all
               ${location.pathname === item.path
                 ? "bg-gradient-to-r from-indigo-500/30 to-pink-500/30 text-pink-300 shadow"
@@ -98,15 +90,8 @@ const HeaderIh: React.FC = () => {
           </Link>
         ))}
       </nav>
-
-      <ProfileDrawer
-        isOpen={showProfile}
-        onClose={() => setShowProfile(false)}
-        showLogout={true}
-      />
     </header>
   );
 };
 
 export default HeaderIh;
-
