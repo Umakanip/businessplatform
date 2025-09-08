@@ -28,27 +28,71 @@ type ProfileDetail = Profile & {
 const IhApproch: React.FC = () => {
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
-  // modal state
+
   const [selectedProfile, setSelectedProfile] = useState<ProfileDetail | null>(
     null
   );
   const [showModal, setShowModal] = useState(false);
+  const [allowedIds, setAllowedIds] = useState<number[]>([]);
+  const [expandedCategories, setExpandedCategories] = useState<number[]>([]); // track expanded profiles
+
+  // helper → mask email
+  const maskEmail = (email: string): string => {
+    const [user, domain] = email.split("@");
+    if (user.length <= 2) return "*".repeat(user.length) + "@" + domain;
+    const visible = user.slice(-2);
+    return "*".repeat(user.length - 2) + visible + "@" + domain;
+  };
+
+  // helper → mask phone
+  const maskPhone = (phone: string | undefined): string => {
+    if (!phone) return "-";
+    if (phone.length <= 4) return "*".repeat(phone.length);
+    const visible = phone.slice(-4);
+    return "*".repeat(phone.length - 4) + visible;
+  };
 
   useEffect(() => {
-    const fetchInvestors = async () => {
+    const fetchData = async () => {
       try {
         const token = localStorage.getItem("token");
+
+        // ✅ Fetch investors
         const res = await axiosInstance.get("/idealogists/matching-investors", {
           headers: { Authorization: `Bearer ${token}` },
         });
-        setProfiles(res.data.investors || []);
+        const allProfiles: Profile[] = res.data.investors || [];
 
-        console.log("API Response:", res.data); // 🔍 debug
-        setProfiles(res.data.investors || []);
+        // ✅ Fetch subscription
+        const subRes = await axiosInstance.get("/subscriptions/status", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        const subscription = subRes.data;
+        let allowedCount = 0;
+        const total = allProfiles.length;
+
+        if (subscription?.active) {
+          if (subscription.plan === "lite") {
+            allowedCount = Math.ceil(total * 0.3); // 30%
+          } else if (subscription.plan === "standard") {
+            allowedCount = Math.ceil(total * 0.6); // 60%
+          } else if (subscription.plan === "premium") {
+            allowedCount = total; // unlimited
+          }
+        } else {
+          allowedCount = 0;
+        }
+
+        allowedCount = Math.max(1, allowedCount);
+        const allowed = allProfiles.slice(0, allowedCount).map((p) => p.id);
+
+        setProfiles(allProfiles);
+        setAllowedIds(allowed);
       } catch (error) {
         Swal.fire({
           title: "Error",
-          text: "Failed to fetch investors.",
+          text: "Failed to fetch investors or subscription.",
           icon: "error",
           confirmButtonColor: "#d33",
         });
@@ -57,8 +101,9 @@ const IhApproch: React.FC = () => {
       }
     };
 
-    fetchInvestors();
+    fetchData();
   }, []);
+
   const handleViewProfile = (id: number) => {
     try {
       const profile = profiles.find((p) => p.id === id);
@@ -78,6 +123,12 @@ const IhApproch: React.FC = () => {
     }
   };
 
+  // toggle category view
+  const toggleCategoryView = (id: number) => {
+    setExpandedCategories((prev) =>
+      prev.includes(id) ? prev.filter((pid) => pid !== id) : [...prev, id]
+    );
+  };
 
   if (loading) {
     return <p className="text-center py-10">Loading suggestions...</p>;
@@ -90,121 +141,144 @@ const IhApproch: React.FC = () => {
         <h1 className="text-2xl font-bold text-gray-800">
           More suggestions for you
         </h1>
+        <p className="text-gray-500 text-sm">
+          Total {profiles.length} profiles available
+        </p>
       </div>
 
       {/* Card Grid */}
       <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-        {profiles.map((profile) => (
-          <div
-            key={profile.id}
-            className="relative bg-white rounded-2xl shadow-lg px-6 py-6 overflow-hidden transition-all duration-300 transform hover:scale-105 hover:shadow-2xl w-[240px] h-[320px] mx-auto"
-          >
-            {/* Background Gradient Circle */}
-            <div className="absolute top-0 right-0 w-24 h-24 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 transform translate-x-1/3 -translate-y-1/3 opacity-50"></div>
+        {profiles.map((profile) => {
+          const isExpanded = expandedCategories.includes(profile.id);
+          const categoriesToShow = isExpanded
+            ? profile.category
+            : profile.category.slice(0, 2);
 
-            <div className="flex flex-col items-center z-10 relative h-full justify-between">
-              <div className="flex flex-col items-center">
-                <img
-                  src={
-                    profile.profileImage
-                      ? `http://localhost:5000/uploads/${profile.profileImage}`
-                      : "https://via.placeholder.com/100"
-                  }
-                  alt={profile.name}
-                  className="w-20 h-20 rounded-full object-cover mb-4 ring-2 ring-white shadow-lg"
-                />
-                <h3 className="text-md font-semibold text-gray-900 text-center">
-                  {profile.name}
-                </h3>
-                <div className="flex flex-wrap justify-center gap-1 mt-2">
-                  {profile.category.map((cat) => (
-                    <span
-                      key={cat}
-                      className="bg-blue-100 text-blue-800 text-xs font-medium px-2 py-1 rounded-full"
+          return (
+            <div
+              key={profile.id}
+              className="relative bg-white rounded-2xl shadow-lg px-6 py-6 overflow-hidden transition-all duration-300 transform hover:scale-105 hover:shadow-2xl w-[240px] h-[340px] mx-auto"
+            >
+              {/* Background Gradient Circle */}
+              <div className="absolute top-0 right-0 w-24 h-24 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 transform translate-x-1/3 -translate-y-1/3 opacity-50"></div>
+
+              <div className="flex flex-col items-center z-10 relative h-full justify-between">
+                <div className="flex flex-col items-center">
+                  <img
+                    src={
+                      profile.profileImage
+                        ? `http://localhost:5000/uploads/${profile.profileImage}`
+                        : "https://via.placeholder.com/100"
+                    }
+                    alt={profile.name}
+                    className="w-20 h-20 rounded-full object-cover mb-4 ring-2 ring-white shadow-lg"
+                  />
+                  <h3 className="text-md font-semibold text-gray-900 text-center">
+                    {profile.name}
+                  </h3>
+
+                  {/* Category Section with toggle */}
+                  <div className="flex flex-wrap justify-center gap-1 mt-2 mb-3 max-h-[60px] overflow-hidden">
+                    {categoriesToShow.map((cat) => (
+                      <span
+                        key={cat}
+                        className="bg-blue-100 text-blue-800 text-xs font-medium px-2 py-1 rounded-full"
+                      >
+                        {cat}
+                      </span>
+                    ))}
+                  </div>
+                  {profile.category.length > 2 && (
+                    <button
+                      onClick={() => toggleCategoryView(profile.id)}
+                      className="text-xs text-indigo-600 font-semibold hover:underline mb-2"
                     >
-                      {cat}
-                    </span>
-                  ))}
+                      {isExpanded ? "View Less" : "View More"}
+                    </button>
+                  )}
                 </div>
 
+                {/* Actions */}
+                <div className="space-y-2 mt-4 w-full">
+                  <button
+                    onClick={() => handleViewProfile(profile.id)}
+                    className="w-full font-semibold py-2 rounded-full shadow text-sm bg-gray-200 hover:bg-gray-300"
+                  >
+                    View Profile
+                  </button>
+                </div>
+
+                {/* ✅ Status Buttons */}
+                {profile.status === "accepted" ? (
+                  <button
+                    disabled
+                    className="w-full font-semibold py-2 rounded-full shadow text-sm bg-gradient-to-r from-purple-600 to-blue-600 text-white mt-2"
+                  >
+                    Connected
+                  </button>
+                ) : profile.status === "pending" ? (
+                  <button
+                    disabled
+                    className="w-full font-semibold py-2 rounded-full shadow text-sm bg-yellow-300 mt-2"
+                  >
+                    Pending...
+                  </button>
+                ) : (
+                  <button
+                    onClick={async () => {
+                      try {
+                        await axiosInstance.post(
+                          "/connections/send",
+                          { receiverId: profile.id },
+                          {
+                            headers: {
+                              Authorization: `Bearer ${localStorage.getItem(
+                                "token"
+                              )}`,
+                            },
+                          }
+                        );
+
+                        await Swal.fire({
+                          title: "Request Sent!",
+                          text: "Connection request sent successfully.",
+                          icon: "success",
+                          position: "center",
+                          showConfirmButton: false,
+                          timer: 2000,
+                          timerProgressBar: true,
+                          background: "#f0f9ff",
+                        });
+
+                        setProfiles((prev) =>
+                          prev.map((p) =>
+                            p.id === profile.id
+                              ? { ...p, status: "pending" }
+                              : p
+                          )
+                        );
+                      } catch (err) {
+                        Swal.fire({
+                          title: "Error",
+                          text: "Unable to send request.",
+                          icon: "error",
+                          position: "center",
+                          confirmButtonColor: "#d33",
+                          background: "#fff5f5",
+                        });
+                      }
+                    }}
+                    className="w-full font-semibold py-2 rounded-full shadow text-sm bg-gradient-to-r from-purple-600 to-blue-600 text-white mt-2"
+                  >
+                    Connect
+                  </button>
+                )}
               </div>
-              <div className="space-y-2 mt-4 w-full">
-                <button
-                  onClick={() => handleViewProfile(profile.id)}
-                  className="w-full font-semibold py-2 rounded-full shadow text-sm bg-gray-200 hover:bg-gray-300"
-                >
-                  View Profile
-                </button>
-              </div>
-
-              {/* ✅ Button section based on status */}
-              {profile.status === "accepted" ? (
-                <button
-                  disabled
-                  className="w-full font-semibold py-2 rounded-full shadow text-sm bg-gradient-to-r from-purple-600 to-blue-600 text-white "
-                >
-                  Connected
-                </button>
-              ) : profile.status === "pending" ? (
-                <button
-                  disabled
-                  className="w-full font-semibold py-2 rounded-full shadow text-sm bg-yellow-300 "
-                >
-                  Pending...
-                </button>
-              ) : (
-                <button
-                  onClick={async () => {
-                    try {
-                      await axiosInstance.post(
-                        "/connections/send",
-                        { receiverId: profile.id },
-                        {
-                          headers: {
-                            Authorization: `Bearer ${localStorage.getItem(
-                              "token"
-                            )}`,
-                          },
-                        }
-                      );
-
-                      await Swal.fire({
-                        title: "Request Sent!",
-                        text: "Connection request sent successfully.",
-                        icon: "success",
-                        position: "center",
-                        showConfirmButton: false,
-                        timer: 2000,
-                        timerProgressBar: true,
-                        background: "#f0f9ff",
-                      });
-
-                      // ✅ Update local state → mark this profile as pending
-                      setProfiles((prev) =>
-                        prev.map((p) =>
-                          p.id === profile.id ? { ...p, status: "pending" } : p
-                        )
-                      );
-                    } catch (err) {
-                      Swal.fire({
-                        title: "Error",
-                        text: "Unable to send request.",
-                        icon: "error",
-                        position: "center",
-                        confirmButtonColor: "#d33",
-                        background: "#fff5f5",
-                      });
-                    }
-                  }}
-                  className="w-full font-semibold py-2 rounded-full shadow text-sm bg-gradient-to-r from-purple-600 to-blue-600 text-white "
-                >
-                  Connect
-                </button>
-              )}
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
+
       {/* Modal */}
       {showModal && selectedProfile && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
@@ -231,7 +305,7 @@ const IhApproch: React.FC = () => {
               </h2>
               <p className="text-indigo-100">{selectedProfile.role}</p>
               <p className="text-indigo-200 text-sm">
-                {selectedProfile.category}
+                {selectedProfile.category.join(", ")}
               </p>
             </div>
 
@@ -240,17 +314,29 @@ const IhApproch: React.FC = () => {
               <div className="flex items-center space-x-3 text-gray-700">
                 <FontAwesomeIcon icon={faEnvelope} className="text-blue-600" />
                 <span className="font-medium">Email:</span>
-                <span>{selectedProfile.email}</span>
+                <span>
+                  {allowedIds.includes(selectedProfile.id)
+                    ? selectedProfile.email
+                    : maskEmail(selectedProfile.email)}
+                </span>
               </div>
               <div className="flex items-center space-x-3 text-gray-700">
                 <FontAwesomeIcon icon={faPhone} className="text-green-600" />
                 <span className="font-medium">Primary Phone:</span>
-                <span>{selectedProfile.primaryPhone || "-"}</span>
+                <span>
+                  {allowedIds.includes(selectedProfile.id)
+                    ? selectedProfile.primaryPhone || "-"
+                    : maskPhone(selectedProfile.primaryPhone)}
+                </span>
               </div>
               <div className="flex items-center space-x-3 text-gray-700">
                 <FontAwesomeIcon icon={faPhone} className="text-purple-600" />
                 <span className="font-medium">Secondary Phone:</span>
-                <span>{selectedProfile.secondaryPhone || "-"}</span>
+                <span>
+                  {allowedIds.includes(selectedProfile.id)
+                    ? selectedProfile.secondaryPhone || "-"
+                    : maskPhone(selectedProfile.secondaryPhone)}
+                </span>
               </div>
               <div className="flex items-center space-x-3 text-gray-700">
                 <FontAwesomeIcon icon={faUserTag} className="text-orange-600" />
@@ -273,7 +359,6 @@ const IhApproch: React.FC = () => {
                     </span>
                   ))}
                 </div>
-
               </div>
             </div>
           </div>
