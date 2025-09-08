@@ -204,7 +204,7 @@ const validateForm = (): boolean => {
     if (formData.role === "investor") {
       onSwitchToLogin();
     } else if (formData.role === "ideaholder") {
-      navigate("/subscription");
+      onSwitchToLogin();
     }
   } catch (error: any) {
     console.error("Registration error:", error);

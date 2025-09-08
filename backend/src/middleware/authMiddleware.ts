@@ -1,8 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import User from "../models/user";
-import Subscription from "../models/subscription";
-import { isActive } from "../utils/dates";
 
 export interface AuthUser {
   id: number;
@@ -35,13 +33,7 @@ export const protect = async (req: AuthedRequest, res: Response, next: NextFunct
       return res.status(401).json({ message: "User not found" });
     }
 
-    // ✅ Enforce: Idealogists must maintain active subscription
-    if (user.role === "idealogist") {
-      const sub = await Subscription.findOne({ where: { userId: user.id } });
-      if (!sub || !isActive(sub.endDate)) {
-        return res.status(403).json({ message: "Subscription required or expired" });
-      }
-    }
+    // ❌ Removed subscription requirement for idealogists
 
     // Attach minimal safe user info
     req.user = {

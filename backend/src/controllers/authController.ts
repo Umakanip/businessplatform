@@ -1,9 +1,7 @@
 import { Request, Response } from "express";
 import bcrypt from "bcryptjs";
 import User from "../models/user";
-import Subscription from "../models/subscription";
 import generateToken from "../utils/generateToken";
-import { isActive } from "../utils/dates";
 
 // ========================== REGISTER ==========================
 export const register = async (req: Request, res: Response) => {
@@ -87,16 +85,7 @@ export const login = async (req: Request, res: Response) => {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
-    // Idealogists must have an ACTIVE subscription
-    if (user.role === "idealogist") {
-      const sub = await Subscription.findOne({ where: { userId: user.id } });
-      if (!sub || !isActive(sub.endDate)) {
-        return res.status(403).json({
-          message: "Active subscription required to login",
-          hint: "Use /api/subscriptions/subscribe-public to activate.",
-        });
-      }
-    }
+    // ✅ Removed subscription check for idealogists
 
     // Generate token
     const token = generateToken(user.id, user.role);
