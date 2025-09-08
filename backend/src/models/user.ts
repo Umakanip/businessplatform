@@ -14,10 +14,12 @@ interface UserAttributes {
   secondaryPhone?: string;
   category?: string[];
   profileImage?: string;
+  bio?: string;        // ✅ add this
   connect?: number;
   createdAt?: Date;
   updatedAt?: Date;
 }
+
 
 type UserCreation = Optional<UserAttributes, "id" | "connect">;
 
@@ -53,6 +55,10 @@ User.init(
 },
 
     profileImage: { type: DataTypes.STRING(200), allowNull: true },
+     bio: {                                    // 👈 NEW FIELD
+      type: DataTypes.STRING(250),            // max 250 characters
+      allowNull: true,                        // optional
+    },
     connect: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 },
   },
   { sequelize, modelName: "User", tableName: "users", timestamps: true }
