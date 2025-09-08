@@ -8,8 +8,10 @@ import {
   faUserTag,
   faLayerGroup,
   faTimes,
+  faLock,
 } from "@fortawesome/free-solid-svg-icons";
 import Swal from "sweetalert2";
+import { useNavigate } from "react-router-dom";
 
 type Profile = {
   id: number;
@@ -34,9 +36,12 @@ const IhApproch: React.FC = () => {
   );
   const [showModal, setShowModal] = useState(false);
   const [allowedIds, setAllowedIds] = useState<number[]>([]);
-  const [expandedCategories, setExpandedCategories] = useState<number[]>([]); // track expanded profiles
+  const [expandedCategories, setExpandedCategories] = useState<number[]>([]);
+  const [subscription, setSubscription] = useState<any>(null);
 
-  // helper → mask email
+  const navigate = useNavigate();
+
+  // mask helpers (keep as is)
   const maskEmail = (email: string): string => {
     const [user, domain] = email.split("@");
     if (user.length <= 2) return "*".repeat(user.length) + "@" + domain;
@@ -44,7 +49,6 @@ const IhApproch: React.FC = () => {
     return "*".repeat(user.length - 2) + visible + "@" + domain;
   };
 
-  // helper → mask phone
   const maskPhone = (phone: string | undefined): string => {
     if (!phone) return "-";
     if (phone.length <= 4) return "*".repeat(phone.length);
@@ -57,28 +61,30 @@ const IhApproch: React.FC = () => {
       try {
         const token = localStorage.getItem("token");
 
-        // ✅ Fetch investors
+        // profiles
         const res = await axiosInstance.get("/idealogists/matching-investors", {
           headers: { Authorization: `Bearer ${token}` },
         });
         const allProfiles: Profile[] = res.data.investors || [];
 
-        // ✅ Fetch subscription
+        // subscription
         const subRes = await axiosInstance.get("/subscriptions/status", {
           headers: { Authorization: `Bearer ${token}` },
         });
 
-        const subscription = subRes.data;
+        const sub = subRes.data;
+        setSubscription(sub);
+
         let allowedCount = 0;
         const total = allProfiles.length;
 
-        if (subscription?.active) {
-          if (subscription.plan === "lite") {
-            allowedCount = Math.ceil(total * 0.3); // 30%
-          } else if (subscription.plan === "standard") {
-            allowedCount = Math.ceil(total * 0.6); // 60%
-          } else if (subscription.plan === "premium") {
-            allowedCount = total; // unlimited
+        if (sub?.active) {
+          if (sub.plan === "lite") {
+            allowedCount = Math.ceil(total * 0.3);
+          } else if (sub.plan === "standard") {
+            allowedCount = Math.ceil(total * 0.6);
+          } else if (sub.plan === "premium") {
+            allowedCount = total;
           }
         } else {
           allowedCount = 0;
@@ -105,25 +111,13 @@ const IhApproch: React.FC = () => {
   }, []);
 
   const handleViewProfile = (id: number) => {
-    try {
-      const profile = profiles.find((p) => p.id === id);
-      if (profile) {
-        setSelectedProfile(profile);
-        setShowModal(true);
-      } else {
-        throw new Error("Profile not found");
-      }
-    } catch (error) {
-      Swal.fire({
-        title: "Error",
-        text: "Unable to fetch profile details.",
-        icon: "error",
-        confirmButtonColor: "#d33",
-      });
+    const profile = profiles.find((p) => p.id === id);
+    if (profile) {
+      setSelectedProfile(profile);
+      setShowModal(true);
     }
   };
 
-  // toggle category view
   const toggleCategoryView = (id: number) => {
     setExpandedCategories((prev) =>
       prev.includes(id) ? prev.filter((pid) => pid !== id) : [...prev, id]
@@ -136,7 +130,7 @@ const IhApproch: React.FC = () => {
 
   return (
     <div className="bg-gray-100 min-h-screen">
-      {/* Header Section */}
+      {/* Header */}
       <div className="max-w-7xl mx-auto mb-8 pt-8">
         <h1 className="text-2xl font-bold text-gray-800">
           More suggestions for you
@@ -146,7 +140,7 @@ const IhApproch: React.FC = () => {
         </p>
       </div>
 
-      {/* Card Grid */}
+      {/* Cards */}
       <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
         {profiles.map((profile) => {
           const isExpanded = expandedCategories.includes(profile.id);
@@ -154,31 +148,43 @@ const IhApproch: React.FC = () => {
             ? profile.category
             : profile.category.slice(0, 2);
 
+          const isLocked = !subscription?.active;
+
           return (
             <div
               key={profile.id}
-              className="relative bg-white rounded-2xl shadow-lg px-6 py-6 overflow-hidden transition-all duration-300 transform hover:scale-105 hover:shadow-2xl w-[240px] h-[340px] mx-auto"
+              className="relative bg-white rounded-2xl shadow-lg px-6 py-6 transition-all duration-300 overflow-hidden transform hover:scale-105 hover:shadow-2xl w-[240px] h-[340px] mx-auto"
             >
-              {/* Background Gradient Circle */}
+              {/* Background Gradient */}
               <div className="absolute top-0 right-0 w-24 h-24 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 transform translate-x-1/3 -translate-y-1/3 opacity-50"></div>
 
-              <div className="flex flex-col items-center z-10 relative h-full justify-between">
+              <div className="flex flex-col items-center relative h-full justify-between">
                 <div className="flex flex-col items-center">
-                  <img
-                    src={
-                      profile.profileImage
-                        ? `http://localhost:5000/uploads/${profile.profileImage}`
-                        : "https://via.placeholder.com/100"
-                    }
-                    alt={profile.name}
-                    className="w-20 h-20 rounded-full object-cover mb-4 ring-2 ring-white shadow-lg"
-                  />
+                  <div className="relative">
+                    <img
+                      src={
+                        profile.profileImage
+                          ? `http://localhost:5000/uploads/${profile.profileImage}`
+                          : "https://via.placeholder.com/100"
+                      }
+                      alt={profile.name}
+                      className="w-20 h-20 rounded-full object-cover mb-4 ring-2 ring-white shadow-lg"
+                    />
+                    {isLocked && (
+                      <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center">
+                        <FontAwesomeIcon
+                          icon={faLock}
+                          className="text-white text-lg"
+                        />
+                      </div>
+                    )}
+                  </div>
                   <h3 className="text-md font-semibold text-gray-900 text-center">
                     {profile.name}
                   </h3>
 
-                  {/* Category Section with toggle */}
-                  <div className="flex flex-wrap justify-center gap-1 mt-2 mb-3 max-h-[60px] overflow-hidden">
+                  {/* Categories */}
+                  <div className="flex flex-wrap justify-center gap-1 mt-2 mb-3">
                     {categoriesToShow.map((cat) => (
                       <span
                         key={cat}
@@ -208,7 +214,7 @@ const IhApproch: React.FC = () => {
                   </button>
                 </div>
 
-                {/* ✅ Status Buttons */}
+          {/* ✅ Status Buttons */}
                 {profile.status === "accepted" ? (
                   <button
                     disabled
@@ -278,90 +284,119 @@ const IhApproch: React.FC = () => {
           );
         })}
       </div>
+           
 
       {/* Modal */}
       {showModal && selectedProfile && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden relative">
-            {/* Header with gradient */}
-            <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-6 text-center relative">
+          {!subscription?.active ? (
+            // 🔒 Locked Modal
+            <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 text-center relative">
               <button
                 onClick={() => setShowModal(false)}
-                className="absolute top-4 right-4 text-white hover:text-gray-200 text-lg"
+                className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
               >
                 <FontAwesomeIcon icon={faTimes} />
               </button>
-              <img
-                src={
-                  selectedProfile.profileImage
-                    ? `http://localhost:5000/uploads/${selectedProfile.profileImage}`
-                    : "https://via.placeholder.com/100"
-                }
-                alt={selectedProfile.name}
-                className="w-24 h-24 rounded-full object-cover border-4 border-white mx-auto shadow-lg"
+              <FontAwesomeIcon
+                icon={faLock}
+                className="text-5xl text-gray-700 mb-4"
               />
-              <h2 className="text-2xl font-bold text-white mt-4">
-                {selectedProfile.name}
-              </h2>
-              <p className="text-indigo-100">{selectedProfile.role}</p>
-              <p className="text-indigo-200 text-sm">
-                {selectedProfile.category.join(", ")}
+              <h2 className="text-xl font-bold mb-2">Subscribe to Unlock</h2>
+              <p className="text-gray-500 mb-6">
+                You need an active subscription to view full profile details.
               </p>
+              <button
+                onClick={() => navigate("/subscription")}
+                className="px-6 py-2 rounded-lg font-semibold bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow hover:opacity-90"
+              >
+                View Plans
+              </button>
             </div>
-
-            {/* Body */}
-            <div className="p-6 space-y-4">
-              <div className="flex items-center space-x-3 text-gray-700">
-                <FontAwesomeIcon icon={faEnvelope} className="text-blue-600" />
-                <span className="font-medium">Email:</span>
-                <span>
-                  {allowedIds.includes(selectedProfile.id)
-                    ? selectedProfile.email
-                    : maskEmail(selectedProfile.email)}
-                </span>
-              </div>
-              <div className="flex items-center space-x-3 text-gray-700">
-                <FontAwesomeIcon icon={faPhone} className="text-green-600" />
-                <span className="font-medium">Primary Phone:</span>
-                <span>
-                  {allowedIds.includes(selectedProfile.id)
-                    ? selectedProfile.primaryPhone || "-"
-                    : maskPhone(selectedProfile.primaryPhone)}
-                </span>
-              </div>
-              <div className="flex items-center space-x-3 text-gray-700">
-                <FontAwesomeIcon icon={faPhone} className="text-purple-600" />
-                <span className="font-medium">Secondary Phone:</span>
-                <span>
-                  {allowedIds.includes(selectedProfile.id)
-                    ? selectedProfile.secondaryPhone || "-"
-                    : maskPhone(selectedProfile.secondaryPhone)}
-                </span>
-              </div>
-              <div className="flex items-center space-x-3 text-gray-700">
-                <FontAwesomeIcon icon={faUserTag} className="text-orange-600" />
-                <span className="font-medium">Role:</span>
-                <span>{selectedProfile.role || "-"}</span>
-              </div>
-              <div className="flex items-center space-x-3 text-gray-700">
-                <FontAwesomeIcon
-                  icon={faLayerGroup}
-                  className="text-pink-600"
+          ) : (
+            // ✅ Normal Profile Details
+            <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden relative">
+              <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-6 text-center relative">
+                <button
+                  onClick={() => setShowModal(false)}
+                  className="absolute top-4 right-4 text-white hover:text-gray-200 text-lg"
+                >
+                  <FontAwesomeIcon icon={faTimes} />
+                </button>
+                <img
+                  src={
+                    selectedProfile.profileImage
+                      ? `http://localhost:5000/uploads/${selectedProfile.profileImage}`
+                      : "https://via.placeholder.com/100"
+                  }
+                  alt={selectedProfile.name}
+                  className="w-24 h-24 rounded-full object-cover border-4 border-white mx-auto shadow-lg"
                 />
-                <span className="font-medium">Category:</span>
-                <div className="flex flex-wrap gap-2 mt-1">
-                  {selectedProfile.category.map((cat) => (
-                    <span
-                      key={cat}
-                      className="bg-indigo-100 text-indigo-800 text-xs font-medium px-2 py-1 rounded-full"
-                    >
-                      {cat}
-                    </span>
-                  ))}
+                <h2 className="text-2xl font-bold text-white mt-4">
+                  {selectedProfile.name}
+                </h2>
+                <p className="text-indigo-100">{selectedProfile.role}</p>
+                <p className="text-indigo-200 text-sm">
+                  {selectedProfile.category.join(", ")}
+                </p>
+              </div>
+
+              <div className="p-6 space-y-4">
+                <div className="flex items-center space-x-3 text-gray-700">
+                  <FontAwesomeIcon icon={faEnvelope} className="text-blue-600" />
+                  <span className="font-medium">Email:</span>
+                  <span>
+                    {allowedIds.includes(selectedProfile.id)
+                      ? selectedProfile.email
+                      : maskEmail(selectedProfile.email)}
+                  </span>
+                </div>
+                <div className="flex items-center space-x-3 text-gray-700">
+                  <FontAwesomeIcon icon={faPhone} className="text-green-600" />
+                  <span className="font-medium">Primary Phone:</span>
+                  <span>
+                    {allowedIds.includes(selectedProfile.id)
+                      ? selectedProfile.primaryPhone || "-"
+                      : maskPhone(selectedProfile.primaryPhone)}
+                  </span>
+                </div>
+                <div className="flex items-center space-x-3 text-gray-700">
+                  <FontAwesomeIcon icon={faPhone} className="text-purple-600" />
+                  <span className="font-medium">Secondary Phone:</span>
+                  <span>
+                    {allowedIds.includes(selectedProfile.id)
+                      ? selectedProfile.secondaryPhone || "-"
+                      : maskPhone(selectedProfile.secondaryPhone)}
+                  </span>
+                </div>
+                <div className="flex items-center space-x-3 text-gray-700">
+                  <FontAwesomeIcon
+                    icon={faUserTag}
+                    className="text-orange-600"
+                  />
+                  <span className="font-medium">Role:</span>
+                  <span>{selectedProfile.role || "-"}</span>
+                </div>
+                <div className="flex items-center space-x-3 text-gray-700">
+                  <FontAwesomeIcon
+                    icon={faLayerGroup}
+                    className="text-pink-600"
+                  />
+                  <span className="font-medium">Category:</span>
+                  <div className="flex flex-wrap gap-2 mt-1">
+                    {selectedProfile.category.map((cat) => (
+                      <span
+                        key={cat}
+                        className="bg-indigo-100 text-indigo-800 text-xs font-medium px-2 py-1 rounded-full"
+                      >
+                        {cat}
+                      </span>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
+          )}
         </div>
       )}
     </div>
