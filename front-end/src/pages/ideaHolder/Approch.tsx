@@ -1,4 +1,3 @@
-// @/pages/ideaHolder/IhApproch.tsx
 import React, { useEffect, useState } from "react";
 import axiosInstance from "../../utils/axiosInstance";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -9,6 +8,7 @@ import {
   faLayerGroup,
   faTimes,
   faLock,
+  faCrown, // 👑 Crown icon added
 } from "@fortawesome/free-solid-svg-icons";
 import Swal from "sweetalert2";
 import { useNavigate } from "react-router-dom";
@@ -38,6 +38,7 @@ const IhApproch: React.FC = () => {
   const [allowedIds, setAllowedIds] = useState<number[]>([]);
   const [expandedCategories, setExpandedCategories] = useState<number[]>([]);
   const [subscription, setSubscription] = useState<any>(null);
+  const [isPremiumUser, setIsPremiumUser] = useState(false);
 
   const navigate = useNavigate();
 
@@ -75,6 +76,9 @@ const IhApproch: React.FC = () => {
         const sub = subRes.data;
         setSubscription(sub);
 
+        // Set premium user status
+        setIsPremiumUser(sub?.active && sub.plan === "premium");
+
         let allowedCount = 0;
         const total = allProfiles.length;
 
@@ -87,10 +91,11 @@ const IhApproch: React.FC = () => {
             allowedCount = total;
           }
         } else {
+          // If no active subscription, allow 0 profiles
           allowedCount = 0;
         }
 
-        allowedCount = Math.max(1, allowedCount);
+        // allowedCount = Math.max(1, allowedCount); // Removed this line to handle the '0' case correctly
         const allowed = allProfiles.slice(0, allowedCount).map((p) => p.id);
 
         setProfiles(allProfiles);
@@ -139,8 +144,6 @@ const IhApproch: React.FC = () => {
           Total {profiles.length} profiles available
         </p>
       </div>
-
-      {/* Cards */}
       <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
         {profiles.map((profile) => {
           const isExpanded = expandedCategories.includes(profile.id);
@@ -148,7 +151,8 @@ const IhApproch: React.FC = () => {
             ? profile.category
             : profile.category.slice(0, 2);
 
-          const isLocked = !subscription?.active;
+          // Determine if the profile should be locked
+          const isLocked = !allowedIds.includes(profile.id);
 
           return (
             <div
@@ -157,6 +161,16 @@ const IhApproch: React.FC = () => {
             >
               {/* Background Gradient */}
               <div className="absolute top-0 right-0 w-24 h-24 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 transform translate-x-1/3 -translate-y-1/3 opacity-50"></div>
+
+              {/* Crown Icon for Premium Users */}
+              {isPremiumUser && (
+                <div className="absolute top-2 right-2 text-yellow-500 z-10">
+                  <FontAwesomeIcon
+                    icon={faCrown}
+                    className="text-xl shadow-lg drop-shadow-[0_1.2px_1.2px_rgba(0,0,0,0.8)]"
+                  />
+                </div>
+              )}
 
               <div className="flex flex-col items-center relative h-full justify-between">
                 <div className="flex flex-col items-center">
@@ -168,10 +182,10 @@ const IhApproch: React.FC = () => {
                           : "https://via.placeholder.com/100"
                       }
                       alt={profile.name}
-                      className="w-20 h-20 rounded-full object-cover mb-4 ring-2 ring-white shadow-lg"
+                      className={`w-20 h-20 rounded-full object-cover mb-4 ring-2 ring-white shadow-lg transition-all duration-500 ${isLocked ? "blur-md" : ""}`}
                     />
                     {isLocked && (
-                      <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center">
+                      <div className="mb-4 absolute inset-0 bg-black/50 backdrop-blur-sm rounded-full flex items-center justify-center">
                         <FontAwesomeIcon
                           icon={faLock}
                           className="text-white text-lg"
@@ -182,8 +196,6 @@ const IhApproch: React.FC = () => {
                   <h3 className="text-md font-semibold text-gray-900 text-center">
                     {profile.name}
                   </h3>
-
-                  {/* Categories */}
                   <div className="flex flex-wrap justify-center gap-1 mt-2 mb-3">
                     {categoriesToShow.map((cat) => (
                       <span
@@ -204,7 +216,6 @@ const IhApproch: React.FC = () => {
                   )}
                 </div>
 
-                {/* Actions */}
                 <div className="space-y-2 mt-4 w-full">
                   <button
                     onClick={() => handleViewProfile(profile.id)}
@@ -212,79 +223,76 @@ const IhApproch: React.FC = () => {
                   >
                     View Profile
                   </button>
+                  {profile.status === "accepted" ? (
+                    <button
+                      disabled
+                      className="w-full font-semibold py-2 rounded-full shadow text-sm bg-gradient-to-r from-purple-600 to-blue-600 text-white mt-2"
+                    >
+                      Connected
+                    </button>
+                  ) : profile.status === "pending" ? (
+                    <button
+                      disabled
+                      className="w-full font-semibold py-2 rounded-full shadow text-sm bg-yellow-300 mt-2"
+                    >
+                      Pending...
+                    </button>
+                  ) : (
+                    <button
+                      onClick={async () => {
+                        try {
+                          await axiosInstance.post(
+                            "/connections/send",
+                            { receiverId: profile.id },
+                            {
+                              headers: {
+                                Authorization: `Bearer ${localStorage.getItem(
+                                  "token"
+                                )}`,
+                              },
+                            }
+                          );
+
+                          await Swal.fire({
+                            title: "Request Sent!",
+                            text: "Connection request sent successfully.",
+                            icon: "success",
+                            position: "center",
+                            showConfirmButton: false,
+                            timer: 2000,
+                            timerProgressBar: true,
+                            background: "#f0f9ff",
+                          });
+
+                          setProfiles((prev) =>
+                            prev.map((p) =>
+                              p.id === profile.id
+                                ? { ...p, status: "pending" }
+                                : p
+                            )
+                          );
+                        } catch (err) {
+                          Swal.fire({
+                            title: "Error",
+                            text: "Unable to send request.",
+                            icon: "error",
+                            position: "center",
+                            confirmButtonColor: "#d33",
+                            background: "#fff5f5",
+                          });
+                        }
+                      }}
+                      className="w-full font-semibold py-2 rounded-full shadow text-sm bg-gradient-to-r from-purple-600 to-blue-600 text-white mt-2"
+                    >
+                      Connect
+                    </button>
+                  )}
                 </div>
-
-          {/* ✅ Status Buttons */}
-                {profile.status === "accepted" ? (
-                  <button
-                    disabled
-                    className="w-full font-semibold py-2 rounded-full shadow text-sm bg-gradient-to-r from-purple-600 to-blue-600 text-white mt-2"
-                  >
-                    Connected
-                  </button>
-                ) : profile.status === "pending" ? (
-                  <button
-                    disabled
-                    className="w-full font-semibold py-2 rounded-full shadow text-sm bg-yellow-300 mt-2"
-                  >
-                    Pending...
-                  </button>
-                ) : (
-                  <button
-                    onClick={async () => {
-                      try {
-                        await axiosInstance.post(
-                          "/connections/send",
-                          { receiverId: profile.id },
-                          {
-                            headers: {
-                              Authorization: `Bearer ${localStorage.getItem(
-                                "token"
-                              )}`,
-                            },
-                          }
-                        );
-
-                        await Swal.fire({
-                          title: "Request Sent!",
-                          text: "Connection request sent successfully.",
-                          icon: "success",
-                          position: "center",
-                          showConfirmButton: false,
-                          timer: 2000,
-                          timerProgressBar: true,
-                          background: "#f0f9ff",
-                        });
-
-                        setProfiles((prev) =>
-                          prev.map((p) =>
-                            p.id === profile.id
-                              ? { ...p, status: "pending" }
-                              : p
-                          )
-                        );
-                      } catch (err) {
-                        Swal.fire({
-                          title: "Error",
-                          text: "Unable to send request.",
-                          icon: "error",
-                          position: "center",
-                          confirmButtonColor: "#d33",
-                          background: "#fff5f5",
-                        });
-                      }
-                    }}
-                    className="w-full font-semibold py-2 rounded-full shadow text-sm bg-gradient-to-r from-purple-600 to-blue-600 text-white mt-2"
-                  >
-                    Connect
-                  </button>
-                )}
               </div>
             </div>
           );
         })}
       </div>
-           
 
       {/* Modal */}
       {showModal && selectedProfile && (
@@ -323,15 +331,26 @@ const IhApproch: React.FC = () => {
                 >
                   <FontAwesomeIcon icon={faTimes} />
                 </button>
-                <img
-                  src={
-                    selectedProfile.profileImage
-                      ? `http://localhost:5000/uploads/${selectedProfile.profileImage}`
-                      : "https://via.placeholder.com/100"
-                  }
-                  alt={selectedProfile.name}
-                  className="w-24 h-24 rounded-full object-cover border-4 border-white mx-auto shadow-lg"
-                />
+                <div className="relative w-24 h-24 mx-auto">
+                  <img
+                    src={
+                      selectedProfile.profileImage
+                        ? `http://localhost:5000/uploads/${selectedProfile.profileImage}`
+                        : "https://via.placeholder.com/100"
+                    }
+                    alt={selectedProfile.name}
+                    className={`w-24 h-24 rounded-full object-cover border-4 border-white mx-auto shadow-lg transition-all duration-500 ${!allowedIds.includes(selectedProfile.id) ? "blur-md" : ""}`}
+                  />
+                  {!allowedIds.includes(selectedProfile.id) && (
+                    <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center">
+                      <FontAwesomeIcon
+                        icon={faLock}
+                        className="text-white text-lg"
+                      />
+                    </div>
+                  )}
+                </div>
+
                 <h2 className="text-2xl font-bold text-white mt-4">
                   {selectedProfile.name}
                 </h2>
