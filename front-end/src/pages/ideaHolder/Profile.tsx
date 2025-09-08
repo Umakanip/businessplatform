@@ -1,90 +1,3 @@
-// import React from 'react';
-
-// const ProfileIH = () => {
-//   return (
-//     <div className="min-h-screen bg-[#1a1a1a] p-4 text-[#c0c0c0] md:p-8">
-//       <div className="flex flex-col gap-5 md:flex-row md:gap-8 max-w-7xl mx-auto">
-        
-//         {/* Left Panel */}
-//         <div className="flex-grow md:flex-grow-0 md:basis-1/3 bg-[#2a2a2a] p-6 rounded-xl shadow-xl flex flex-col items-center text-center">
-//           <div className="w-48 h-48 md:w-52 md:h-52 rounded-full border-4 border-[#3c3c3c] p-1 bg-[#2a2a2a] flex items-center justify-center">
-//             <img
-//               src="https://i.ibb.co/L5r6N1X/profile-pic.png"
-//               alt="Maria Fernanda"
-//               className="w-full h-full object-cover rounded-full"
-//             />
-//           </div>
-//           <h2 className="text-2xl font-bold text-white mt-5">Maria Fernanda</h2>
-//           <p className="text-sm text-[#d1b439] mt-1">Premium User</p>
-//           <p className="text-sm text-[#a0a0a0] mt-1">Beatmaker</p>
-//         </div>
-
-//         {/* Right Panel */}
-//         <div className="flex-grow md:basis-2/3 bg-[#2a2a2a] p-6 rounded-xl shadow-xl">
-//           <div className="flex justify-between items-center mb-5 pb-2 border-b border-[#444]">
-//             <h3 className="text-lg font-semibold text-white">Bio & other details</h3>
-//             <span className="w-2.5 h-2.5 bg-green-500 rounded-full shadow-[0_0_5px_rgba(40,167,69,1)]"></span>
-//           </div>
-
-//           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-//             <div className="flex flex-col">
-//               <span className="text-xs text-[#808080]">My Role</span>
-//               <span className="text-base text-[#e0e0e0]">Beatmaker</span>
-//             </div>
-//             <div className="flex flex-col">
-//               <span className="text-xs text-[#808080]">My Experience Level</span>
-//               <span className="text-base text-[#e0e0e0]">Intermediate</span>
-//             </div>
-//             <div className="flex flex-col">
-//               <span className="text-xs text-[#808080]">My 3 Favorite Artists</span>
-//               <span className="text-base text-[#e0e0e0]">Ninho, Travis Scott, Metro Boomin</span>
-//             </div>
-//             <div className="flex flex-col">
-//               <span className="text-xs text-[#808080]">My Favorite Music Genre</span>
-//               <span className="text-base text-[#e0e0e0]">Trap</span>
-//             </div>
-//             <div className="flex flex-col">
-//               <span className="text-xs text-[#808080]">The Software or Equipment I Use</span>
-//               <span className="text-base text-[#e0e0e0]">Ableton</span>
-//             </div>
-//             <div className="flex flex-col">
-//               <span className="text-xs text-[#808080]">My Preferred Music Mood</span>
-//               <span className="text-base text-[#e0e0e0]">Melancholic</span>
-//             </div>
-//             <div className="flex flex-col">
-//               <span className="text-xs text-[#808080]">My City or Region</span>
-//               <span className="text-base text-[#e0e0e0]">California, USA</span>
-//             </div>
-//             <div className="flex flex-col">
-//               <span className="text-xs text-[#808080]">Availability</span>
-//               <div className="flex items-center gap-2 text-green-500 font-semibold">
-//                 <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-//                 <span>Available for Collaboration</span>
-//               </div>
-//             </div>
-//             <div className="flex flex-col">
-//               <span className="text-xs text-[#808080]">Badges</span>
-//               <span className="bg-[#3f88c5] text-white px-3 py-1 rounded-2xl text-xs font-semibold inline-block">
-//                 Top Collaborator
-//               </span>
-//             </div>
-//             <div className="flex flex-col">
-//               <span className="text-xs text-[#808080]">Tags</span>
-//               <div className="flex flex-wrap gap-2">
-//                 <span className="bg-[#444] text-white px-2.5 py-1 rounded-md text-xs">#Drill</span>
-//                 <span className="bg-[#444] text-white px-2.5 py-1 rounded-md text-xs">#Melancholic</span>
-//                 <span className="bg-[#444] text-white px-2.5 py-1 rounded-md text-xs">#Rap-US</span>
-//               </div>
-//             </div>
-//           </div>
-//         </div>
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default ProfileIH;
-
 import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
@@ -94,6 +7,7 @@ import {
   faSave,
   faCamera,
   faCheckCircle,
+  faSignOutAlt,
 } from "@fortawesome/free-solid-svg-icons";
 
 // Define the UserProfile interface
@@ -106,7 +20,7 @@ interface UserProfile {
   secondaryPhone?: string;
   category: string[];
   profileImage?: string;
-   bio?: string;  // ✅ New field
+  bio?: string;
 }
 
 const ProfileIH: React.FC = () => {
@@ -118,7 +32,11 @@ const ProfileIH: React.FC = () => {
   const [preview, setPreview] = useState<string | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
   const [isCategoriesDropdownOpen, setIsCategoriesDropdownOpen] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = useState(false); // ✅ New state for logout modal
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Store initial user data to check for changes
+  const initialUserData = useRef<UserProfile | null>(null);
 
   const categoriesList = [
     "IT & Technology",
@@ -150,16 +68,19 @@ const ProfileIH: React.FC = () => {
 
       try {
         const res = await axios.get(
-  `http://localhost:5000/api/auth/profile/${parsed.id}`,
-  {
-    headers: { Authorization: `Bearer ${token}` },
-  }
-);
+          `http://localhost:5000/api/auth/profile/${parsed.id}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
 
-const data = res.data;
-setUser({ ...data, category: Array.isArray(data.category) ? data.category : [] });
-
-        setUser(res.data);
+        const data = res.data;
+        const userData = {
+          ...data,
+          category: Array.isArray(data.category) ? data.category : [],
+        };
+        setUser(userData);
+        initialUserData.current = userData; // Store initial data
       } catch (err) {
         console.error("Profile fetch failed:", err);
         navigate("/auth");
@@ -172,7 +93,10 @@ setUser({ ...data, category: Array.isArray(data.category) ? data.category : [] }
   // Handle outside click for categories dropdown
   useEffect(() => {
     const handleOutsideClick = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
         setIsCategoriesDropdownOpen(false);
       }
     };
@@ -192,41 +116,48 @@ setUser({ ...data, category: Array.isArray(data.category) ? data.category : [] }
   }, [selectedFile]);
 
   // Handle input changes
-const handleEditChange = (
-  e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-) => {
-  if (!user) return;
-  setUser({ ...user, [e.target.name]: e.target.value });
-};
+  const handleEditChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    if (!user) return;
+    setUser({ ...user, [e.target.name]: e.target.value });
+  };
 
+  const getSelectedCategoriesText = () => {
+    if (!user || !Array.isArray(user.category) || user.category.length === 0)
+      return "Select categories...";
+    return user.category.join(", ");
+  };
 
-  // Toggle category selection
-// Safe join for categories
-const getSelectedCategoriesText = () => {
-  if (!user || !Array.isArray(user.category) || user.category.length === 0)
-    return "Select categories...";
-  return user.category.join(", ");
-};
-
-// Toggle category selection safely
-const handleCategorySelection = (category: string) => {
-  if (!user) return;
-
-  // ensure it's an array
-  const currentCategories = Array.isArray(user.category) ? user.category : [];
-  
-  const isSelected = currentCategories.includes(category);
-  const newCategories = isSelected
-    ? currentCategories.filter((c) => c !== category)
-    : [...currentCategories, category];
-
-  setUser({ ...user, category: newCategories });
-};
-
+  const handleCategorySelection = (category: string) => {
+    if (!user) return;
+    const currentCategories = Array.isArray(user.category) ? user.category : [];
+    const isSelected = currentCategories.includes(category);
+    const newCategories = isSelected
+      ? currentCategories.filter((c) => c !== category)
+      : [...currentCategories, category];
+    setUser({ ...user, category: newCategories });
+  };
 
   const handleSave = async () => {
-    if (!user) return;
+    if (!user || !initialUserData.current) return;
     const token = localStorage.getItem("token");
+
+    // ✅ Check if any changes were made
+    const isChanged =
+      user.name !== initialUserData.current.name ||
+      user.email !== initialUserData.current.email ||
+      user.primaryPhone !== initialUserData.current.primaryPhone ||
+      user.secondaryPhone !== initialUserData.current.secondaryPhone ||
+      JSON.stringify(user.category.sort()) !== JSON.stringify(initialUserData.current.category.sort()) ||
+      user.bio !== initialUserData.current.bio ||
+      newPassword.length > 0 ||
+      selectedFile !== null;
+
+    if (!isChanged) {
+      setEditing(false);
+      return; // Do nothing if no changes were made
+    }
 
     const form = new FormData();
     form.append("name", user.name);
@@ -234,10 +165,11 @@ const handleCategorySelection = (category: string) => {
     if (user.secondaryPhone) form.append("secondaryPhone", user.secondaryPhone);
     form.append("category", JSON.stringify(user.category));
     form.append("email", user.email);
-    form.append("role", user.role); // Role is part of the API, so include it
+    form.append("role", user.role);
     if (newPassword) form.append("password", newPassword);
     if (selectedFile) form.append("profileImage", selectedFile);
-    if (user.bio) form.append("bio", user.bio); // ✅ Add bio
+    if (user.bio) form.append("bio", user.bio);
+
     try {
       await axios.put(
         `http://localhost:5000/api/auth/profile/${user.id}`,
@@ -253,21 +185,35 @@ const handleCategorySelection = (category: string) => {
       setEditing(false);
       setNewPassword("");
       setSelectedFile(null);
-
+      
+      // ✅ Show success message only if changes were made
       setShowSuccess(true);
       setTimeout(() => setShowSuccess(false), 2500);
-      
-      // Re-fetch profile to get updated data
+
       const res = await axios.get(
         `http://localhost:5000/api/auth/profile/${user.id}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-      setUser(res.data);
+      const updatedUser = res.data;
+      setUser({
+        ...updatedUser,
+        category: Array.isArray(updatedUser.category) ? updatedUser.category : [],
+      });
+      initialUserData.current = updatedUser; // Update initial data reference
     } catch (err) {
       console.error("Profile update failed:", err);
     }
+  };
+
+  const handleLogout = () => {
+    setShowLogoutModal(true);
+  };
+
+  const confirmLogout = () => {
+    localStorage.clear();
+    navigate("/auth");
   };
 
   if (!user) {
@@ -301,7 +247,9 @@ const handleCategorySelection = (category: string) => {
                   type="file"
                   id="profilePicInput"
                   accept="image/*"
-                  onChange={(e) => e.target.files && setSelectedFile(e.target.files[0])}
+                  onChange={(e) =>
+                    e.target.files && setSelectedFile(e.target.files[0])
+                  }
                   className="hidden"
                 />
                 <label
@@ -343,39 +291,56 @@ const handleCategorySelection = (category: string) => {
                   <FontAwesomeIcon icon={faSave} /> Save
                 </button>
               ) : (
-                <button
-                  onClick={() => setEditing(true)}
-                  className="bg-pink-500 text-white px-4 py-2 rounded-lg text-sm flex items-center gap-2 hover:bg-pink-600 transition"
-                >
-                  <FontAwesomeIcon icon={faEdit} /> Edit
-                </button>
+                <>
+                  <button
+                    onClick={() => setEditing(true)}
+                    className="bg-pink-500 text-white px-4 py-2 rounded-lg text-sm flex items-center gap-2 hover:bg-pink-600 transition"
+                  >
+                    <FontAwesomeIcon icon={faEdit} /> Edit
+                  </button>
+                  <button
+                    onClick={handleLogout}
+                    className="bg-red-500 text-white px-4 py-2 rounded-lg text-sm flex items-center gap-2 hover:bg-red-600 transition"
+                  >
+                    <FontAwesomeIcon icon={faSignOutAlt} /> Logout
+                  </button>
+                </>
               )}
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-           <div className="flex flex-col">
-  <span className="text-xs text-[#808080]">Email</span>
-  {editing ? (
-    <input
-      type="email"
-      name="email"
-      value={user.email}
-      onChange={handleEditChange}
-      className="text-base text-[#e0e0e0] bg-[#3a3a3a] rounded px-2 py-1"
-    />
-  ) : (
-    <span className="text-base text-[#e0e0e0]">{user.email}</span>
-  )}
-</div>
+            <div className="flex flex-col">
+              <span className="text-xs text-[#808080]">Email</span>
+              {editing ? (
+                <input
+                  type="email"
+                  name="email"
+                  value={user.email}
+                  onChange={handleEditChange}
+                  className="text-base text-[#e0e0e0] bg-[#3a3a3a] rounded px-2 py-1"
+                />
+              ) : (
+                <span className="text-base text-[#e0e0e0]">{user.email}</span>
+              )}
+            </div>
 
- <div className="relative flex flex-col col-span-1 md:col-span-2" ref={dropdownRef}>
+            <div
+              className="relative flex flex-col col-span-1 md:col-span-2"
+              ref={dropdownRef}
+            >
               <span className="text-xs text-[#808080]">Categories</span>
               <div
-                onClick={() => editing && setIsCategoriesDropdownOpen(!isCategoriesDropdownOpen)}
+                onClick={() =>
+                  editing && setIsCategoriesDropdownOpen(!isCategoriesDropdownOpen)
+                }
                 className="w-full text-left px-4 py-2 bg-[#3a3a3a] rounded-lg border border-[#444] cursor-pointer"
               >
-                <span className={`${user.category.length === 0 ? "text-gray-500" : "text-[#e0e0e0]"}`}>
+                <span
+                  className={`${
+                    user.category.length === 0 ? "text-gray-500" : "text-[#e0e0e0]"
+                  }`}
+                >
                   {getSelectedCategoriesText()}
                 </span>
               </div>
@@ -399,7 +364,6 @@ const handleCategorySelection = (category: string) => {
                 </div>
               )}
             </div>
-           
 
             <div className="flex flex-col">
               <span className="text-xs text-[#808080]">Secondary Phone</span>
@@ -412,11 +376,13 @@ const handleCategorySelection = (category: string) => {
                   className="text-base text-[#e0e0e0] bg-[#3a3a3a] rounded px-2 py-1"
                 />
               ) : (
-                <span className="text-base text-[#e0e0e0]">{user.secondaryPhone || "-"}</span>
+                <span className="text-base text-[#e0e0e0]">
+                  {user.secondaryPhone || "—"}
+                </span>
               )}
             </div>
 
- <div className="flex flex-col">
+            <div className="flex flex-col">
               <span className="text-xs text-[#808080]">Primary Phone</span>
               {editing ? (
                 <input
@@ -427,12 +393,16 @@ const handleCategorySelection = (category: string) => {
                   className="text-base text-[#e0e0e0] bg-[#3a3a3a] rounded px-2 py-1"
                 />
               ) : (
-                <span className="text-base text-[#e0e0e0]">{user.primaryPhone}</span>
+                <span className="text-base text-[#e0e0e0]">
+                  {user.primaryPhone}
+                </span>
               )}
             </div>
             <div className="flex flex-col">
               <span className="text-xs text-[#808080]">Role</span>
-              <span className="text-base text-[#e0e0e0] capitalize">{user.role}</span>
+              <span className="text-base text-[#e0e0e0] capitalize">
+                {user.role}
+              </span>
             </div>
 
             {editing && (
@@ -447,27 +417,24 @@ const handleCategorySelection = (category: string) => {
                 />
               </div>
             )}
-<div className="flex flex-col col-span-1 md:col-span-2">
-  <span className="text-xs text-[#808080]">Bio</span>
-  {editing ? (
- <textarea
-  name="bio"
-  value={user.bio || ""}
-  onChange={handleEditChange}
-  maxLength={250}
-  rows={3}
-  className="text-base text-[#e0e0e0] bg-[#3a3a3a] rounded px-2 py-1 resize-none"
-  placeholder="Write something about yourself (max 250 characters)..."
-/>
-
-  ) : (
-    <span className="text-base text-[#e0e0e0] whitespace-pre-line">
-      {user.bio || "—"}
-    </span>
-  )}
-</div>
-
-           
+            <div className="flex flex-col col-span-1 md:col-span-2">
+              <span className="text-xs text-[#808080]">Bio</span>
+              {editing ? (
+                <textarea
+                  name="bio"
+                  value={user.bio || ""}
+                  onChange={handleEditChange}
+                  maxLength={250}
+                  rows={3}
+                  className="text-base text-[#e0e0e0] bg-[#3a3a3a] rounded px-2 py-1 resize-none"
+                  placeholder="Write something about yourself (max 250 characters)..."
+                />
+              ) : (
+                <span className="text-base text-[#e0e0e0] whitespace-pre-line">
+                  {user.bio || "—"}
+                </span>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -475,6 +442,32 @@ const handleCategorySelection = (category: string) => {
         <div className="fixed top-20 right-5 bg-green-500 text-white px-5 py-3 rounded-lg shadow-lg flex items-center gap-2 animate-bounce z-50">
           <FontAwesomeIcon icon={faCheckCircle} />
           <span>Profile updated successfully!</span>
+        </div>
+      )}
+
+      {/* ✅ Logout Confirmation Modal */}
+      {showLogoutModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-[#2a2a2a] p-8 rounded-xl shadow-2xl text-center">
+            <h4 className="text-xl text-white mb-4">Are you sure?</h4>
+            <p className="text-[#c0c0c0] mb-6">
+              You will be logged out of your account.
+            </p>
+            <div className="flex justify-center gap-4">
+              <button
+                onClick={() => setShowLogoutModal(false)}
+                className="bg-gray-500 text-white px-6 py-2 rounded-lg hover:bg-gray-600 transition"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmLogout}
+                className="bg-red-500 text-white px-6 py-2 rounded-lg hover:bg-red-600 transition"
+              >
+                Yes, Logout
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
