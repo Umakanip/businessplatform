@@ -99,6 +99,7 @@ const Pricing = () => {
           state: {
             subscriptionId: response.data.subscriptionId,
             amount: response.data.amount,
+            redirectTo: "/ih/approach"
           },
         });
       }
