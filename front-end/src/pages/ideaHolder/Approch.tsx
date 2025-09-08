@@ -8,7 +8,7 @@ import {
   faLayerGroup,
   faTimes,
   faLock,
-  faCrown, // 👑 Crown icon added
+  faCrown,
 } from "@fortawesome/free-solid-svg-icons";
 import Swal from "sweetalert2";
 import { useNavigate } from "react-router-dom";
@@ -95,7 +95,6 @@ const IhApproch: React.FC = () => {
           allowedCount = 0;
         }
 
-        // allowedCount = Math.max(1, allowedCount); // Removed this line to handle the '0' case correctly
         const allowed = allProfiles.slice(0, allowedCount).map((p) => p.id);
 
         setProfiles(allProfiles);
@@ -167,6 +166,7 @@ const IhApproch: React.FC = () => {
                 <div className="absolute top-2 right-2 text-yellow-500 z-10">
                   <FontAwesomeIcon
                     icon={faCrown}
+                    size="2x"
                     className="text-xl shadow-lg drop-shadow-[0_1.2px_1.2px_rgba(0,0,0,0.8)]"
                   />
                 </div>
@@ -182,7 +182,9 @@ const IhApproch: React.FC = () => {
                           : "https://via.placeholder.com/100"
                       }
                       alt={profile.name}
-                      className={`w-20 h-20 rounded-full object-cover mb-4 ring-2 ring-white shadow-lg transition-all duration-500 ${isLocked ? "blur-md" : ""}`}
+                      className={`w-20 h-20 rounded-full object-cover mb-4 ring-2 ring-white shadow-lg transition-all duration-500 ${
+                        isLocked ? "blur-md" : ""
+                      }`}
                     />
                     {isLocked && (
                       <div className="mb-4 absolute inset-0 bg-black/50 backdrop-blur-sm rounded-full flex items-center justify-center">
@@ -239,16 +241,32 @@ const IhApproch: React.FC = () => {
                     </button>
                   ) : (
                     <button
+                      disabled={isLocked}
                       onClick={async () => {
+                        if (isLocked) {
+                          await Swal.fire({
+                            title: "Access Denied",
+                            text: "You need to upgrade your subscription to connect with more profiles.",
+                            icon: "info",
+                            showCancelButton: true,
+                            confirmButtonText: "Upgrade",
+                            confirmButtonColor: "#8b5cf6",
+                            cancelButtonText: "Close",
+                            cancelButtonColor: "#d33",
+                          }).then((result) => {
+                            if (result.isConfirmed) {
+                              navigate("/subscription");
+                            }
+                          });
+                          return;
+                        }
                         try {
                           await axiosInstance.post(
                             "/connections/send",
                             { receiverId: profile.id },
                             {
                               headers: {
-                                Authorization: `Bearer ${localStorage.getItem(
-                                  "token"
-                                )}`,
+                                Authorization: `Bearer ${localStorage.getItem("token")}`,
                               },
                             }
                           );
@@ -266,9 +284,7 @@ const IhApproch: React.FC = () => {
 
                           setProfiles((prev) =>
                             prev.map((p) =>
-                              p.id === profile.id
-                                ? { ...p, status: "pending" }
-                                : p
+                              p.id === profile.id ? { ...p, status: "pending" } : p
                             )
                           );
                         } catch (err) {
@@ -282,9 +298,20 @@ const IhApproch: React.FC = () => {
                           });
                         }
                       }}
-                      className="w-full font-semibold py-2 rounded-full shadow text-sm bg-gradient-to-r from-purple-600 to-blue-600 text-white mt-2"
+                      className={`w-full font-semibold py-2 rounded-full shadow text-sm mt-2 flex items-center justify-center gap-2 ${
+                        isLocked
+                          ? "bg-gradient-to-r from-purple-600 to-blue-600 text-white cursor-not-allowed "
+                          : "bg-gradient-to-r from-purple-600 to-blue-600 text-white"
+                      }`}
                     >
-                      Connect
+                      {isLocked ? (
+                        <>
+                          <FontAwesomeIcon icon={faLock} />
+                          <span>Connect</span>
+                        </>
+                      ) : (
+                        "Connect"
+                      )}
                     </button>
                   )}
                 </div>
@@ -339,7 +366,9 @@ const IhApproch: React.FC = () => {
                         : "https://via.placeholder.com/100"
                     }
                     alt={selectedProfile.name}
-                    className={`w-24 h-24 rounded-full object-cover border-4 border-white mx-auto shadow-lg transition-all duration-500 ${!allowedIds.includes(selectedProfile.id) ? "blur-md" : ""}`}
+                    className={`w-24 h-24 rounded-full object-cover border-4 border-white mx-auto shadow-lg transition-all duration-500 ${
+                      !allowedIds.includes(selectedProfile.id) ? "blur-md" : ""
+                    }`}
                   />
                   {!allowedIds.includes(selectedProfile.id) && (
                     <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center">

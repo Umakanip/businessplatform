@@ -2,7 +2,7 @@ import { DataTypes, Model, Optional } from "sequelize";
 import sequelize from "../config/db";
 import User from "./user";
 
-export type PlanType = "lite" | "standard" | "premium";
+export type PlanType = "lite" | "standard" | "premium" | "pro";
 export type SubscriptionStatus = "active" | "expired";
 
 interface SubscriptionAttributes {
@@ -44,10 +44,10 @@ Subscription.init(
       type: DataTypes.INTEGER.UNSIGNED,
       allowNull: false,
     },
-    plan: {
-      type: DataTypes.ENUM("lite", "standard", "premium"),
-      allowNull: false,
-    },
+   plan: {
+  type: DataTypes.ENUM("lite", "standard", "premium", "pro"),
+  allowNull: false,
+},
     startDate: {
       type: DataTypes.DATE, // use DATEONLY if you don’t care about time
       allowNull: false,

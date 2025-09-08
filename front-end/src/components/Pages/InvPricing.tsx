@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
 import Swal from "sweetalert2";
 import "sweetalert2/dist/sweetalert2.min.css";
 import axiosInstance from "../../utils/axiosInstance";
@@ -13,7 +12,7 @@ interface Plan {
   features: string[];
 }
 
-const Pricing = () => {
+const InvPricing = () => {
   const navigate = useNavigate();
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
   const [email, setEmail] = useState('');
@@ -23,31 +22,8 @@ const Pricing = () => {
 
   const plans: Plan[] = [
     {
-      name: "Lite",
-      price: "$19",
-      period: "/month",
-      description: "Basic features to get started",
-      features: [
-        "Limited profile views",
-        "Basic matching",
-        "Community support",
-      ],
-    },
-    {
-      name: "Standard",
-      price: "$49",
-      period: "/month",
-      description: "Most popular plan for individuals",
-      features: [
-        "Unlimited profile views",
-        "Tinder-style matching",
-        "Direct messaging",
-        "KYC verification",
-      ],
-    },
-    {
-      name: "Premium",
-      price: "$99",
+      name: "Pro",
+      price: "$199",
       period: "/month",
       description: "Full access for power users",
       features: [
@@ -267,4 +243,4 @@ const Pricing = () => {
   );
 };
 
-export default Pricing;
+export default InvPricing;
