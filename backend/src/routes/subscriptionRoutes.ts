@@ -9,6 +9,6 @@ router.post("/subscribe", protect, requireRole("idealogist"), subscribe);
 router.get("/status", protect, requireRole("idealogist"), status);
 
 // public endpoint so newly registered idealogists without token can pay & activate
-router.post("/subscribe-public", subscribePublic);
+router.post("/subscribe-public",protect, subscribePublic);
 
 export default router;

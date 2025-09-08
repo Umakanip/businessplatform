@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Swal from "sweetalert2";
 import "sweetalert2/dist/sweetalert2.min.css";
+import axiosInstance from "../../utils/axiosInstance";
 
 interface Plan {
   name: string;
@@ -75,8 +76,8 @@ const Pricing = () => {
     }
 
     try {
-      const response = await axios.post(
-        "http://localhost:5000/api/subscriptions/subscribe-public",
+      const response = await axiosInstance.post(
+        "subscriptions/subscribe-public",
         {
           email,
           password,

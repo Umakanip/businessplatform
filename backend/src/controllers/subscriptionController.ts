@@ -83,8 +83,18 @@ export const subscribePublic = async (req: Request, res: Response) => {
     }
 
     const user = await User.findOne({ where: { email } });
-    if (!user || user.role !== "idealogist") {
-      return res.status(403).json({ message: "Only idealogists can subscribe here" });
+
+    if (!user || (user.role !== "idealogist" && user.role !== "investor")) {
+      return res.status(403).json({
+        message: "Only idealogists or investors can subscribe here",
+      });
+    }
+
+    // ✅ investor ku "pro" plan mattum allow
+    if (user.role === "investor" && plan !== "pro") {
+      return res
+        .status(400)
+        .json({ message: "Investors can only subscribe to Pro plan" });
     }
 
     const ok = await bcrypt.compare(password, user.password);
