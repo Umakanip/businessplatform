@@ -53,7 +53,7 @@ const HeaderIh: React.FC = () => {
 
   const ideaHolderMenu = [
     { name: "Home", path: "/", icon: faHome },
-    { name: "Ideas Hub", path: "/ih/approach", icon: faLightbulb },
+    { name: "Investers Hub", path: "/ih/approach", icon: faLightbulb },
     { name: "My Connections", path: "/ih/connections", icon: faLink },
     { name: "Subscription", path: "/ih/subscription", icon: faCreditCard },
     { name: "Notifications", path: "/ih/notifications", icon: faBell },
