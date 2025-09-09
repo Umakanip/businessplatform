@@ -28,6 +28,8 @@ export const listIdealogistsForInvestor = async (_req: Request, res: Response) =
 };
 
 // ========================== MATCH IDEALOGISTS BY CATEGORY ==========================
+import Subscription from "../models/subscription";
+// ========================== MATCH IDEALOGISTS BY CATEGORY ==========================
 export const getMatchingIdealogists = async (req: Request & { user?: any }, res: Response) => {
   try {
     if (!req.user) {
@@ -50,7 +52,7 @@ export const getMatchingIdealogists = async (req: Request & { user?: any }, res:
 
     const investorId = user.id;
 
-    // find idealogists in same category + join connections
+    // find idealogists in same category + only with active subscription
     const idealogists = await User.findAll({
       where: {
         role: "idealogist",
@@ -58,8 +60,26 @@ export const getMatchingIdealogists = async (req: Request & { user?: any }, res:
           where(fn("JSON_CONTAINS", col("category"), JSON.stringify(cat)), 1)
         ),
       },
-      attributes: ["id", "name", "email", "category", "profileImage", "primaryPhone", "secondaryPhone", "role"],
+      attributes: [
+        "id",
+        "name",
+        "email",
+        "category",
+        "profileImage",
+        "primaryPhone",
+        "secondaryPhone",
+        "role",
+      ],
       include: [
+        {
+          model: Subscription,
+          as: "subscription",
+          where: {
+            status: "active",
+            endDate: { [Op.gte]: new Date() }, // ✅ still valid subscription
+          },
+          required: true, // 🔥 ensures only subscribed idealogists are included
+        },
         {
           model: ConnectionRequest,
           as: "receivedRequests",
@@ -101,7 +121,6 @@ export const getMatchingIdealogists = async (req: Request & { user?: any }, res:
         status = i.sentRequests[0].status;
       }
 
-      // Only include matching categories
       const matchingCategories = i.category.filter((c: string) =>
         user.category.includes(c)
       );
@@ -110,9 +129,9 @@ export const getMatchingIdealogists = async (req: Request & { user?: any }, res:
         id: i.id,
         name: i.name,
         email: i.email,
-        category: matchingCategories, 
+        category: matchingCategories,
         profileImage: i.profileImage,
-        role: i.role,                   
+        role: i.role,
         primaryPhone: i.primaryPhone,
         secondaryPhone: i.secondaryPhone,
         status,
