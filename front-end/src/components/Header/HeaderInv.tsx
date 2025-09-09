@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -9,12 +8,10 @@ import {
   faLightbulb,
   faLink,
 } from "@fortawesome/free-solid-svg-icons";
-import ProfileDrawer from "../Pages/ProfileDrawer";
 import axiosInstance from "../../utils/axiosInstance";
 
 const HeaderInv: React.FC = () => {
   const location = useLocation();
-  const [showProfile, setShowProfile] = useState(false);
   const [inviteCount, setInviteCount] = useState(0);
 
   // 🔹 Fetch invites count
@@ -27,7 +24,6 @@ const HeaderInv: React.FC = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      // Adjust this based on your API response structure
       const count =
         Array.isArray(res.data) ? res.data.length : res.data.requests?.length || 0;
 
@@ -36,31 +32,30 @@ const HeaderInv: React.FC = () => {
       console.error("Error fetching invite count:", error);
     }
   };
-useEffect(() => {
-  fetchInviteCount();
 
-  // 20s ku oru thadava poll pannradhuku
-  const interval = setInterval(fetchInviteCount, 20000);
-
-  // 🔹 Listen for custom event from Notifications
-  const handleRefresh = () => {
+  useEffect(() => {
     fetchInviteCount();
-  };
-  window.addEventListener("refreshInvites", handleRefresh);
 
-  return () => {
-    clearInterval(interval);
-    window.removeEventListener("refreshInvites", handleRefresh);
-  };
-}, []);
+    const interval = setInterval(fetchInviteCount, 20000);
 
+    const handleRefresh = () => {
+      fetchInviteCount();
+    };
+    window.addEventListener("refreshInvites", handleRefresh);
 
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener("refreshInvites", handleRefresh);
+    };
+  }, []);
+
+  // ✅ Direct profile page instead of drawer
   const investorMenu = [
     { name: "Home", path: "/", icon: faHome },
     { name: "Ideas Hub", path: "/inv/approach", icon: faLightbulb },
     { name: "My Connections", path: "/inv/connections", icon: faLink },
     { name: "Notifications", path: "/inv/notifications", icon: faBell },
-    { name: "Profile", path: "#", icon: faUser, action: () => setShowProfile(true) },
+    { name: "Profile", path: "/inv/profile", icon: faUser },
   ];
 
   return (
@@ -71,12 +66,6 @@ useEffect(() => {
           <Link
             key={item.name}
             to={item.path}
-            onClick={(e) => {
-              if (item.action) {
-                e.preventDefault();
-                item.action();
-              }
-            }}
             className={`relative flex items-center justify-center px-3 py-2 rounded-lg font-medium transition-all
               ${location.pathname === item.path
                 ? "bg-gradient-to-r from-indigo-500/30 to-pink-500/30 text-pink-300 shadow"
@@ -93,19 +82,12 @@ useEffect(() => {
               )}
             </div>
 
-            {/* Text → hide for Notifications */}
             {item.name !== "Notifications" && (
               <span className="hidden md:inline">{item.name}</span>
             )}
           </Link>
         ))}
       </nav>
-
-      <ProfileDrawer
-        isOpen={showProfile}
-        onClose={() => setShowProfile(false)}
-        showLogout={true}
-      />
     </header>
   );
 };

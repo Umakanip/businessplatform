@@ -75,6 +75,7 @@ const InvPricing = () => {
           state: {
             subscriptionId: response.data.subscriptionId,
             amount: response.data.amount,
+            redirectTo: "/inv/approach"
           },
         });
       }
