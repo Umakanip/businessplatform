@@ -110,16 +110,15 @@ const InvPricing = () => {
         </p>
 
         {/* Pricing Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-10">
+<div className="flex justify-center flex-wrap gap-8 mb-10">
           {plans.map((plan) => (
             <div
               key={plan.name}
-              className={`relative p-8 rounded-2xl shadow-lg border-2 transform hover:scale-105 transition-transform duration-300 cursor-pointer
-                ${
-                  selectedPlan?.name === plan.name
+ className={`w-full max-w-md relative p-8 rounded-2xl shadow-lg border-2 transform hover:scale-105 transition-transform duration-300 cursor-pointer                  selectedPlan?.name === plan.name
                     ? "border-purple-500 ring-4 ring-purple-500"
                     : "border-gray-700 hover:border-purple-500"
                 }`}
+                
               onClick={() => openSubscriptionModal(plan)}
             >
               <h2 className="text-3xl font-extrabold text-white mb-2">{plan.name}</h2>

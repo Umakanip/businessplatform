@@ -190,11 +190,11 @@ const Header: React.FC = () => {
       </header>
 
       {/* Profile Drawer */}
-      <ProfileDrawer
-        isOpen={showProfile}
-        onClose={() => setShowProfile(false)}
-        showLogout={true}
-      />
+    <ProfileDrawer
+  isOpen={showProfile}
+  onClose={() => setShowProfile(false)}
+/>
+
     </>
   );
 };
