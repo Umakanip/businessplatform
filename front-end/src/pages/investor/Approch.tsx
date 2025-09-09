@@ -199,7 +199,7 @@ const InvApproch: React.FC = () => {
                         onClick={() => handleViewProfile(profile.id)}
                         className="text-xs text-indigo-600 font-semibold hover:underline"
                       >
-                        ...more
+                        ..more
                       </button>
                     )}
                   </div>
@@ -314,27 +314,105 @@ const InvApproch: React.FC = () => {
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
           {!subscription?.active ? (
             // 🔒 Locked Modal
-            <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 text-center relative">
-              <button
-                onClick={() => setShowModal(false)}
-                className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
-              >
-                <FontAwesomeIcon icon={faTimes} />
-              </button>
-              <FontAwesomeIcon
-                icon={faLock}
-                className="text-5xl text-gray-700 mb-4"
-              />
-              <h2 className="text-xl font-bold mb-2">Subscribe to Unlock</h2>
-              <p className="text-gray-500 mb-6">
-                You need an active subscription to view full profile details.
-              </p>
-              <button
+            <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden relative">
+              <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-6 text-center relative">
+                <button
+                  onClick={() => setShowModal(false)}
+                  className="absolute top-4 right-4 text-white hover:text-gray-200 text-lg"
+                >
+                  <FontAwesomeIcon icon={faTimes} />
+                </button>
+                <div className="relative w-24 h-24 mx-auto">
+                  <img
+                    src={
+                      selectedProfile.profileImage
+                        ? `http://localhost:5000/uploads/${selectedProfile.profileImage}`
+                        : "https://via.placeholder.com/100"
+                    }
+                    alt={selectedProfile.name}
+                    className={`w-24 h-24 rounded-full object-cover border-4 border-white mx-auto shadow-lg transition-all duration-500 ${
+                      !allowedIds.includes(selectedProfile.id) ? "blur-md" : ""
+                    }`}
+                  />
+                  {!allowedIds.includes(selectedProfile.id) && (
+                    <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center">
+                      <FontAwesomeIcon
+                        icon={faLock}
+                        className="text-white text-lg"
+                      />
+                    </div>
+                  )}
+                </div>
+
+                <h2 className="text-2xl font-bold text-white mt-4">
+                  {selectedProfile.name}
+                </h2>
+                <p className="text-indigo-100">{selectedProfile.role}</p>
+                <p className="text-indigo-200 text-sm">
+                  {selectedProfile.category.join(", ")}
+                </p>
+              </div>
+
+              <div className="p-6 space-y-4">
+                <div className="flex items-center space-x-3 text-gray-700">
+                  <FontAwesomeIcon icon={faEnvelope} className="text-blue-600" />
+                  <span className="font-medium">Email:</span>
+                  <span>
+                    {allowedIds.includes(selectedProfile.id)
+                      ? selectedProfile.email
+                      : maskEmail(selectedProfile.email)}
+                  </span>
+                </div>
+                <div className="flex items-center space-x-3 text-gray-700">
+                  <FontAwesomeIcon icon={faPhone} className="text-green-600" />
+                  <span className="font-medium">Primary Phone:</span>
+                  <span>
+                    {allowedIds.includes(selectedProfile.id)
+                      ? selectedProfile.primaryPhone || "-"
+                      : maskPhone(selectedProfile.primaryPhone)}
+                  </span>
+                </div>
+                <div className="flex items-center space-x-3 text-gray-700">
+                  <FontAwesomeIcon icon={faPhone} className="text-purple-600" />
+                  <span className="font-medium">Secondary Phone:</span>
+                  <span>
+                    {allowedIds.includes(selectedProfile.id)
+                      ? selectedProfile.secondaryPhone || "-"
+                      : maskPhone(selectedProfile.secondaryPhone)}
+                  </span>
+                </div>
+                <div className="flex items-center space-x-3 text-gray-700">
+                  <FontAwesomeIcon
+                    icon={faUserTag}
+                    className="text-orange-600"
+                  />
+                  <span className="font-medium">Role:</span>
+                  <span>{selectedProfile.role || "-"}</span>
+                </div>
+                <div className="flex items-center space-x-3 text-gray-700">
+                  <FontAwesomeIcon
+                    icon={faLayerGroup}
+                    className="text-pink-600"
+                  />
+                  <span className="font-medium">Category:</span>
+                  <div className="flex flex-wrap gap-2 mt-1">
+                    {selectedProfile.category.map((cat) => (
+                      <span
+                        key={cat}
+                        className="bg-indigo-100 text-indigo-800 text-xs font-medium px-2 py-1 rounded-full"
+                      >
+                        {cat}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+                   <button
                 onClick={() => navigate("/inv/subscription")}
                 className="px-6 py-2 rounded-lg font-semibold bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow hover:opacity-90"
               >
                 View Plans
               </button>
+              </div>
             </div>
           ) : (
             // ✅ Normal Profile Details
