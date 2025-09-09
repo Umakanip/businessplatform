@@ -1,6 +1,6 @@
 import React from "react";
 
-const  Subscription: React.FC = () => {
+const Subscription: React.FC = () => {
   const plans = [
     {
       name: "Lite",
@@ -11,17 +11,19 @@ const  Subscription: React.FC = () => {
         "Limited profile views",
         "Basic matching",
         "Community support",
+        "Limited Access to contacts",
+
       ],
     },
     {
       name: "Standard",
       price: "$49",
       period: "/month",
-      description: "Most popular plan for individuals",
+      description: "More profile views and contacts",
       features: [
-        "Unlimited profile views",
-        "Tinder-style matching",
-        "Direct messaging",
+        "More profile views (not unlimited)",
+        "Basic matching",
+        "Access to contacts",
         "KYC verification",
       ],
     },
@@ -31,28 +33,33 @@ const  Subscription: React.FC = () => {
       period: "/month",
       description: "Full access for power users",
       features: [
-        "All Standard features",
+        "Unlimited profile views",
+        "Access to all contacts",
         "Priority support",
-        "Advanced analytics",
         "Featured profile badge",
       ],
     },
   ];
 
   return (
-    <section id="Subscription" className=" py-20 px-4 sm:px-6 lg:px-8">
-     <div className="max-w-7xl mx-auto">
+    <section id="Subscription" className="py-20 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto">
         <div className="text-center mb-20">
           <h2 className="text-5xl font-extrabold text-white mb-5 tracking-wide drop-shadow-lg">
             Subscription Required
           </h2>
           <p className="text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed">
-Idea Holders <span className="text-yellow-300 font-semibold">must subscribe</span> 
-    to <span className="text-green-400 font-semibold">log in</span> and 
-    <span className="text-blue-400 font-semibold"> connect with Investors</span>.          </p>
+            Idea Holders{" "}
+            <span className="text-yellow-300 font-semibold">must subscribe</span>{" "}
+            to <span className="text-green-400 font-semibold">log in</span> and{" "}
+            <span className="text-blue-400 font-semibold">
+              connect with Investors
+            </span>
+            .
+          </p>
         </div>
 
-        {/*  Subscription Cards */}
+        {/* Subscription Cards */}
         <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto">
           {plans.map((plan) => (
             <div
@@ -102,4 +109,4 @@ Idea Holders <span className="text-yellow-300 font-semibold">must subscribe</spa
   );
 };
 
-export default  Subscription;
+export default Subscription;

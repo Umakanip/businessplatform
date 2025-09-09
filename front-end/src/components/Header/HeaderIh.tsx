@@ -1,19 +1,22 @@
 import React, { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faLink,
   faCreditCard,
   faBell,
-  faUser,
   faHome,
   faLightbulb,
+  faSignOutAlt, // ✅ Added for the logout icon
 } from "@fortawesome/free-solid-svg-icons";
 import axiosInstance from "../../utils/axiosInstance";
 
 const HeaderIh: React.FC = () => {
   const location = useLocation();
+  const navigate = useNavigate(); // ✅ Hook for navigation
   const [inviteCount, setInviteCount] = useState(0);
+  const [userProfileImage, setUserProfileImage] = useState<string | null>(null); // ✅ State for profile image
+  const [showLogoutModal, setShowLogoutModal] = useState(false); // ✅ State for logout modal
 
   // 🔹 Fetch invites count
   const fetchInviteCount = async () => {
@@ -30,15 +33,49 @@ const HeaderIh: React.FC = () => {
     }
   };
 
+  // ✅ Fetch user profile image
+  const fetchUserProfile = async () => {
+    const storedUser = localStorage.getItem("user");
+    const token = localStorage.getItem("token");
+    if (!storedUser || !token) {
+      setUserProfileImage(null);
+      return;
+    }
+    const parsed = JSON.parse(storedUser);
+    try {
+      const res = await axiosInstance.get(
+        `http://localhost:5000/api/auth/profile/${parsed.id}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      if (res.data.profileImage) {
+        setUserProfileImage(
+          `http://localhost:5000/uploads/${res.data.profileImage}`
+        );
+      } else {
+        setUserProfileImage("https://i.ibb.co/L5r6N1X/profile-pic.png");
+      }
+    } catch (err) {
+      console.error("Profile fetch failed:", err);
+      setUserProfileImage(null);
+    }
+  };
+
   useEffect(() => {
     fetchInviteCount();
+    fetchUserProfile(); // ✅ Fetch profile image on mount
 
     // 🔄 Poll every 20s
-    const interval = setInterval(fetchInviteCount, 20000);
+    const interval = setInterval(() => {
+      fetchInviteCount();
+      fetchUserProfile();
+    }, 20000);
 
     // 🔹 Listen for custom event from Notifications
     const handleRefresh = () => {
       fetchInviteCount();
+      fetchUserProfile();
     };
     window.addEventListener("refreshInvites", handleRefresh);
 
@@ -55,8 +92,16 @@ const HeaderIh: React.FC = () => {
     { name: "My Connections", path: "/ih/connections", icon: faLink },
     { name: "Subscription", path: "/ih/subscription", icon: faCreditCard },
     { name: "Notifications", path: "/ih/notifications", icon: faBell },
-    { name: "Profile", path: "/ih/profile", icon: faUser },
   ];
+
+  const handleLogout = () => {
+    setShowLogoutModal(true);
+  };
+
+  const confirmLogout = () => {
+    localStorage.clear();
+    navigate("/");
+  };
 
   return (
     <header className="w-full bg-gradient-to-r from-purple-900 via-slate-900 to-purple-800 text-white shadow-lg flex items-center justify-between px-8 py-4 fixed top-0 left-0 z-50">
@@ -74,7 +119,6 @@ const HeaderIh: React.FC = () => {
             {/* Icon */}
             <div className="relative">
               <FontAwesomeIcon icon={item.icon} className="text-lg" />
-
               {/* 🔹 Badge only for Notifications */}
               {item.name === "Notifications" && inviteCount > 0 && (
                 <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full shadow-md">
@@ -82,14 +126,62 @@ const HeaderIh: React.FC = () => {
                 </span>
               )}
             </div>
-
             {/* Text → hide for Notifications */}
             {item.name !== "Notifications" && (
               <span className="hidden md:inline">{item.name}</span>
             )}
           </Link>
         ))}
+
+        {/* ✅ Profile Image Link */}
+        <Link
+          to="/ih/profile"
+          className={`relative flex items-center justify-center px-3 py-2 rounded-lg font-medium transition-all
+          ${location.pathname === "/ih/profile"
+            ? "bg-gradient-to-r from-indigo-500/30 to-pink-500/30 text-pink-300 shadow"
+            : ""}`}
+        >
+          <img
+            src={userProfileImage || "https://i.ibb.co/L5r6N1X/profile-pic.png"}
+            alt="Profile"
+            className="w-10 h-10 rounded-full border-2 border-white object-cover cursor-pointer"
+          />
+        </Link>
+
+        {/* ✅ Logout Button */}
+        <button
+          onClick={handleLogout}
+          className="bg-red-500 text-white px-4 py-2 rounded-lg text-sm flex items-center gap-2 hover:bg-red-600 transition"
+        >
+          <FontAwesomeIcon icon={faSignOutAlt} />
+        </button>
       </nav>
+
+      {/* ✅ Logout Confirmation Modal */}
+      {showLogoutModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-[#2a2a2a] p-8 rounded-xl shadow-2xl text-center">
+            <h4 className="text-xl text-white mb-4">Are you sure?</h4>
+            <p className="text-[#c0c0c0] mb-6">
+              You will be logged out of your account.
+            </p>
+            <div className="flex justify-center gap-4">
+              <button
+                onClick={() => setShowLogoutModal(false)}
+                className="bg-gray-500 text-white px-6 py-2 rounded-lg hover:bg-gray-600 transition"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmLogout}
+                className="bg-red-500 text-white px-6 py-2 rounded-lg hover:bg-red-600 transition"
+              >
+                Yes, Logout
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </header>
   );
 };
