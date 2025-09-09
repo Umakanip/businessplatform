@@ -27,6 +27,11 @@ export const listInvestorsForIdealogist = async (_req: Request, res: Response) =
 
 // ========================== MATCH INVESTORS BY CATEGORY ==========================
 
+import Subscription from "../models/subscription";
+import { isActive } from "../utils/dates";
+
+// ========================== MATCH INVESTORS BY CATEGORY ==========================
+
 export const getMatchingInvestors = async (req: Request & { user?: any }, res: Response) => {
   try {
     if (!req.user) {
@@ -38,7 +43,6 @@ export const getMatchingInvestors = async (req: Request & { user?: any }, res: R
       return res.status(404).json({ message: "User not found" });
     }
 
-    // only idealogists can fetch
     if (user.role !== "idealogist") {
       return res.status(403).json({ message: "Only idealogists can view matching investors" });
     }
@@ -49,76 +53,90 @@ export const getMatchingInvestors = async (req: Request & { user?: any }, res: R
 
     const idealogistId = user.id;
 
-    // find investors in same category + join connections
-   
-const investors = await User.findAll({
-  where: {
-    role: "investor",
-    [Op.or]: user.category.map((cat: string) =>
-      where(fn("JSON_CONTAINS", col("category"), JSON.stringify(cat)), 1)
-    ),
-  },
-  attributes: ["id", "name", "email", "category", "profileImage", "primaryPhone", "secondaryPhone", "role"],
-  include: [
-    {
-      model: ConnectionRequest,
-      as: "receivedRequests",
-      where: { senderId: idealogistId },
-      required: false,
-      attributes: ["status"],
-    },
-    {
-      model: ConnectionRequest,
-      as: "sentRequests",
-      where: { receiverId: idealogistId },
-      required: false,
-      attributes: ["status"],
-    },
-    {
-      model: Connection,
-      as: "connectionsAsUser1",
-      where: { user2Id: idealogistId },
-      required: false,
-    },
-    {
-      model: Connection,
-      as: "connectionsAsUser2",
-      where: { user1Id: idealogistId },
-      required: false,
-    },
-  ],
-});
+    // 🔑 get investors in same category + only with active subscription
+    const investors = await User.findAll({
+      where: {
+        role: "investor",
+        [Op.or]: user.category.map((cat: string) =>
+          where(fn("JSON_CONTAINS", col("category"), JSON.stringify(cat)), 1)
+        ),
+      },
+      attributes: [
+        "id",
+        "name",
+        "email",
+        "category",
+        "profileImage",
+        "primaryPhone",
+        "secondaryPhone",
+        "role",
+      ],
+      include: [
+        {
+          model: Subscription,
+          as: "subscription", // ⚡ make sure association is defined in models/associations
+          where: {
+            status: "active",
+            endDate: { [Op.gte]: new Date() }, // ✅ still valid
+          },
+          required: true, // 🔥 ensures only subscribed investors come
+        },
+        {
+          model: ConnectionRequest,
+          as: "receivedRequests",
+          where: { senderId: idealogistId },
+          required: false,
+          attributes: ["status"],
+        },
+        {
+          model: ConnectionRequest,
+          as: "sentRequests",
+          where: { receiverId: idealogistId },
+          required: false,
+          attributes: ["status"],
+        },
+        {
+          model: Connection,
+          as: "connectionsAsUser1",
+          where: { user2Id: idealogistId },
+          required: false,
+        },
+        {
+          model: Connection,
+          as: "connectionsAsUser2",
+          where: { user1Id: idealogistId },
+          required: false,
+        },
+      ],
+    });
 
-    // format output with status
-// format output with status
-const formatted = investors.map((i: any) => {
-  let status: "none" | "pending" | "accepted" | "rejected" = "none";
+    const formatted = investors.map((i: any) => {
+      let status: "none" | "pending" | "accepted" | "rejected" = "none";
 
-  if (i.connectionsAsUser1?.length > 0 || i.connectionsAsUser2?.length > 0) {
-    status = "accepted";
-  } else if (i.receivedRequests?.length > 0) {
-    status = i.receivedRequests[0].status;
-  } else if (i.sentRequests?.length > 0) {
-    status = i.sentRequests[0].status;
-  }
+      if (i.connectionsAsUser1?.length > 0 || i.connectionsAsUser2?.length > 0) {
+        status = "accepted";
+      } else if (i.receivedRequests?.length > 0) {
+        status = i.receivedRequests[0].status;
+      } else if (i.sentRequests?.length > 0) {
+        status = i.sentRequests[0].status;
+      }
 
-  // Only include matching categories
-  const matchingCategories = i.category.filter((c: string) =>
-    user.category.includes(c)
-  );
+      const matchingCategories = i.category.filter((c: string) =>
+        user.category.includes(c)
+      );
 
-  return {
-    id: i.id,
-    name: i.name,
-    email: i.email,
-    role: i.role,                   // ✅ added role
-    primaryPhone: i.primaryPhone,
-    secondaryPhone: i.secondaryPhone, // ✅ added secondaryPhone
-    profileImage: i.profileImage,
-    category: matchingCategories,   // ✅ only matching categories
-    status,
-  };
-});
+      return {
+        id: i.id,
+        name: i.name,
+        email: i.email,
+        role: i.role,
+        primaryPhone: i.primaryPhone,
+        secondaryPhone: i.secondaryPhone,
+        profileImage: i.profileImage,
+        category: matchingCategories,
+        status,
+      };
+    });
 
     return res.status(200).json({
       category: user.category,
