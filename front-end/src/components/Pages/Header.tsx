@@ -97,7 +97,7 @@ const Header: React.FC = () => {
               <a href="#roles" className="text-sm sm:text-base font-bold text-gray-600 ">
                 Roles
               </a>
-              <a href="#pricing" className="text-sm sm:text-base font-bold text-gray-600 ">
+              <a href="#Subscription" className="text-sm sm:text-base font-bold text-gray-600 ">
                 Pricing
               </a>
             </nav>
@@ -190,11 +190,11 @@ const Header: React.FC = () => {
       </header>
 
       {/* Profile Drawer */}
-      <ProfileDrawer
-        isOpen={showProfile}
-        onClose={() => setShowProfile(false)}
-        showLogout={true}
-      />
+    <ProfileDrawer
+  isOpen={showProfile}
+  onClose={() => setShowProfile(false)}
+/>
+
     </>
   );
 };

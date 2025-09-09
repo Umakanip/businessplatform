@@ -8,10 +8,15 @@ const Hero: React.FC = () => {
           <h1 className="text-5xl md:text-7xl font-bold text-white mb-6 leading-tight">
             Where <span className="bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">Idea Holders</span> Meet <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">Investors</span>
           </h1>
-          <p className="text-xl md:text-2xl text-gray-300 mb-8 max-w-3xl mx-auto">
-            The only platform that enforces strict Idea Holders-investor connections. 
-            No Idea Holders-to-Idea Holders or investor-to-investor connections allowed.
-          </p>
+<p className="text-lg md:text-xl text-gray-300 mb-10 max-w-2xl mx-auto leading-relaxed">
+  A platform built to foster genuine collaborations — where   
+  <span className="bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent font-semibold">
+     Idea Holders
+  </span> connect exclusively with  
+  <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent font-semibold">
+     Investors
+  </span>, ensuring focused and meaningful partnerships.
+</p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <button className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:from-purple-700 hover:to-blue-700 transition-all duration-300 transform hover:scale-105">
               Subscribe & Connect

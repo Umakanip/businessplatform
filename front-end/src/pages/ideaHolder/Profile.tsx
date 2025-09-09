@@ -8,6 +8,7 @@ import {
   faCamera,
   faCheckCircle,
   faSignOutAlt,
+  faPlus, // Added for the "Add Bio" icon
 } from "@fortawesome/free-solid-svg-icons";
 
 // Define the UserProfile interface
@@ -32,7 +33,9 @@ const ProfileIH: React.FC = () => {
   const [preview, setPreview] = useState<string | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
   const [isCategoriesDropdownOpen, setIsCategoriesDropdownOpen] = useState(false);
-  const [showLogoutModal, setShowLogoutModal] = useState(false); // ✅ New state for logout modal
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
+  // State to control bio editing separate from general editing
+  const [isBioEditing, setIsBioEditing] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Store initial user data to check for changes
@@ -80,7 +83,7 @@ const ProfileIH: React.FC = () => {
           category: Array.isArray(data.category) ? data.category : [],
         };
         setUser(userData);
-        initialUserData.current = userData; // Store initial data
+        initialUserData.current = userData;
       } catch (err) {
         console.error("Profile fetch failed:", err);
         navigate("/auth");
@@ -143,7 +146,6 @@ const ProfileIH: React.FC = () => {
     if (!user || !initialUserData.current) return;
     const token = localStorage.getItem("token");
 
-    // ✅ Check if any changes were made
     const isChanged =
       user.name !== initialUserData.current.name ||
       user.email !== initialUserData.current.email ||
@@ -156,7 +158,8 @@ const ProfileIH: React.FC = () => {
 
     if (!isChanged) {
       setEditing(false);
-      return; // Do nothing if no changes were made
+      setIsBioEditing(false);
+      return;
     }
 
     const form = new FormData();
@@ -169,6 +172,8 @@ const ProfileIH: React.FC = () => {
     if (newPassword) form.append("password", newPassword);
     if (selectedFile) form.append("profileImage", selectedFile);
     if (user.bio) form.append("bio", user.bio);
+    if (user.bio === '') form.append("bio", '');
+
 
     try {
       await axios.put(
@@ -183,10 +188,10 @@ const ProfileIH: React.FC = () => {
       );
 
       setEditing(false);
+      setIsBioEditing(false);
       setNewPassword("");
       setSelectedFile(null);
-      
-      // ✅ Show success message only if changes were made
+
       setShowSuccess(true);
       setTimeout(() => setShowSuccess(false), 2500);
 
@@ -201,7 +206,7 @@ const ProfileIH: React.FC = () => {
         ...updatedUser,
         category: Array.isArray(updatedUser.category) ? updatedUser.category : [],
       });
-      initialUserData.current = updatedUser; // Update initial data reference
+      initialUserData.current = updatedUser;
     } catch (err) {
       console.error("Profile update failed:", err);
     }
@@ -214,6 +219,19 @@ const ProfileIH: React.FC = () => {
   const confirmLogout = () => {
     localStorage.clear();
     navigate("/auth");
+  };
+
+  const handleEditClick = () => {
+    setEditing(true);
+    // If the user has a bio, also enable bio editing
+    if (user?.bio) {
+      setIsBioEditing(true);
+    }
+  };
+
+  const handleBioEditClick = () => {
+    setIsBioEditing(true);
+    setEditing(true); // Also set the main editing mode
   };
 
   if (!user) {
@@ -293,7 +311,7 @@ const ProfileIH: React.FC = () => {
               ) : (
                 <>
                   <button
-                    onClick={() => setEditing(true)}
+                    onClick={handleEditClick}
                     className="bg-pink-500 text-white px-4 py-2 rounded-lg text-sm flex items-center gap-2 hover:bg-pink-600 transition"
                   >
                     <FontAwesomeIcon icon={faEdit} /> Edit
@@ -418,8 +436,28 @@ const ProfileIH: React.FC = () => {
               </div>
             )}
             <div className="flex flex-col col-span-1 md:col-span-2">
-              <span className="text-xs text-[#808080]">Bio</span>
-              {editing ? (
+              <div className="flex justify-between items-center">
+                <span className="text-xs text-[#808080]">Bio</span>
+                {/* Conditionally render "Add Bio" or "Edit Bio" button */}
+                {!editing && !user.bio && (
+                  <button
+                    onClick={handleBioEditClick}
+                    className="text-xs text-pink-500 hover:text-purple-500 transition flex items-center gap-1"
+                  >
+                    <FontAwesomeIcon icon={faPlus} className="text-xs" /> Add Bio
+                  </button>
+                )}
+                {!editing && user.bio && (
+                  <button
+                    onClick={handleBioEditClick}
+                    className="text-xs text-pink-500 hover:text-purple-500 transition flex items-center gap-1"
+                  >
+                    <FontAwesomeIcon icon={faEdit} className="text-xs" /> Edit Bio
+                  </button>
+                )}
+              </div>
+              {/* Conditionally render the textarea for editing */}
+              {isBioEditing ? (
                 <textarea
                   name="bio"
                   value={user.bio || ""}
@@ -431,7 +469,7 @@ const ProfileIH: React.FC = () => {
                 />
               ) : (
                 <span className="text-base text-[#e0e0e0] whitespace-pre-line">
-                  {user.bio || "—"}
+                  {user.bio || ""}
                 </span>
               )}
             </div>
@@ -445,7 +483,7 @@ const ProfileIH: React.FC = () => {
         </div>
       )}
 
-      {/* ✅ Logout Confirmation Modal */}
+      {/* Logout Confirmation Modal */}
       {showLogoutModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-[#2a2a2a] p-8 rounded-xl shadow-2xl text-center">
