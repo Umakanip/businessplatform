@@ -8,6 +8,7 @@ import {
   faCamera,
   faCheckCircle,
   faSignOutAlt,
+  faPlus, // ✅ New icon for "Add"
 } from "@fortawesome/free-solid-svg-icons";
 
 // Define the UserProfile interface
@@ -32,7 +33,7 @@ const ProfileInv: React.FC = () => {
   const [preview, setPreview] = useState<string | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
   const [isCategoriesDropdownOpen, setIsCategoriesDropdownOpen] = useState(false);
-  const [showLogoutModal, setShowLogoutModal] = useState(false); // ✅ New state for logout modal
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Store initial user data to check for changes
@@ -143,7 +144,7 @@ const ProfileInv: React.FC = () => {
     if (!user || !initialUserData.current) return;
     const token = localStorage.getItem("token");
 
-    // ✅ Check if any changes were made
+    // Check if any changes were made
     const isChanged =
       user.name !== initialUserData.current.name ||
       user.email !== initialUserData.current.email ||
@@ -186,7 +187,7 @@ const ProfileInv: React.FC = () => {
       setNewPassword("");
       setSelectedFile(null);
       
-      // ✅ Show success message only if changes were made
+      // Show success message only if changes were made
       setShowSuccess(true);
       setTimeout(() => setShowSuccess(false), 2500);
 
@@ -418,7 +419,26 @@ const ProfileInv: React.FC = () => {
               </div>
             )}
             <div className="flex flex-col col-span-1 md:col-span-2">
-              <span className="text-xs text-[#808080]">Bio</span>
+              <div className="flex justify-between items-center">
+                <span className="text-xs text-[#808080]">Bio</span>
+                {/* ✅ New logic for Add/Edit Bio button */}
+                {!editing && user.bio && (
+                  <button
+                    onClick={() => setEditing(true)}
+                    className="text-pink-500 hover:text-pink-400 transition"
+                  >
+                    <FontAwesomeIcon icon={faEdit} className="mr-1" /> Edit Bio
+                  </button>
+                )}
+                {!editing && !user.bio && (
+                  <button
+                    onClick={() => setEditing(true)}
+                    className="text-pink-500 hover:text-pink-400 transition"
+                  >
+                    <FontAwesomeIcon icon={faPlus} className="mr-1" /> Add Bio
+                  </button>
+                )}
+              </div>
               {editing ? (
                 <textarea
                   name="bio"
@@ -426,12 +446,12 @@ const ProfileInv: React.FC = () => {
                   onChange={handleEditChange}
                   maxLength={250}
                   rows={3}
-                  className="text-base text-[#e0e0e0] bg-[#3a3a3a] rounded px-2 py-1 resize-none"
+                  className="text-base text-[#e0e0e0] bg-[#3a3a3a] rounded px-2 py-1 resize-none mt-2"
                   placeholder="Write something about yourself (max 250 characters)..."
                 />
               ) : (
-                <span className="text-base text-[#e0e0e0] whitespace-pre-line">
-                  {user.bio || "—"}
+                <span className="text-base text-[#e0e0e0] whitespace-pre-line mt-2">
+                  {user.bio || ""}
                 </span>
               )}
             </div>
@@ -445,7 +465,7 @@ const ProfileInv: React.FC = () => {
         </div>
       )}
 
-      {/* ✅ Logout Confirmation Modal */}
+      {/* Logout Confirmation Modal */}
       {showLogoutModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-[#2a2a2a] p-8 rounded-xl shadow-2xl text-center">
