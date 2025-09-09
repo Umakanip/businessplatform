@@ -30,19 +30,17 @@ type ProfileDetail = Profile & {
 const IhApproch: React.FC = () => {
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
-
   const [selectedProfile, setSelectedProfile] = useState<ProfileDetail | null>(
     null
   );
   const [showModal, setShowModal] = useState(false);
   const [allowedIds, setAllowedIds] = useState<number[]>([]);
-  const [expandedCategories, setExpandedCategories] = useState<number[]>([]);
   const [subscription, setSubscription] = useState<any>(null);
   const [isPremiumUser, setIsPremiumUser] = useState(false);
 
   const navigate = useNavigate();
 
-  // mask helpers (keep as is)
+  // mask helpers
   const maskEmail = (email: string): string => {
     const [user, domain] = email.split("@");
     if (user.length <= 2) return "*".repeat(user.length) + "@" + domain;
@@ -91,7 +89,6 @@ const IhApproch: React.FC = () => {
             allowedCount = total;
           }
         } else {
-          // If no active subscription, allow 0 profiles
           allowedCount = 0;
         }
 
@@ -122,12 +119,6 @@ const IhApproch: React.FC = () => {
     }
   };
 
-  const toggleCategoryView = (id: number) => {
-    setExpandedCategories((prev) =>
-      prev.includes(id) ? prev.filter((pid) => pid !== id) : [...prev, id]
-    );
-  };
-
   if (loading) {
     return <p className="text-center py-10">Loading suggestions...</p>;
   }
@@ -143,14 +134,10 @@ const IhApproch: React.FC = () => {
           Total {profiles.length} profiles available
         </p>
       </div>
+
+      {/* Profiles Grid */}
       <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
         {profiles.map((profile) => {
-          const isExpanded = expandedCategories.includes(profile.id);
-          const categoriesToShow = isExpanded
-            ? profile.category
-            : profile.category.slice(0, 2);
-
-          // Determine if the profile should be locked
           const isLocked = !allowedIds.includes(profile.id);
 
           return (
@@ -198,8 +185,10 @@ const IhApproch: React.FC = () => {
                   <h3 className="text-md font-semibold text-gray-900 text-center">
                     {profile.name}
                   </h3>
+
+                  {/* Categories */}
                   <div className="flex flex-wrap justify-center gap-1 mt-2 mb-3">
-                    {categoriesToShow.map((cat) => (
+                    {profile.category.slice(0, 2).map((cat) => (
                       <span
                         key={cat}
                         className="bg-blue-100 text-blue-800 text-xs font-medium px-2 py-1 rounded-full"
@@ -207,17 +196,18 @@ const IhApproch: React.FC = () => {
                         {cat}
                       </span>
                     ))}
+                    {profile.category.length > 2 && (
+                      <button
+                        onClick={() => handleViewProfile(profile.id)}
+                        className="text-xs text-indigo-600 font-semibold hover:underline"
+                      >
+                        ...more
+                      </button>
+                    )}
                   </div>
-                  {profile.category.length > 2 && (
-                    <button
-                      onClick={() => toggleCategoryView(profile.id)}
-                      className="text-xs text-indigo-600 font-semibold hover:underline mb-2"
-                    >
-                      {isExpanded ? "View Less" : "View More"}
-                    </button>
-                  )}
                 </div>
 
+                {/* Buttons */}
                 <div className="space-y-2 mt-4 w-full">
                   <button
                     onClick={() => handleViewProfile(profile.id)}
@@ -225,6 +215,7 @@ const IhApproch: React.FC = () => {
                   >
                     View Profile
                   </button>
+
                   {profile.status === "accepted" ? (
                     <button
                       disabled
@@ -266,7 +257,9 @@ const IhApproch: React.FC = () => {
                             { receiverId: profile.id },
                             {
                               headers: {
-                                Authorization: `Bearer ${localStorage.getItem("token")}`,
+                                Authorization: `Bearer ${localStorage.getItem(
+                                  "token"
+                                )}`,
                               },
                             }
                           );
