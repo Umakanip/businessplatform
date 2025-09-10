@@ -13,7 +13,8 @@ export const register = async (req: Request, res: Response) => {
       role, 
       primaryPhone, 
       secondaryPhone,
-      categories 
+      categories,
+      bio   // ✅ include bio from request
     } = req.body;
 
     const profileImage = req.file ? req.file.filename : "";
@@ -25,11 +26,16 @@ export const register = async (req: Request, res: Response) => {
     // Normalize role
     const normalizedRole = role === "ideaholder" ? "idealogist" : role;
 
-    // Parse categories (array sent as JSON string from frontend)
+    // ✅ Bio required only for investors
+    if (normalizedRole === "investor" && (!bio || bio.trim() === "")) {
+      return res.status(400).json({ message: "Investor must provide a bio" });
+    }
+
+    // Parse categories
     let parsedCategories: string[] = [];
     if (categories) {
       try {
-        parsedCategories = JSON.parse(categories); 
+        parsedCategories = JSON.parse(categories);
         if (!Array.isArray(parsedCategories)) {
           return res.status(400).json({ message: "Categories must be an array" });
         }
@@ -53,7 +59,8 @@ export const register = async (req: Request, res: Response) => {
       primaryPhone, 
       secondaryPhone, 
       category: parsedCategories, 
-      profileImage 
+      profileImage,
+      bio: normalizedRole === "investor" ? bio : null  // ✅ only store for investors
     });
 
     return res.status(201).json({
@@ -65,6 +72,7 @@ export const register = async (req: Request, res: Response) => {
     return res.status(500).json({ message: "Internal server error" });
   }
 };
+
 
 // ========================== LOGIN ==========================
 export const login = async (req: Request, res: Response) => {
