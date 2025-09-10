@@ -21,6 +21,7 @@ interface FormData {
   secondaryPhone: string;
   categories: string[];
   profileImage: File | null;
+  bio: string;  // ✅ add bio
 }
 
 const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
@@ -37,6 +38,7 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
     secondaryPhone: '',
     categories: [],
     profileImage: null,
+     bio: ''  
   });
 
   // State for managing loading and errors
@@ -74,15 +76,18 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
     return () => document.removeEventListener("mousedown", handleOutsideClick);
   }, [dropdownRef]);
 
-  // Handles changes to form inputs, clearing errors as the user types
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
-    if (errors[name as keyof FormData]) {
-      setErrors({ ...errors, [name]: undefined });
-    }
-    setApiError(null);
-  };
+ // Handles changes to form inputs, clearing errors as the user types
+const handleChange = (
+  e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+) => {
+  const { name, value } = e.target;
+  setFormData({ ...formData, [name]: value });
+  if (errors[name as keyof FormData]) {
+    setErrors({ ...errors, [name]: undefined });
+  }
+  setApiError(null);
+};
+
 
   // Handles changes to the file input
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -140,6 +145,10 @@ const validateForm = (): boolean => {
       newErrors.categories = ['Please select at least one category'];
     }
 
+  // ✅ Bio validation only for investors
+  if (formData.role === "investor" && !formData.bio.trim()) {
+    newErrors.bio = "Bio is required for investors";
+  }
   setErrors(newErrors);
 
   // ❌ Show alert if validation failed
@@ -184,7 +193,10 @@ const validateForm = (): boolean => {
       if (formData.profileImage) {
         formDataToSend.append("profileImage", formData.profileImage);
       }
-
+    // ✅ Bio only for investors
+      if (formData.role === "investor") {
+        formDataToSend.append("bio", formData.bio);
+      }
       const response = await axiosInstance.post("/auth/register", formDataToSend, {
         headers: {
           "Content-Type": "multipart/form-data",
@@ -464,6 +476,26 @@ const validateForm = (): boolean => {
                 />
               </div>
             </div>
+{/* Bio field (only for investors) */}
+{formData.role === 'investor' && (
+  <div>
+    <label htmlFor="bio" className="block text-sm font-medium text-gray-200 mb-2">
+      Bio *
+    </label>
+    <textarea
+      id="bio"
+      name="bio"
+      value={formData.bio}
+      onChange={handleChange}
+      className={`w-full px-4 py-3 bg-white/10 border rounded-lg text-white placeholder-gray-400 
+        focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all duration-200 
+        ${errors.bio ? 'border-red-500' : 'border-white/20'}`}
+      placeholder="Tell investors about yourself..."
+      rows={3}
+    />
+    {errors.bio && <p className="mt-1 text-sm text-red-400">{errors.bio}</p>}
+  </div>
+)}
 
             {/* Profile Image Upload */}
             <div>
