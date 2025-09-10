@@ -32,6 +32,8 @@ export const listInvestorsForIdealogist = async (_req: Request, res: Response) =
 import Subscription from "../models/subscription";
 import { isActive } from "../utils/dates";
 
+// ========================== MATCH INVESTORS BY CATEGORY ==========================
+
 export const getMatchingInvestors = async (req: Request & { user?: any }, res: Response) => {
   try {
     if (!req.user) {
@@ -71,7 +73,17 @@ export const getMatchingInvestors = async (req: Request & { user?: any }, res: R
       // 🔥 Subscribed idealogist → show only subscribed investors
       investors = await User.findAll({
         where: { role: "investor", ...categoryCondition },
-        attributes: ["id", "name", "email", "category", "profileImage", "primaryPhone", "secondaryPhone", "role"],
+        attributes: [
+          "id",
+          "name",
+          "email",
+          "category",
+          "profileImage",
+          "primaryPhone",
+          "secondaryPhone",
+          "role",
+          "bio", // ✅ include bio
+        ],
         include: [
           {
             model: Subscription,
@@ -93,7 +105,17 @@ export const getMatchingInvestors = async (req: Request & { user?: any }, res: R
       // 🚫 Free idealogist → show all investors (even without subscription)
       investors = await User.findAll({
         where: { role: "investor", ...categoryCondition },
-        attributes: ["id", "name", "email", "category", "profileImage", "primaryPhone", "secondaryPhone", "role"],
+        attributes: [
+          "id",
+          "name",
+          "email",
+          "category",
+          "profileImage",
+          "primaryPhone",
+          "secondaryPhone",
+          "role",
+          "bio", // ✅ include bio
+        ],
         include: [
           { model: Subscription, as: "subscription", required: false },
           { model: ConnectionRequest, as: "receivedRequests", where: { senderId: idealogistId }, required: false, attributes: ["status"] },
@@ -113,7 +135,8 @@ export const getMatchingInvestors = async (req: Request & { user?: any }, res: R
       } else if (i.sentRequests?.length > 0) {
         status = i.sentRequests[0].status;
       }
- const matchingCategories = i.category.filter((c: string) =>
+
+      const matchingCategories = i.category.filter((c: string) =>
         user.category.includes(c)
       );
 
@@ -125,6 +148,7 @@ export const getMatchingInvestors = async (req: Request & { user?: any }, res: R
         primaryPhone: i.primaryPhone,
         secondaryPhone: i.secondaryPhone,
         profileImage: i.profileImage,
+        bio: i.bio, // ✅ pass bio in response
         category: matchingCategories,
         status,
         isSubscribed: i.subscription && i.subscription.status === "active" && i.subscription.endDate >= new Date(),
@@ -137,6 +161,7 @@ export const getMatchingInvestors = async (req: Request & { user?: any }, res: R
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
 
 // ========================== MATCH INVESTORS BY CATEGORY ==========================
 // export const getMatchingInvestors = async (req: Request & { user?: any }, res: Response) => {
