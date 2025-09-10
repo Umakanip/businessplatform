@@ -7,16 +7,19 @@ import {
   faBell,
   faHome,
   faLightbulb,
-  faSignOutAlt, // ✅ Added for the logout icon
+  faSignOutAlt,
 } from "@fortawesome/free-solid-svg-icons";
 import axiosInstance from "../../utils/axiosInstance";
 
 const HeaderIh: React.FC = () => {
   const location = useLocation();
-  const navigate = useNavigate(); // ✅ Hook for navigation
+  const navigate = useNavigate();
   const [inviteCount, setInviteCount] = useState(0);
-  const [userProfileImage, setUserProfileImage] = useState<string | null>(null); // ✅ State for profile image
-  const [showLogoutModal, setShowLogoutModal] = useState(false); // ✅ State for logout modal
+  const [userProfileData, setUserProfileData] = useState<{
+    profileImage: string | null;
+    name: string;
+  } | null>(null);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   // 🔹 Fetch invites count
   const fetchInviteCount = async () => {
@@ -33,12 +36,12 @@ const HeaderIh: React.FC = () => {
     }
   };
 
-  // ✅ Fetch user profile image
+  // ✅ Fetch user profile data including name and image
   const fetchUserProfile = async () => {
     const storedUser = localStorage.getItem("user");
     const token = localStorage.getItem("token");
     if (!storedUser || !token) {
-      setUserProfileImage(null);
+      setUserProfileData(null);
       return;
     }
     const parsed = JSON.parse(storedUser);
@@ -49,30 +52,27 @@ const HeaderIh: React.FC = () => {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-      if (res.data.profileImage) {
-        setUserProfileImage(
-          `http://localhost:5000/uploads/${res.data.profileImage}`
-        );
-      } else {
-        setUserProfileImage("https://i.ibb.co/L5r6N1X/profile-pic.png");
-      }
+      setUserProfileData({
+        profileImage: res.data.profileImage
+          ? `http://localhost:5000/uploads/${res.data.profileImage}`
+          : null,
+        name: res.data.name || "",
+      });
     } catch (err) {
       console.error("Profile fetch failed:", err);
-      setUserProfileImage(null);
+      setUserProfileData(null);
     }
   };
 
   useEffect(() => {
     fetchInviteCount();
-    fetchUserProfile(); // ✅ Fetch profile image on mount
+    fetchUserProfile();
 
-    // 🔄 Poll every 20s
     const interval = setInterval(() => {
       fetchInviteCount();
       fetchUserProfile();
     }, 20000);
 
-    // 🔹 Listen for custom event from Notifications
     const handleRefresh = () => {
       fetchInviteCount();
       fetchUserProfile();
@@ -85,7 +85,6 @@ const HeaderIh: React.FC = () => {
     };
   }, []);
 
-  // ✅ Direct profile page instead of drawer
   const ideaHolderMenu = [
     { name: "Home", path: "/", icon: faHome },
     { name: "Investers Hub", path: "/ih/approach", icon: faLightbulb },
@@ -101,6 +100,33 @@ const HeaderIh: React.FC = () => {
   const confirmLogout = () => {
     localStorage.clear();
     navigate("/");
+  };
+
+  // 🔹 ஒரு எழுத்து கொண்ட அவதார்-ஐ ரெண்டர் செய்யும் காம்போனென்ட்
+  const AvatarWithFirstLetter = () => {
+    // நீங்கள் அனுப்பிய கோடில் உள்ள கிளாஸ்நேம்கள்
+    const baseClasses = "w-10 h-10 rounded-full object-cover cursor-pointer";
+    const commonStyles = "ring-2 ring-white shadow-lg transition-all duration-500";
+    const getFirstLetter = (name: string) => {
+      return name ? name.charAt(0).toUpperCase() : "";
+    };
+
+    if (userProfileData?.profileImage) {
+      return (
+        <img
+          src={userProfileData.profileImage}
+          alt="Profile"
+          className={`${baseClasses} ${commonStyles}`}
+        />
+      );
+    }
+
+    // `w-10 h-10` என்ற அளவு மாறாமல், உங்கள் ஸ்டைல்கள்
+    return (
+      <div className={`w-10 h-10 rounded-full flex items-center justify-center ring-2 ring-white shadow-lg transition-all duration-500 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-lg font-[Pacifico]`}>
+        {getFirstLetter(userProfileData?.name || "")}
+      </div>
+    );
   };
 
   return (
@@ -141,11 +167,7 @@ const HeaderIh: React.FC = () => {
             ? "bg-gradient-to-r from-indigo-500/30 to-pink-500/30 text-pink-300 shadow"
             : ""}`}
         >
-          <img
-            src={userProfileImage || "https://i.ibb.co/L5r6N1X/profile-pic.png"}
-            alt="Profile"
-            className="w-10 h-10 rounded-full border-2 border-white object-cover cursor-pointer"
-          />
+          <AvatarWithFirstLetter />
         </Link>
 
         {/* ✅ Logout Button */}

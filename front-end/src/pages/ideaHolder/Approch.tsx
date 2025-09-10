@@ -40,6 +40,11 @@ const IhApproch: React.FC = () => {
 
   const navigate = useNavigate();
 
+  // Helper to get the first letter of a name
+  const getFirstLetter = (name: string): string => {
+    return name ? name.charAt(0).toUpperCase() : "";
+  };
+
   // mask helpers
   const maskEmail = (email: string): string => {
     const [user, domain] = email.split("@");
@@ -162,17 +167,23 @@ const IhApproch: React.FC = () => {
               <div className="flex flex-col items-center relative h-full justify-between">
                 <div className="flex flex-col items-center">
                   <div className="relative">
-                    <img
-                      src={
-                        profile.profileImage
-                          ? `http://localhost:5000/uploads/${profile.profileImage}`
-                          : "https://via.placeholder.com/100"
-                      }
-                      alt={profile.name}
-                      className={`w-20 h-20 rounded-full object-cover mb-4 ring-2 ring-white shadow-lg transition-all duration-500 ${
-                        isLocked ? "blur-md" : ""
-                      }`}
-                    />
+                    {profile.profileImage ? (
+                      <img
+                        src={`http://localhost:5000/uploads/${profile.profileImage}`}
+                        alt={profile.name}
+          className={`w-20 h-20 rounded-full object-cover mb-4 ring-2 ring-white shadow-lg transition-all duration-500 ${
+                          isLocked ? "blur-md" : ""
+                        }`}
+                      />
+                    ) : (
+                      <div
+          className={`w-20 h-20 rounded-full flex items-center justify-center mb-4 ring-2 ring-white shadow-lg transition-all duration-500 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-2xl font-[Pacifico] ${
+                          isLocked ? "blur-md" : ""
+                        }`}
+                      >
+                        {getFirstLetter(profile.name)}
+                      </div>
+                    )}
                     {isLocked && (
                       <div className="mb-4 absolute inset-0 bg-black/50 backdrop-blur-sm rounded-full flex items-center justify-center">
                         <FontAwesomeIcon
@@ -201,7 +212,7 @@ const IhApproch: React.FC = () => {
                         onClick={() => handleViewProfile(profile.id)}
                         className="text-xs text-indigo-600 font-semibold hover:underline"
                       >
-                       ..more
+                        ..more
                       </button>
                     )}
                   </div>
@@ -277,7 +288,9 @@ const IhApproch: React.FC = () => {
 
                           setProfiles((prev) =>
                             prev.map((p) =>
-                              p.id === profile.id ? { ...p, status: "pending" } : p
+                              p.id === profile.id
+                                ? { ...p, status: "pending" }
+                                : p
                             )
                           );
                         } catch (err) {
@@ -293,7 +306,7 @@ const IhApproch: React.FC = () => {
                       }}
                       className={`w-full font-semibold py-2 rounded-full shadow text-sm mt-2 flex items-center justify-center gap-2 ${
                         isLocked
-                          ? "bg-gradient-to-r from-purple-600 to-blue-600 text-white cursor-not-allowed "
+                          ? "bg-gray-400 text-gray-800 cursor-not-allowed"
                           : "bg-gradient-to-r from-purple-600 to-blue-600 text-white"
                       }`}
                     >
@@ -319,7 +332,7 @@ const IhApproch: React.FC = () => {
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
           {!subscription?.active ? (
             // 🔒 Locked Modal
-             <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden relative">
+            <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden relative">
               <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-6 text-center relative">
                 <button
                   onClick={() => setShowModal(false)}
@@ -328,17 +341,23 @@ const IhApproch: React.FC = () => {
                   <FontAwesomeIcon icon={faTimes} />
                 </button>
                 <div className="relative w-24 h-24 mx-auto">
-                  <img
-                    src={
-                      selectedProfile.profileImage
-                        ? `http://localhost:5000/uploads/${selectedProfile.profileImage}`
-                        : "https://via.placeholder.com/100"
-                    }
-                    alt={selectedProfile.name}
-                    className={`w-24 h-24 rounded-full object-cover border-4 border-white mx-auto shadow-lg transition-all duration-500 ${
-                      !allowedIds.includes(selectedProfile.id) ? "blur-md" : ""
-                    }`}
-                  />
+                  {selectedProfile.profileImage ? (
+                    <img
+                      src={`http://localhost:5000/uploads/${selectedProfile.profileImage}`}
+                      alt={selectedProfile.name}
+                      className={`w-24 h-24 rounded-full object-cover border-4 border-white mx-auto shadow-lg transition-all duration-500 ${
+                        !allowedIds.includes(selectedProfile.id) ? "blur-md" : ""
+                      }`}
+                    />
+                  ) : (
+                    <div
+                      className={`w-24 h-24 rounded-full flex items-center justify-center bg-gray-400 text-white font-bold text-4xl border-4 border-white mx-auto shadow-lg transition-all duration-500 ${
+                        !allowedIds.includes(selectedProfile.id) ? "blur-md" : ""
+                      }`}
+                    >
+                      {getFirstLetter(selectedProfile.name)}
+                    </div>
+                  )}
                   {!allowedIds.includes(selectedProfile.id) && (
                     <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center">
                       <FontAwesomeIcon
@@ -411,12 +430,12 @@ const IhApproch: React.FC = () => {
                     ))}
                   </div>
                 </div>
-                   <button
-                onClick={() => navigate("/subscription")}
-                className="px-6 py-2 rounded-lg font-semibold bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow hover:opacity-90"
-              >
-                View Plans
-              </button>
+                <button
+                  onClick={() => navigate("/inv/subscription")}
+                  className="px-6 py-2 rounded-lg font-semibold bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow hover:opacity-90"
+                >
+                  View Plans
+                </button>
               </div>
             </div>
           ) : (
@@ -430,17 +449,23 @@ const IhApproch: React.FC = () => {
                   <FontAwesomeIcon icon={faTimes} />
                 </button>
                 <div className="relative w-24 h-24 mx-auto">
-                  <img
-                    src={
-                      selectedProfile.profileImage
-                        ? `http://localhost:5000/uploads/${selectedProfile.profileImage}`
-                        : "https://via.placeholder.com/100"
-                    }
-                    alt={selectedProfile.name}
-                    className={`w-24 h-24 rounded-full object-cover border-4 border-white mx-auto shadow-lg transition-all duration-500 ${
-                      !allowedIds.includes(selectedProfile.id) ? "blur-md" : ""
-                    }`}
-                  />
+                  {selectedProfile.profileImage ? (
+                    <img
+                      src={`http://localhost:5000/uploads/${selectedProfile.profileImage}`}
+                      alt={selectedProfile.name}
+                      className={`w-24 h-24 rounded-full object-cover border-4 border-white mx-auto shadow-lg transition-all duration-500 ${
+                        !allowedIds.includes(selectedProfile.id) ? "blur-md" : ""
+                      }`}
+                    />
+                  ) : (
+                    <div
+                      className={`w-24 h-24 rounded-full flex items-center justify-center bg-gray-400 text-white font-bold text-4xl border-4 border-white mx-auto shadow-lg transition-all duration-500 ${
+                        !allowedIds.includes(selectedProfile.id) ? "blur-md" : ""
+                      }`}
+                    >
+                      {getFirstLetter(selectedProfile.name)}
+                    </div>
+                  )}
                   {!allowedIds.includes(selectedProfile.id) && (
                     <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center">
                       <FontAwesomeIcon
