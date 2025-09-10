@@ -8,7 +8,7 @@ import {
   faCamera,
   faCheckCircle,
   faSignOutAlt,
-  faPlus, // ✅ New icon for "Add"
+  faPlus,
 } from "@fortawesome/free-solid-svg-icons";
 
 // Define the UserProfile interface
@@ -231,17 +231,21 @@ const ProfileInv: React.FC = () => {
         {/* Left Panel */}
         <div className="flex-grow md:flex-grow-0 md:basis-1/3 bg-[#2a2a2a] p-6 rounded-xl shadow-xl flex flex-col items-center text-center">
           <div className="relative w-48 h-48 md:w-52 md:h-52 rounded-full border-4 border-[#3c3c3c] p-1 bg-[#2a2a2a] flex items-center justify-center">
-            <img
-              src={
-                preview
-                  ? preview
-                  : user.profileImage
-                  ? `http://localhost:5000/uploads/${user.profileImage}`
-                  : "https://i.ibb.co/L5r6N1X/profile-pic.png"
-              }
-              alt="Profile"
-              className="w-full h-full object-cover rounded-full"
-            />
+            {preview || user.profileImage ? (
+              <img
+                src={
+                  preview
+                    ? preview
+                    : `http://localhost:5000/uploads/${user.profileImage}`
+                }
+                alt="Profile"
+                className="w-full h-full object-cover rounded-full"
+              />
+            ) : (
+              <div className="w-full h-full rounded-full flex items-center justify-center bg-gradient-to-r from-pink-500 to-purple-500 text-white font-bold text-6xl">
+                {user.name.charAt(0).toUpperCase()}
+              </div>
+            )}
             {editing && (
               <>
                 <input
@@ -493,5 +497,4 @@ const ProfileInv: React.FC = () => {
     </div>
   );
 };
-
 export default ProfileInv;
