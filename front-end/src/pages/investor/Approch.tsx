@@ -157,153 +157,160 @@ const InvApproch: React.FC = () => {
               )}
 
               <div className="flex flex-col items-center relative h-full justify-between">
-                <div className="flex flex-col items-center">
-                  <div className="relative">
-                    <img
-                      src={
-                        profile.profileImage
-                          ? `http://localhost:5000/uploads/${profile.profileImage}`
-                          : "https://via.placeholder.com/100"
-                      }
-                      alt={profile.name}
-                      className={`w-20 h-20 rounded-full object-cover mb-4 ring-2 ring-white shadow-lg transition-all duration-500 ${
-                        isLocked ? "blur-md" : ""
-                      }`}
-                    />
-                    {isLocked && (
-                      <div className="mb-4 absolute inset-0 bg-black/50 backdrop-blur-sm rounded-full flex items-center justify-center">
-                        <FontAwesomeIcon
-                          icon={faLock}
-                          className="text-white text-lg"
-                        />
-                      </div>
-                    )}
-                  </div>
-                  <h3 className="text-md font-semibold text-gray-900 text-center">
-                    {profile.name}
-                  </h3>
+  <div className="flex flex-col items-center">
+    <div className="relative">
+      {profile.profileImage ? (
+        <img
+          src={`http://localhost:5000/uploads/${profile.profileImage}`}
+          alt={profile.name}
+          className={`w-20 h-20 rounded-full object-cover mb-4 ring-2 ring-white shadow-lg transition-all duration-500 ${
+            isLocked ? "blur-md" : ""
+          }`}
+        />
+      ) : (
+        <div
+          className={`w-20 h-20 rounded-full flex items-center justify-center mb-4 ring-2 ring-white shadow-lg transition-all duration-500 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-2xl font-[Pacifico] ${
+            isLocked ? "blur-md" : ""
+          }`}
+        >
+          {profile.name ? profile.name.charAt(0).toUpperCase() : "U"}
+        </div>
+      )}
+      {isLocked && (
+        <div className="mb-4 absolute inset-0 bg-black/50 backdrop-blur-sm rounded-full flex items-center justify-center">
+          <FontAwesomeIcon
+            icon={faLock}
+            className="text-white text-lg"
+          />
+        </div>
+      )}
+    </div>
+    <h3 className="text-md font-semibold text-gray-900 text-center">
+      {profile.name}
+    </h3>
 
-                  {/* Categories */}
-                  <div className="flex flex-wrap justify-center gap-1 mt-2 mb-3">
-                    {categoriesToShow.map((cat) => (
-                      <span
-                        key={cat}
-                        className="bg-blue-100 text-blue-800 text-xs font-medium px-2 py-1 rounded-full"
-                      >
-                        {cat}
-                      </span>
-                    ))}
+    {/* Categories */}
+    <div className="flex flex-wrap justify-center gap-1 mt-2 mb-3">
+      {categoriesToShow.map((cat) => (
+        <span
+          key={cat}
+          className="bg-blue-100 text-blue-800 text-xs font-medium px-2 py-1 rounded-full"
+        >
+          {cat}
+        </span>
+      ))}
 
-                    {profile.category.length > 2 && (
-                      <button
-                        onClick={() => handleViewProfile(profile.id)}
-                        className="text-xs text-indigo-600 font-semibold hover:underline"
-                      >
-                        ..more
-                      </button>
-                    )}
-                  </div>
-                </div>
+      {profile.category.length > 2 && (
+        <button
+          onClick={() => handleViewProfile(profile.id)}
+          className="text-xs text-indigo-600 font-semibold hover:underline"
+        >
+          ..more
+        </button>
+      )}
+    </div>
+  </div>
 
-                {/* Buttons */}
-                <div className="space-y-2 mt-4 w-full">
-                  <button
-                    onClick={() => handleViewProfile(profile.id)}
-                    className="w-full font-semibold py-2 rounded-full shadow text-sm bg-gray-200 hover:bg-gray-300"
-                  >
-                    View Profile
-                  </button>
-                  {profile.status === "accepted" ? (
-                    <button
-                      disabled
-                      className="w-full font-semibold py-2 rounded-full shadow text-sm bg-gradient-to-r from-purple-600 to-blue-600 text-white mt-2"
-                    >
-                      Connected
-                    </button>
-                  ) : profile.status === "pending" ? (
-                    <button
-                      disabled
-                      className="w-full font-semibold py-2 rounded-full shadow text-sm bg-yellow-300 mt-2"
-                    >
-                      Pending...
-                    </button>
-                  ) : (
-                    <button
-                      disabled={isLocked}
-                      onClick={async () => {
-                        if (isLocked) {
-                          await Swal.fire({
-                            title: "Access Denied",
-                            text: "You need to upgrade your subscription to connect with more profiles.",
-                            icon: "info",
-                            showCancelButton: true,
-                            confirmButtonText: "Upgrade",
-                            confirmButtonColor: "#8b5cf6",
-                            cancelButtonText: "Close",
-                            cancelButtonColor: "#d33",
-                          }).then((result) => {
-                            if (result.isConfirmed) {
-                              navigate("/subscription");
-                            }
-                          });
-                          return;
-                        }
-                        try {
-                          await axiosInstance.post(
-                            "/connections/send",
-                            { receiverId: profile.id },
-                            {
-                              headers: {
-                                Authorization: `Bearer ${localStorage.getItem("token")}`,
-                              },
-                            }
-                          );
+  {/* Buttons */}
+  <div className="space-y-2 mt-4 w-full">
+    <button
+      onClick={() => handleViewProfile(profile.id)}
+      className="w-full font-semibold py-2 rounded-full shadow text-sm bg-gray-200 hover:bg-gray-300"
+    >
+      View Profile
+    </button>
+    {profile.status === "accepted" ? (
+      <button
+        disabled
+        className="w-full font-semibold py-2 rounded-full shadow text-sm bg-gradient-to-r from-purple-600 to-blue-600 text-white mt-2"
+      >
+        Connected
+      </button>
+    ) : profile.status === "pending" ? (
+      <button
+        disabled
+        className="w-full font-semibold py-2 rounded-full shadow text-sm bg-yellow-300 mt-2"
+      >
+        Pending...
+      </button>
+    ) : (
+      <button
+        disabled={isLocked}
+        onClick={async () => {
+          if (isLocked) {
+            await Swal.fire({
+              title: "Access Denied",
+              text: "You need to upgrade your subscription to connect with more profiles.",
+              icon: "info",
+              showCancelButton: true,
+              confirmButtonText: "Upgrade",
+              confirmButtonColor: "#8b5cf6",
+              cancelButtonText: "Close",
+              cancelButtonColor: "#d33",
+            }).then((result) => {
+              if (result.isConfirmed) {
+                navigate("/subscription");
+              }
+            });
+            return;
+          }
+          try {
+            await axiosInstance.post(
+              "/connections/send",
+              { receiverId: profile.id },
+              {
+                headers: {
+                  Authorization: `Bearer ${localStorage.getItem("token")}`,
+                },
+              }
+            );
 
-                          await Swal.fire({
-                            title: "Request Sent!",
-                            text: "Connection request sent successfully.",
-                            icon: "success",
-                            position: "center",
-                            showConfirmButton: false,
-                            timer: 2000,
-                            timerProgressBar: true,
-                            background: "#f0f9ff",
-                          });
+            await Swal.fire({
+              title: "Request Sent!",
+              text: "Connection request sent successfully.",
+              icon: "success",
+              position: "center",
+              showConfirmButton: false,
+              timer: 2000,
+              timerProgressBar: true,
+              background: "#f0f9ff",
+            });
 
-                          setProfiles((prev) =>
-                            prev.map((p) =>
-                              p.id === profile.id ? { ...p, status: "pending" } : p
-                            )
-                          );
-                        } catch (err) {
-                          Swal.fire({
-                            title: "Error",
-                            text: "Unable to send request.",
-                            icon: "error",
-                            position: "center",
-                            confirmButtonColor: "#d33",
-                            background: "#fff5f5",
-                          });
-                        }
-                      }}
-                      className={`w-full font-semibold py-2 rounded-full shadow text-sm mt-2 flex items-center justify-center gap-2 ${
-                        isLocked
-                          ? "bg-gradient-to-r from-purple-600 to-blue-600 text-white cursor-not-allowed "
-                          : "bg-gradient-to-r from-purple-600 to-blue-600 text-white"
-                      }`}
-                    >
-                      {isLocked ? (
-                        <>
-                          <FontAwesomeIcon icon={faLock} />
-                          <span>Connect</span>
-                        </>
-                      ) : (
-                        "Connect"
-                      )}
-                    </button>
-                  )}
-                </div>
-              </div>
+            setProfiles((prev) =>
+              prev.map((p) =>
+                p.id === profile.id ? { ...p, status: "pending" } : p
+              )
+            );
+          } catch (err) {
+            Swal.fire({
+              title: "Error",
+              text: "Unable to send request.",
+              icon: "error",
+              position: "center",
+              confirmButtonColor: "#d33",
+              background: "#fff5f5",
+            });
+          }
+        }}
+        className={`w-full font-semibold py-2 rounded-full shadow text-sm mt-2 flex items-center justify-center gap-2 ${
+          isLocked
+            ? "bg-gradient-to-r from-purple-600 to-blue-600 text-white cursor-not-allowed "
+            : "bg-gradient-to-r from-purple-600 to-blue-600 text-white"
+        }`}
+      >
+        {isLocked ? (
+          <>
+            <FontAwesomeIcon icon={faLock} />
+            <span>Connect</span>
+          </>
+        ) : (
+          "Connect"
+        )}
+      </button>
+    )}
+  </div>
+</div>
+
             </div>
           );
         })}
