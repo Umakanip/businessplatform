@@ -8,7 +8,7 @@ import {
   faCamera,
   faCheckCircle,
   faSignOutAlt,
-  faPlus, // Added for the "Add Bio" icon
+  faPlus,
 } from "@fortawesome/free-solid-svg-icons";
 
 // Define the UserProfile interface
@@ -24,7 +24,7 @@ interface UserProfile {
   bio?: string;
 }
 
-const ProfileIH: React.FC = () => {
+const ProfileInv: React.FC = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState<UserProfile | null>(null);
   const [editing, setEditing] = useState(false);
@@ -83,7 +83,7 @@ const ProfileIH: React.FC = () => {
           category: Array.isArray(data.category) ? data.category : [],
         };
         setUser(userData);
-        initialUserData.current = userData;
+        initialUserData.current = userData; // Store initial data
       } catch (err) {
         console.error("Profile fetch failed:", err);
         navigate("/auth");
@@ -146,6 +146,7 @@ const ProfileIH: React.FC = () => {
     if (!user || !initialUserData.current) return;
     const token = localStorage.getItem("token");
 
+    // Check if any changes were made
     const isChanged =
       user.name !== initialUserData.current.name ||
       user.email !== initialUserData.current.email ||
@@ -159,7 +160,7 @@ const ProfileIH: React.FC = () => {
     if (!isChanged) {
       setEditing(false);
       setIsBioEditing(false);
-      return;
+      return; // Do nothing if no changes were made
     }
 
     const form = new FormData();
@@ -191,7 +192,8 @@ const ProfileIH: React.FC = () => {
       setIsBioEditing(false);
       setNewPassword("");
       setSelectedFile(null);
-
+      
+      // Show success message only if changes were made
       setShowSuccess(true);
       setTimeout(() => setShowSuccess(false), 2500);
 
@@ -206,7 +208,7 @@ const ProfileIH: React.FC = () => {
         ...updatedUser,
         category: Array.isArray(updatedUser.category) ? updatedUser.category : [],
       });
-      initialUserData.current = updatedUser;
+      initialUserData.current = updatedUser; // Update initial data reference
     } catch (err) {
       console.error("Profile update failed:", err);
     }
@@ -248,17 +250,22 @@ const ProfileIH: React.FC = () => {
         {/* Left Panel */}
         <div className="flex-grow md:flex-grow-0 md:basis-1/3 bg-[#2a2a2a] p-6 rounded-xl shadow-xl flex flex-col items-center text-center">
           <div className="relative w-48 h-48 md:w-52 md:h-52 rounded-full border-4 border-[#3c3c3c] p-1 bg-[#2a2a2a] flex items-center justify-center">
-            <img
-              src={
-                preview
-                  ? preview
-                  : user.profileImage
-                  ? `http://localhost:5000/uploads/${user.profileImage}`
-                  : "https://i.ibb.co/L5r6N1X/profile-pic.png"
-              }
-              alt="Profile"
-              className="w-full h-full object-cover rounded-full"
-            />
+            {/* Conditional rendering for profile image or first letter */}
+            {preview || user.profileImage ? (
+              <img
+                src={
+                  preview
+                    ? preview
+                    : `http://localhost:5000/uploads/${user.profileImage}`
+                }
+                alt="Profile"
+                className="w-full h-full object-cover rounded-full"
+              />
+            ) : (
+              <div className="w-full h-full rounded-full flex items-center justify-center bg-gradient-to-r from-pink-500 to-purple-500 text-white font-bold text-6xl">
+                {user.name.charAt(0).toUpperCase()}
+              </div>
+            )}
             {editing && (
               <>
                 <input
@@ -512,4 +519,4 @@ const ProfileIH: React.FC = () => {
   );
 };
 
-export default ProfileIH;
+export default ProfileInv;
