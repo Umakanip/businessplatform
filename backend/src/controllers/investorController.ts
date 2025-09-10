@@ -70,7 +70,17 @@ export const getMatchingIdealogists = async (req: Request & { user?: any }, res:
       // 🔥 Subscribed investor → show only subscribed idealogists
       idealogists = await User.findAll({
         where: { role: "idealogist", ...categoryCondition },
-        attributes: ["id", "name", "email", "category", "profileImage", "primaryPhone", "secondaryPhone", "role"],
+        attributes: [
+          "id",
+          "name",
+          "email",
+          "category",
+          "profileImage",
+          "primaryPhone",
+          "secondaryPhone",
+          "role",
+          "bio", // ✅ include bio
+        ],
         include: [
           {
             model: Subscription,
@@ -91,7 +101,17 @@ export const getMatchingIdealogists = async (req: Request & { user?: any }, res:
       // 🚫 Free investor → show all idealogists (even without subscription)
       idealogists = await User.findAll({
         where: { role: "idealogist", ...categoryCondition },
-        attributes: ["id", "name", "email", "category", "profileImage", "primaryPhone", "secondaryPhone", "role"],
+        attributes: [
+          "id",
+          "name",
+          "email",
+          "category",
+          "profileImage",
+          "primaryPhone",
+          "secondaryPhone",
+          "role",
+          "bio", // ✅ include bio
+        ],
         include: [
           { model: Subscription, as: "subscription", required: false },
           { model: ConnectionRequest, as: "receivedRequests", where: { senderId: investorId }, required: false, attributes: ["status"] },
@@ -124,6 +144,7 @@ export const getMatchingIdealogists = async (req: Request & { user?: any }, res:
         primaryPhone: i.primaryPhone,
         secondaryPhone: i.secondaryPhone,
         profileImage: i.profileImage,
+        bio: i.bio, // ✅ pass bio in response
         category: matchingCategories,
         status,
         isSubscribed: i.subscription && i.subscription.status === "active" && i.subscription.endDate >= new Date(),
@@ -136,6 +157,7 @@ export const getMatchingIdealogists = async (req: Request & { user?: any }, res:
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
 
 // ========================== MATCH IDEALOGISTS BY CATEGORY ==========================
 // export const getMatchingIdealogists = async (req: Request & { user?: any }, res: Response) => {
