@@ -27,6 +27,36 @@ type ProfileDetail = Profile & {
   role?: string;
 };
 
+// New Avatar component
+const AvatarWithFirstLetter: React.FC<{
+  name: string;
+  isLocked?: boolean;
+}> = ({ name, isLocked = false }) => {
+  const getFirstLetter = (name: string): string => {
+    return name ? name.charAt(0).toUpperCase() : "";
+  };
+
+  return (
+    <div className="relative w-24 h-24 mx-auto">
+      <div
+        className={`w-24 h-24 rounded-full flex items-center justify-center bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold text-4xl border-4 border-white mx-auto shadow-lg transition-all duration-500 ${
+          isLocked ? "blur-md" : ""
+        }`}
+      >
+        {getFirstLetter(name)}
+      </div>
+      {isLocked && (
+        <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center">
+          <FontAwesomeIcon
+            icon={faLock}
+            className="text-white text-lg animate-pulse"
+          />
+        </div>
+      )}
+    </div>
+  );
+};
+
 const IhApproch: React.FC = () => {
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
@@ -39,11 +69,6 @@ const IhApproch: React.FC = () => {
   const [isPremiumUser, setIsPremiumUser] = useState(false);
 
   const navigate = useNavigate();
-
-  // Helper to get the first letter of a name
-  const getFirstLetter = (name: string): string => {
-    return name ? name.charAt(0).toUpperCase() : "";
-  };
 
   // mask helpers
   const maskEmail = (email: string): string => {
@@ -171,17 +196,17 @@ const IhApproch: React.FC = () => {
                       <img
                         src={`http://localhost:5000/uploads/${profile.profileImage}`}
                         alt={profile.name}
-          className={`w-20 h-20 rounded-full object-cover mb-4 ring-2 ring-white shadow-lg transition-all duration-500 ${
+                        className={`w-20 h-20 rounded-full object-cover mb-4 ring-2 ring-white shadow-lg transition-all duration-500 ${
                           isLocked ? "blur-md" : ""
                         }`}
                       />
                     ) : (
                       <div
-          className={`w-20 h-20 rounded-full flex items-center justify-center mb-4 ring-2 ring-white shadow-lg transition-all duration-500 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-2xl font-[Pacifico] ${
+                        className={`w-20 h-20 rounded-full flex items-center justify-center mb-4 ring-2 ring-white shadow-lg transition-all duration-500 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-2xl font-[Pacifico] ${
                           isLocked ? "blur-md" : ""
                         }`}
                       >
-                        {getFirstLetter(profile.name)}
+                        {profile.name.charAt(0).toUpperCase()}
                       </div>
                     )}
                     {isLocked && (
@@ -330,217 +355,92 @@ const IhApproch: React.FC = () => {
       {/* Modal */}
       {showModal && selectedProfile && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-          {!subscription?.active ? (
-            // 🔒 Locked Modal
-            <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden relative">
-              <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-6 text-center relative">
-                <button
-                  onClick={() => setShowModal(false)}
-                  className="absolute top-4 right-4 text-white hover:text-gray-200 text-lg"
-                >
-                  <FontAwesomeIcon icon={faTimes} />
-                </button>
-                <div className="relative w-24 h-24 mx-auto">
-                  {selectedProfile.profileImage ? (
-                    <img
-                      src={`http://localhost:5000/uploads/${selectedProfile.profileImage}`}
-                      alt={selectedProfile.name}
-                      className={`w-24 h-24 rounded-full object-cover border-4 border-white mx-auto shadow-lg transition-all duration-500 ${
-                        !allowedIds.includes(selectedProfile.id) ? "blur-md" : ""
-                      }`}
-                    />
-                  ) : (
-                    <div
-                      className={`w-24 h-24 rounded-full flex items-center justify-center bg-gray-400 text-white font-bold text-4xl border-4 border-white mx-auto shadow-lg transition-all duration-500 ${
-                        !allowedIds.includes(selectedProfile.id) ? "blur-md" : ""
-                      }`}
-                    >
-                      {getFirstLetter(selectedProfile.name)}
-                    </div>
-                  )}
-                  {!allowedIds.includes(selectedProfile.id) && (
-                    <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center">
-                      <FontAwesomeIcon
-                        icon={faLock}
-                        className="text-white text-lg"
-                      />
-                    </div>
-                  )}
-                </div>
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden relative">
+            <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-6 text-center relative">
+              <button
+                onClick={() => setShowModal(false)}
+                className="absolute top-4 right-4 text-white hover:text-gray-200 text-lg"
+              >
+                <FontAwesomeIcon icon={faTimes} />
+              </button>
+              {/* Profile image replaced with the new component */}
+              <AvatarWithFirstLetter
+                name={selectedProfile.name}
+                isLocked={!allowedIds.includes(selectedProfile.id)}
+              />
 
-                <h2 className="text-2xl font-bold text-white mt-4">
-                  {selectedProfile.name}
-                </h2>
-                <p className="text-indigo-100">{selectedProfile.role}</p>
-                <p className="text-indigo-200 text-sm">
-                  {selectedProfile.category.join(", ")}
-                </p>
+              <h2 className="text-2xl font-bold text-white mt-4">
+                {selectedProfile.name}
+              </h2>
+              <p className="text-indigo-100">{selectedProfile.role}</p>
+              <p className="text-indigo-200 text-sm">
+                {selectedProfile.category.join(", ")}
+              </p>
+            </div>
+
+            <div className="p-6 space-y-4">
+              <div className="flex items-center space-x-3 text-gray-700">
+                <FontAwesomeIcon icon={faEnvelope} className="text-blue-600" />
+                <span className="font-medium">Email:</span>
+                <span>
+                  {allowedIds.includes(selectedProfile.id)
+                    ? selectedProfile.email
+                    : maskEmail(selectedProfile.email)}
+                </span>
               </div>
-
-              <div className="p-6 space-y-4">
-                <div className="flex items-center space-x-3 text-gray-700">
-                  <FontAwesomeIcon icon={faEnvelope} className="text-blue-600" />
-                  <span className="font-medium">Email:</span>
-                  <span>
-                    {allowedIds.includes(selectedProfile.id)
-                      ? selectedProfile.email
-                      : maskEmail(selectedProfile.email)}
-                  </span>
+              <div className="flex items-center space-x-3 text-gray-700">
+                <FontAwesomeIcon icon={faPhone} className="text-green-600" />
+                <span className="font-medium">Primary Phone:</span>
+                <span>
+                  {allowedIds.includes(selectedProfile.id)
+                    ? selectedProfile.primaryPhone || "-"
+                    : maskPhone(selectedProfile.primaryPhone)}
+                </span>
+              </div>
+              <div className="flex items-center space-x-3 text-gray-700">
+                <FontAwesomeIcon icon={faPhone} className="text-purple-600" />
+                <span className="font-medium">Secondary Phone:</span>
+                <span>
+                  {allowedIds.includes(selectedProfile.id)
+                    ? selectedProfile.secondaryPhone || "-"
+                    : maskPhone(selectedProfile.secondaryPhone)}
+                </span>
+              </div>
+              <div className="flex items-center space-x-3 text-gray-700">
+                <FontAwesomeIcon
+                  icon={faUserTag}
+                  className="text-orange-600"
+                />
+                <span className="font-medium">Role:</span>
+                <span>{selectedProfile.role || "-"}</span>
+              </div>
+              <div className="flex items-center space-x-3 text-gray-700">
+                <FontAwesomeIcon
+                  icon={faLayerGroup}
+                  className="text-pink-600"
+                />
+                <span className="font-medium">Category:</span>
+                <div className="flex flex-wrap gap-2 mt-1">
+                  {selectedProfile.category.map((cat) => (
+                    <span
+                      key={cat}
+                      className="bg-indigo-100 text-indigo-800 text-xs font-medium px-2 py-1 rounded-full"
+                    >
+                      {cat}
+                    </span>
+                  ))}
                 </div>
-                <div className="flex items-center space-x-3 text-gray-700">
-                  <FontAwesomeIcon icon={faPhone} className="text-green-600" />
-                  <span className="font-medium">Primary Phone:</span>
-                  <span>
-                    {allowedIds.includes(selectedProfile.id)
-                      ? selectedProfile.primaryPhone || "-"
-                      : maskPhone(selectedProfile.primaryPhone)}
-                  </span>
-                </div>
-                <div className="flex items-center space-x-3 text-gray-700">
-                  <FontAwesomeIcon icon={faPhone} className="text-purple-600" />
-                  <span className="font-medium">Secondary Phone:</span>
-                  <span>
-                    {allowedIds.includes(selectedProfile.id)
-                      ? selectedProfile.secondaryPhone || "-"
-                      : maskPhone(selectedProfile.secondaryPhone)}
-                  </span>
-                </div>
-                <div className="flex items-center space-x-3 text-gray-700">
-                  <FontAwesomeIcon
-                    icon={faUserTag}
-                    className="text-orange-600"
-                  />
-                  <span className="font-medium">Role:</span>
-                  <span>{selectedProfile.role || "-"}</span>
-                </div>
-                <div className="flex items-center space-x-3 text-gray-700">
-                  <FontAwesomeIcon
-                    icon={faLayerGroup}
-                    className="text-pink-600"
-                  />
-                  <span className="font-medium">Category:</span>
-                  <div className="flex flex-wrap gap-2 mt-1">
-                    {selectedProfile.category.map((cat) => (
-                      <span
-                        key={cat}
-                        className="bg-indigo-100 text-indigo-800 text-xs font-medium px-2 py-1 rounded-full"
-                      >
-                        {cat}
-                      </span>
-                    ))}
-                  </div>
-                </div>
+              </div>
+              {!allowedIds.includes(selectedProfile.id) && (
                 <button
                   onClick={() => navigate("/inv/subscription")}
                   className="px-6 py-2 rounded-lg font-semibold bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow hover:opacity-90"
                 >
                   View Plans
                 </button>
-              </div>
+              )}
             </div>
-          ) : (
-            // ✅ Normal Profile Details
-            <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden relative">
-              <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-6 text-center relative">
-                <button
-                  onClick={() => setShowModal(false)}
-                  className="absolute top-4 right-4 text-white hover:text-gray-200 text-lg"
-                >
-                  <FontAwesomeIcon icon={faTimes} />
-                </button>
-                <div className="relative w-24 h-24 mx-auto">
-                  {selectedProfile.profileImage ? (
-                    <img
-                      src={`http://localhost:5000/uploads/${selectedProfile.profileImage}`}
-                      alt={selectedProfile.name}
-                      className={`w-24 h-24 rounded-full object-cover border-4 border-white mx-auto shadow-lg transition-all duration-500 ${
-                        !allowedIds.includes(selectedProfile.id) ? "blur-md" : ""
-                      }`}
-                    />
-                  ) : (
-                    <div
-                      className={`w-24 h-24 rounded-full flex items-center justify-center bg-gray-400 text-white font-bold text-4xl border-4 border-white mx-auto shadow-lg transition-all duration-500 ${
-                        !allowedIds.includes(selectedProfile.id) ? "blur-md" : ""
-                      }`}
-                    >
-                      {getFirstLetter(selectedProfile.name)}
-                    </div>
-                  )}
-                  {!allowedIds.includes(selectedProfile.id) && (
-                    <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center">
-                      <FontAwesomeIcon
-                        icon={faLock}
-                        className="text-white text-lg"
-                      />
-                    </div>
-                  )}
-                </div>
-
-                <h2 className="text-2xl font-bold text-white mt-4">
-                  {selectedProfile.name}
-                </h2>
-                <p className="text-indigo-100">{selectedProfile.role}</p>
-                <p className="text-indigo-200 text-sm">
-                  {selectedProfile.category.join(", ")}
-                </p>
-              </div>
-
-              <div className="p-6 space-y-4">
-                <div className="flex items-center space-x-3 text-gray-700">
-                  <FontAwesomeIcon icon={faEnvelope} className="text-blue-600" />
-                  <span className="font-medium">Email:</span>
-                  <span>
-                    {allowedIds.includes(selectedProfile.id)
-                      ? selectedProfile.email
-                      : maskEmail(selectedProfile.email)}
-                  </span>
-                </div>
-                <div className="flex items-center space-x-3 text-gray-700">
-                  <FontAwesomeIcon icon={faPhone} className="text-green-600" />
-                  <span className="font-medium">Primary Phone:</span>
-                  <span>
-                    {allowedIds.includes(selectedProfile.id)
-                      ? selectedProfile.primaryPhone || "-"
-                      : maskPhone(selectedProfile.primaryPhone)}
-                  </span>
-                </div>
-                <div className="flex items-center space-x-3 text-gray-700">
-                  <FontAwesomeIcon icon={faPhone} className="text-purple-600" />
-                  <span className="font-medium">Secondary Phone:</span>
-                  <span>
-                    {allowedIds.includes(selectedProfile.id)
-                      ? selectedProfile.secondaryPhone || "-"
-                      : maskPhone(selectedProfile.secondaryPhone)}
-                  </span>
-                </div>
-                <div className="flex items-center space-x-3 text-gray-700">
-                  <FontAwesomeIcon
-                    icon={faUserTag}
-                    className="text-orange-600"
-                  />
-                  <span className="font-medium">Role:</span>
-                  <span>{selectedProfile.role || "-"}</span>
-                </div>
-                <div className="flex items-center space-x-3 text-gray-700">
-                  <FontAwesomeIcon
-                    icon={faLayerGroup}
-                    className="text-pink-600"
-                  />
-                  <span className="font-medium">Category:</span>
-                  <div className="flex flex-wrap gap-2 mt-1">
-                    {selectedProfile.category.map((cat) => (
-                      <span
-                        key={cat}
-                        className="bg-indigo-100 text-indigo-800 text-xs font-medium px-2 py-1 rounded-full"
-                      >
-                        {cat}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
+          </div>
         </div>
       )}
     </div>
