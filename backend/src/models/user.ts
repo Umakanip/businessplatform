@@ -1,6 +1,7 @@
 import { DataTypes, Model, Optional } from "sequelize";
 import sequelize from "../config/db";
-import ConnectionRequest from "../models/connectionrequests"; // import connection request model
+import ConnectionRequest from "../models/connectionrequests";
+import Subscription from "../models/subscription";
 
 export type UserRole = "investor" | "idealogist";
 
@@ -14,12 +15,12 @@ interface UserAttributes {
   secondaryPhone?: string;
   category?: string[];
   profileImage?: string;
-  bio?: string;        // ✅ add this
+  bio?: string;
   connect?: number;
   createdAt?: Date;
   updatedAt?: Date;
+  viewCount?: number;
 }
-
 
 type UserCreation = Optional<UserAttributes, "id" | "connect">;
 
@@ -31,11 +32,15 @@ class User extends Model<UserAttributes, UserCreation> implements UserAttributes
   public role!: UserRole;
   public primaryPhone?: string;
   public secondaryPhone?: string;
-  public category!: string[]; 
+  public category!: string[];
   public profileImage?: string;
+  public bio?: string;
   public connect?: number;
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
+public viewCount?: number;
+  // 👇 Only type hint, not real association
+  public subscription?: Subscription;
 }
 
 User.init(
@@ -47,26 +52,14 @@ User.init(
     role: { type: DataTypes.ENUM("investor", "idealogist"), allowNull: false },
     primaryPhone: { type: DataTypes.STRING(20), allowNull: true },
     secondaryPhone: { type: DataTypes.STRING(20), allowNull: true },
-    // category: { type: DataTypes.STRING(100), allowNull: true },
-    category: {
-  type: DataTypes.JSON, // 👈 instead of STRING
-  allowNull: true,
-  
-},
-
+    category: { type: DataTypes.JSON, allowNull: true },
     profileImage: { type: DataTypes.STRING(200), allowNull: true },
-     bio: {                                    // 👈 NEW FIELD
-      type: DataTypes.STRING(250),            // max 250 characters
-      allowNull: true,                        // optional
-    },
+    bio: { type: DataTypes.STRING(250), allowNull: true },
     connect: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 },
+    viewCount: { type: DataTypes.INTEGER.UNSIGNED, allowNull: false, defaultValue: 0 },
   },
   { sequelize, modelName: "User", tableName: "users", timestamps: true }
 );
 
-// 🔹 Add these reverse associations
-User.hasMany(ConnectionRequest, { foreignKey: "senderId", as: "sentRequests" });
-User.hasMany(ConnectionRequest, { foreignKey: "receiverId", as: "receivedRequests" });
-
+// ❌ DO NOT add associations here
 export default User;
-

@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import axiosInstance from "../../utils/axiosInstance";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -25,6 +26,7 @@ type ProfileDetail = Profile & {
   primaryPhone?: string;
   secondaryPhone?: string;
   role?: string;
+  bio?: string;
 };
 
 const InvApproch: React.FC = () => {
@@ -56,64 +58,161 @@ const InvApproch: React.FC = () => {
     return "*".repeat(phone.length - 4) + visible;
   };
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const token = localStorage.getItem("token");
+// useEffect(() => {
+//   const fetchData = async () => {
+//     try {
+//       const token = localStorage.getItem("token");
 
-        // profiles
-        const res = await axiosInstance.get("/investors/matching-idealogists", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const allProfiles: Profile[] = res.data.idealogists || [];
+//       // profiles
+//       const res = await axiosInstance.get("/investors/matching-idealogists", {
+//         headers: { Authorization: `Bearer ${token}` },
+//       });
+//       const allProfiles: Profile[] = res.data.idealogists || [];
 
-        // subscription
-        const subRes = await axiosInstance.get("/subscriptions/status", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+//       // subscription
+//       const subRes = await axiosInstance.get("/subscriptions/status", {
+//         headers: { Authorization: `Bearer ${token}` },
+//       });
 
-        const sub = subRes.data;
-        setSubscription(sub);
+//       const sub = subRes.data;
+//       setSubscription(sub);
 
-        // Set premium user status
-        setIsPremiumUser(sub?.active && sub.plan === "pro");
+//       // Set premium user status
+//       setIsPremiumUser(sub?.active && sub.plan === "pro");
 
-        let allowedCount = 0;
-        const total = allProfiles.length;
+//       let allowedCount = 0;
+//       const total = allProfiles.length;
 
-        if (sub?.active) {
-          if (sub.plan === "pro") {
-            allowedCount = total;
-          }
-        } else {
-          allowedCount = 0;
+//       if (sub?.active) {
+//         if (sub.plan === "pro") {
+//           allowedCount = total;
+//         }
+//       } else {
+//         allowedCount = 0;
+//       }
+
+//       const allowed = allProfiles.slice(0, allowedCount).map((p) => p.id);
+
+//       setProfiles(allProfiles);
+//       setAllowedIds(allowed);
+//     } catch (error) {
+//       Swal.fire({
+//         title: "Error",
+//         text: "Failed to fetch investors or subscription.",
+//         icon: "error",
+//         confirmButtonColor: "#d33",
+//       });
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+
+//   // 🔹 Initial fetch
+//   fetchData();
+
+//   // 🔹 Poll every 10 seconds
+//   const interval = setInterval(fetchData, 10000);
+
+//   // 🔹 Cleanup on unmount
+//   return () => clearInterval(interval);
+// }, []);
+useEffect(() => {
+  const fetchData = async () => {
+    try {
+      const token = localStorage.getItem("token");
+
+      // profiles
+      const res = await axiosInstance.get("/investors/matching-idealogists", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const allProfiles: Profile[] = res.data.idealogists || [];
+
+      // subscription
+      const subRes = await axiosInstance.get("/subscriptions/status", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const sub = subRes.data;
+      setSubscription(sub);
+
+      // Set premium user status
+      setIsPremiumUser(sub?.active && sub.plan === "pro");
+
+      let allowedCount = 0;
+      const total = allProfiles.length;
+
+      if (sub?.active) {
+        if (sub.plan === "pro") {
+          allowedCount = total;
         }
-
-        const allowed = allProfiles.slice(0, allowedCount).map((p) => p.id);
-
-        setProfiles(allProfiles);
-        setAllowedIds(allowed);
-      } catch (error) {
-        Swal.fire({
-          title: "Error",
-          text: "Failed to fetch investors or subscription.",
-          icon: "error",
-          confirmButtonColor: "#d33",
-        });
-      } finally {
-        setLoading(false);
+      } else {
+        allowedCount = 0;
       }
-    };
 
-    fetchData();
-  }, []);
+      const allowed = allProfiles.slice(0, allowedCount).map((p) => p.id);
 
-  const handleViewProfile = (id: number) => {
+      setProfiles(allProfiles);
+      setAllowedIds(allowed);
+    } catch (error) {
+      Swal.fire({
+        title: "Error",
+        text: "Failed to fetch investors or subscription.",
+        icon: "error",
+        confirmButtonColor: "#d33",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 🔹 Initial fetch
+  fetchData();
+
+  // 🔹 Poll every 10 seconds
+  const interval = setInterval(fetchData, 10000);
+
+  // 🔹 Cleanup on unmount
+  return () => clearInterval(interval);
+}, []);
+
+
+
+
+const handleViewProfile = async (id: number) => {
     const profile = profiles.find((p) => p.id === id);
     if (profile) {
-      setSelectedProfile(profile);
-      setShowModal(true);
+        setSelectedProfile(profile);
+        setShowModal(true);
+
+        try {
+            const token = localStorage.getItem("token");
+            await axiosInstance.post('/profile-views/increment', { ideaHolderId: id }, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+
+            // Notify HeaderIh to refresh count
+            window.dispatchEvent(new Event("refreshViews"));
+        } catch (err) {
+            console.error("Failed to increment view count", err);
+        }
     }
+};
+
+
+
+  // ✅ New component to render first letter instead of image
+  const AvatarWithFirstLetter = ({ name, isLocked }: { name: string; isLocked: boolean }) => {
+    const getFirstLetter = (name: string) => {
+      return name ? name.charAt(0).toUpperCase() : "U";
+    };
+
+    const commonClasses = `w-24 h-24 rounded-full flex items-center justify-center border-4 border-white mx-auto shadow-lg transition-all duration-500 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-4xl font-bold`;
+
+    return (
+      <div className={`${commonClasses} ${isLocked ? "blur-md" : ""}`}>
+        {getFirstLetter(name)}
+      </div>
+    );
   };
 
   if (loading) {
@@ -159,17 +258,23 @@ const InvApproch: React.FC = () => {
               <div className="flex flex-col items-center relative h-full justify-between">
                 <div className="flex flex-col items-center">
                   <div className="relative">
-                    <img
-                      src={
-                        profile.profileImage
-                          ? `http://localhost:5000/uploads/${profile.profileImage}`
-                          : "https://via.placeholder.com/100"
-                      }
-                      alt={profile.name}
-                      className={`w-20 h-20 rounded-full object-cover mb-4 ring-2 ring-white shadow-lg transition-all duration-500 ${
-                        isLocked ? "blur-md" : ""
-                      }`}
-                    />
+                    {profile.profileImage ? (
+                      <img
+                        src={`http://localhost:5000/uploads/${profile.profileImage}`}
+                        alt={profile.name}
+                        className={`w-20 h-20 rounded-full object-cover mb-4 ring-2 ring-white shadow-lg transition-all duration-500 ${
+                          isLocked ? "blur-md" : ""
+                        }`}
+                      />
+                    ) : (
+                      <div
+                        className={`w-20 h-20 rounded-full flex items-center justify-center mb-4 ring-2 ring-white shadow-lg transition-all duration-500 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-2xl font-[Pacifico] ${
+                          isLocked ? "blur-md" : ""
+                        }`}
+                      >
+                        {profile.name ? profile.name.charAt(0).toUpperCase() : "U"}
+                      </div>
+                    )}
                     {isLocked && (
                       <div className="mb-4 absolute inset-0 bg-black/50 backdrop-blur-sm rounded-full flex items-center justify-center">
                         <FontAwesomeIcon
@@ -323,16 +428,10 @@ const InvApproch: React.FC = () => {
                   <FontAwesomeIcon icon={faTimes} />
                 </button>
                 <div className="relative w-24 h-24 mx-auto">
-                  <img
-                    src={
-                      selectedProfile.profileImage
-                        ? `http://localhost:5000/uploads/${selectedProfile.profileImage}`
-                        : "https://via.placeholder.com/100"
-                    }
-                    alt={selectedProfile.name}
-                    className={`w-24 h-24 rounded-full object-cover border-4 border-white mx-auto shadow-lg transition-all duration-500 ${
-                      !allowedIds.includes(selectedProfile.id) ? "blur-md" : ""
-                    }`}
+                  {/* ✅ Profile Image-க்கு பதிலாக முதல் எழுத்து அவதார் */}
+                  <AvatarWithFirstLetter
+                    name={selectedProfile.name}
+                    isLocked={!allowedIds.includes(selectedProfile.id)}
                   />
                   {!allowedIds.includes(selectedProfile.id) && (
                     <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center">
@@ -406,12 +505,34 @@ const InvApproch: React.FC = () => {
                     ))}
                   </div>
                 </div>
-                   <button
-                onClick={() => navigate("/inv/subscription")}
-                className="px-6 py-2 rounded-lg font-semibold bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow hover:opacity-90"
-              >
-                View Plans
-              </button>
+{/* ✅ Bio as separate block */}
+<div className="flex items-start space-x-3 text-gray-700 mt-3">
+  <FontAwesomeIcon icon={faUserTag} className="text-green-600 mt-1" />
+  <div>
+    <span className="font-medium block">Bio:</span>
+    {allowedIds.includes(selectedProfile.id) ? (
+      <p className="text-sm text-gray-800 mt-1">
+        {selectedProfile.bio || "No bio available"}
+      </p>
+    ) : (
+      <p className="text-sm text-gray-500 italic mt-1">
+        Subscribe to view full bio
+      </p>
+    )}
+  </div>
+</div>
+
+              {/* View Plans button separate */}
+              {!allowedIds.includes(selectedProfile.id) && (
+                <div className="mt-4 text-center">
+                  <button
+                    onClick={() => navigate("/inv/subscription")}
+                    className="px-6 py-2 rounded-lg font-semibold bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow hover:opacity-90"
+                  >
+                    View Plans
+                  </button>
+                </div>
+              )}
               </div>
             </div>
           ) : (
@@ -425,16 +546,10 @@ const InvApproch: React.FC = () => {
                   <FontAwesomeIcon icon={faTimes} />
                 </button>
                 <div className="relative w-24 h-24 mx-auto">
-                  <img
-                    src={
-                      selectedProfile.profileImage
-                        ? `http://localhost:5000/uploads/${selectedProfile.profileImage}`
-                        : "https://via.placeholder.com/100"
-                    }
-                    alt={selectedProfile.name}
-                    className={`w-24 h-24 rounded-full object-cover border-4 border-white mx-auto shadow-lg transition-all duration-500 ${
-                      !allowedIds.includes(selectedProfile.id) ? "blur-md" : ""
-                    }`}
+                  {/* ✅ Profile Image-க்கு பதிலாக முதல் எழுத்து அவதார் */}
+                  <AvatarWithFirstLetter
+                    name={selectedProfile.name}
+                    isLocked={!allowedIds.includes(selectedProfile.id)}
                   />
                   {!allowedIds.includes(selectedProfile.id) && (
                     <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center">
@@ -507,6 +622,22 @@ const InvApproch: React.FC = () => {
                       </span>
                     ))}
                   </div>
+              {/* ✅ Bio as separate block */}
+<div className="flex items-center space-x-3 text-gray-700">
+  <FontAwesomeIcon icon={faUserTag} className="text-green-600 mt-1" />
+  <div>
+    <span className="font-medium block">Bio:</span>
+    {allowedIds.includes(selectedProfile.id) ? (
+      <p className="text-sm text-gray-800 mt-1">
+        {selectedProfile.bio || "No bio available"}
+      </p>
+    ) : (
+      <p className="text-sm text-gray-500 italic mt-1">
+        Subscribe to view full bio
+      </p>
+    )}
+  </div>
+</div>
                 </div>
               </div>
             </div>

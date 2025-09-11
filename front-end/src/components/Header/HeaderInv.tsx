@@ -14,9 +14,30 @@ const HeaderInv: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate(); // ✅ Hook for navigation
   const [inviteCount, setInviteCount] = useState(0);
-  const [userProfileImage, setUserProfileImage] = useState<string | null>(null); // ✅ State for profile image
-  const [showLogoutModal, setShowLogoutModal] = useState(false); // ✅ State for logout modal
+  const [viewCount, setViewCount] = useState(0);
+  const [userProfileData, setUserProfileData] = useState<{
+    profileImage: string | null;
+    name: string;
+  } | null>(null);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
+  // fetch view count
+const fetchViewCount = async () => {
+    const token = localStorage.getItem("token");
+    const storedUser = localStorage.getItem("user");
+    if (!token || !storedUser) return;
 
+    const parsed = JSON.parse(storedUser); // get user details
+
+    try {
+        const res = await axiosInstance.get(`/profile-views/${parsed.id}`, {
+            headers: { Authorization: `Bearer ${token}` },
+        });
+
+        setViewCount(res.data.viewCount);
+    } catch (error) {
+        console.error("Failed to fetch view count:", error);
+    }
+};
   // 🔹 Fetch invites count
   const fetchInviteCount = async () => {
     try {
@@ -36,12 +57,12 @@ const HeaderInv: React.FC = () => {
     }
   };
 
-  // ✅ Fetch user profile image
+  // ✅ Fetch user profile image and name
   const fetchUserProfile = async () => {
     const storedUser = localStorage.getItem("user");
     const token = localStorage.getItem("token");
     if (!storedUser || !token) {
-      setUserProfileImage(null);
+      setUserProfileData(null);
       return;
     }
     const parsed = JSON.parse(storedUser);
@@ -52,33 +73,35 @@ const HeaderInv: React.FC = () => {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-      if (res.data.profileImage) {
-        setUserProfileImage(
-          `http://localhost:5000/uploads/${res.data.profileImage}`
-        );
-      } else {
-        setUserProfileImage("https://i.ibb.co/L5r6N1X/profile-pic.png");
-      }
+      setUserProfileData({
+        profileImage: res.data.profileImage
+          ? `http://localhost:5000/uploads/${res.data.profileImage}`
+          : null,
+        name: res.data.name || "",
+      });
     } catch (err) {
       console.error("Profile fetch failed:", err);
-      setUserProfileImage(null);
+      setUserProfileData(null);
     }
   };
 
   useEffect(() => {
     fetchInviteCount();
     fetchUserProfile(); // ✅ Fetch profile image on mount
+      fetchViewCount();
 
     // 🔄 Poll every 20s
     const interval = setInterval(() => {
       fetchInviteCount();
       fetchUserProfile();
+      fetchViewCount();
     }, 20000);
 
     // 🔹 Listen for custom event from Notifications
     const handleRefresh = () => {
       fetchInviteCount();
       fetchUserProfile();
+      fetchViewCount();
     };
     window.addEventListener("refreshInvites", handleRefresh);
 
@@ -103,6 +126,35 @@ const HeaderInv: React.FC = () => {
   const confirmLogout = () => {
     localStorage.clear();
     navigate("/");
+  };
+  
+  // 🔹 முதல் எழுத்து கொண்ட அவதார்-ஐ ரெண்டர் செய்யும் காம்போனென்ட்
+  const AvatarWithFirstLetter = () => {
+    const profileSizeClasses = "w-10 h-10"; // நீங்கள் கேட்டபடி பழைய அளவு
+    
+    // நீங்கள் கொடுத்த கோடிலிருந்து பெறப்பட்ட கிளாஸ்நேம்கள்
+    const imgClasses = `${profileSizeClasses} rounded-full object-cover border-2 border-white cursor-pointer`;
+    const divClasses = `${profileSizeClasses} rounded-full flex items-center justify-center bg-gradient-to-r from-purple-500 to-pink-500 text-white text-lg font-[Pacifico] border-2 border-white cursor-pointer`;
+
+    const getFirstLetter = (name: string) => {
+      return name ? name.charAt(0).toUpperCase() : "U";
+    };
+
+    if (userProfileData?.profileImage) {
+      return (
+        <img
+          src={userProfileData.profileImage}
+          alt="Profile"
+          className={imgClasses}
+        />
+      );
+    }
+
+    return (
+      <div className={divClasses}>
+        {getFirstLetter(userProfileData?.name || "")}
+      </div>
+    );
   };
 
   return (
@@ -136,18 +188,20 @@ const HeaderInv: React.FC = () => {
         ))}
         {/* ✅ Profile Image Link */}
         <Link
-          to="/inv/profile"
-          className={`relative flex items-center justify-center px-3 py-2 rounded-lg font-medium transition-all
-          ${location.pathname === "/inv/profile"
-              ? "bg-gradient-to-r from-indigo-500/30 to-pink-500/30 text-pink-300 shadow"
-              : ""}`}
-        >
-          <img
-            src={userProfileImage || "https://i.ibb.co/L5r6N1X/profile-pic.png"}
-            alt="Profile"
-            className="w-10 h-10 rounded-full border-2 border-white object-cover cursor-pointer"
-          />
-        </Link>
+  to="/inv/profile"
+  className={`relative flex items-center ..."
+    ${location.pathname === "/inv/profile"
+        ? "bg-gradient-to-r from-indigo-500/30 to-pink-500/30 text-pink-300 shadow"
+        : ""}`}
+>
+  <AvatarWithFirstLetter />
+  {viewCount > 0 && (
+        <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full shadow-md">
+      {viewCount}
+    </span>
+  )}
+</Link>
+
         {/* ✅ Logout Button */}
         <button
           onClick={handleLogout}
