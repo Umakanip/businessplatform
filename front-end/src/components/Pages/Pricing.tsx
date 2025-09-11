@@ -21,43 +21,43 @@ const Pricing = () => {
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
 
-  const plans: Plan[] = [
-    {
-      name: "Lite",
-      price: "$19",
-      period: "/month",
-      description: "Basic features to get started",
-      features: [
-        "Limited profile views",
-        "Basic matching",
-        "Community support",
-      ],
-    },
-    {
-      name: "Standard",
-      price: "$49",
-      period: "/month",
-      description: "Most popular plan for individuals",
-      features: [
-        "Unlimited profile views",
-        "Tinder-style matching",
-        "Direct messaging",
-        "KYC verification",
-      ],
-    },
-    {
-      name: "Premium",
-      price: "$99",
-      period: "/month",
-      description: "Full access for power users",
-      features: [
-        "All Standard features",
-        "Priority support",
-        "Advanced analytics",
-        "Featured profile badge",
-      ],
-    },
-  ];
+const plans: Plan[] = [
+  {
+    name: "Lite",
+    price: "₹861.40",
+    period: "/month",
+    description: "Basic features to get started",
+    features: [
+      "Limited profile views",
+      "Basic matching",
+      "Community support",
+    ],
+  },
+  {
+    name: "Standard",
+    price: "₹1180.00",
+    period: "/month",
+    description: "Most popular plan for individuals",
+    features: [
+      "Unlimited profile views",
+      "Tinder-style matching",
+      "Direct messaging",
+      "KYC verification",
+    ],
+  },
+  {
+    name: "Premium",
+    price: "₹1534.00",
+    period: "/month",
+    description: "Full access for power users",
+    features: [
+      "All Standard features",
+      "Priority support",
+      "Advanced analytics",
+      "Featured profile badge",
+    ],
+  },
+];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

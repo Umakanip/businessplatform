@@ -20,20 +20,21 @@ const InvPricing = () => {
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
 
-  const plans: Plan[] = [
-    {
-      name: "Pro",
-      price: "$199",
-      period: "/month",
-      description: "Full access for power users",
-      features: [
-        "All Standard features",
-        "Priority support",
-        "Advanced analytics",
-        "Featured profile badge",
-      ],
-    },
-  ];
+const plans: Plan[] = [
+  {
+    name: "Pro",
+    price: "₹708",
+    period: "/3 months",
+    description: "Full access for power users",
+    features: [
+      "All Standard features",
+      "Priority support",
+      "Advanced analytics",
+      "Featured profile badge",
+    ],
+  },
+];
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
