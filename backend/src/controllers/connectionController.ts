@@ -6,6 +6,8 @@ import User from "../models/user";
 import "../models/associations";
 import Connection from "../models/connection";
 import { sendEmail } from "../utils/sendEmail";
+import dotenv from "dotenv";
+dotenv.config();
 
 // Send a connection request
 export const sendRequest = async (req: Request, res: Response) => {
@@ -21,17 +23,18 @@ export const sendRequest = async (req: Request, res: Response) => {
       where: { senderId, receiverId },
     });
 
-    if (exists) {
-      if (exists.status === "pending") {
-        return res.status(400).json({ message: "Request already sent" });
-      }
-      if (exists.status === "accepted") {
-        return res.status(400).json({ message: "You are already connected" });
-      }
-      if (exists.status === "rejected") {
-        return res.status(400).json({ message: "Request was rejected" });
-      }
-    }
+  if (exists) {
+  if (exists.status === "pending") {
+    return res.status(400).json({ message: "Request already sent" });
+  }
+  if (exists.status === "accepted") {
+    return res.status(400).json({ message: "You are already connected" });
+  }
+  if (exists.status === "rejected") {
+    await exists.destroy(); // delete old one
+  }
+}
+
 
     // ✅ Create request
     const request = await ConnectionRequest.create({ senderId, receiverId });
@@ -41,18 +44,35 @@ export const sendRequest = async (req: Request, res: Response) => {
     const receiver = await User.findByPk(receiverId);
 
     if (receiver && sender) {
-      // Send email to receiver
-      await sendEmail(
-        receiver.email,
-        "New Connection Request",
-        `${sender.name} has sent you a connection request.`,
-        `<p>Hi ${receiver.name},</p>
-         <p><b>${sender.name}</b> has sent you a connection request on Business Platform.</p>
-         <p>Login to your account to accept or reject the request.</p>
-         <br>
-         <p>Regards,<br/>Business Platform Team</p>`
-      );
-    }
+ const baseUrl = process.env.BACKEND_URL; // example: http://localhost:5000
+
+const acceptUrl = `${baseUrl}/api/connections/respond?requestId=${request.id}&action=accept`;
+const rejectUrl = `${baseUrl}/api/connections/respond?requestId=${request.id}&action=reject`;
+
+  await sendEmail(
+    receiver.email,
+    "New Connection Request",
+    `${sender.name} has sent you a connection request.`,
+    `
+      <p>Hi ${receiver.name},</p>
+      <p><b>${sender.name}</b> has sent you a connection request on Business Platform.</p>
+      <p>Please respond below:</p>
+      <a href="${acceptUrl}" 
+         style="background-color: #4CAF50; color: white; padding: 10px 20px;
+                text-decoration: none; border-radius: 5px; margin-right: 10px;">
+         ✅ Accept
+      </a>
+      <a href="${rejectUrl}" 
+         style="background-color: #f44336; color: white; padding: 10px 20px;
+                text-decoration: none; border-radius: 5px;">
+         ❌ Ignore
+      </a>
+      <br><br>
+      <p>Regards,<br/>Business Platform Team</p>
+    `
+  );
+}
+
 
     res.json({ message: "Request sent & email delivered", request });
   } catch (err) {
@@ -61,17 +81,24 @@ export const sendRequest = async (req: Request, res: Response) => {
   }
 };
 
+
 export const respondRequest = async (req: Request, res: Response) => {
   try {
-    const { requestId, action } = req.body;
-    const request = await ConnectionRequest.findByPk(requestId);
+     console.log("req.query:", req.query);
+    console.log("req.body:", req.body);
 
+    const requestId = req.body?.requestId || req.query?.requestId;
+    const action = req.body?.action || req.query?.action;
+
+    if (!requestId || !action) {
+      return res.status(400).json({ message: "Missing requestId or action" });
+    }
+    const request = await ConnectionRequest.findByPk(requestId);
     if (!request) return res.status(404).json({ message: "Request not found" });
 
     // Fetch sender & receiver
     const sender = await User.findByPk(request.senderId);
     const receiver = await User.findByPk(request.receiverId);
-
     if (!sender || !receiver) {
       return res.status(404).json({ message: "Sender or receiver not found" });
     }
@@ -80,41 +107,33 @@ export const respondRequest = async (req: Request, res: Response) => {
       request.status = "accepted";
       await request.save();
 
-      // ✅ Add to connections table
       await Connection.create({
         user1Id: request.senderId,
         user2Id: request.receiverId,
       });
 
-      // ✅ Send email to sender that request was accepted
       await sendEmail(
         sender.email,
         "Connection Accepted 🎉",
         `${receiver.name} has accepted your connection request.`,
         `<p>Hi ${sender.name},</p>
          <p><b>${receiver.name}</b> has accepted your connection request.</p>
-         <p>You are now connected on Business Platform 🚀</p>
-         <br>
-         <p>Regards,<br/>Business Platform Team</p>`
+         <p>You are now connected on Business Platform 🚀</p>`
       );
 
       return res.json({ message: "Request accepted successfully", requestId, action });
     } 
-    
-    else if (action === "reject") {
-      // ❌ either mark as rejected or delete
-      await request.destroy();
 
-      // ✅ Send email to sender that request was rejected
+    else if (action === "reject") {
+      request.status = "rejected";
+      await request.save();
+
       await sendEmail(
         sender.email,
         "Connection Request Rejected ❌",
         `${receiver.name} has rejected your connection request.`,
         `<p>Hi ${sender.name},</p>
-         <p>Unfortunately, <b>${receiver.name}</b> has rejected your connection request.</p>
-         <p>You can try connecting with other people on the platform.</p>
-         <br>
-         <p>Regards,<br/>Business Platform Team</p>`
+         <p>Unfortunately, <b>${receiver.name}</b> has rejected your connection request.</p>`
       );
 
       return res.json({ message: "Request rejected successfully", requestId, action });
@@ -126,6 +145,8 @@ export const respondRequest = async (req: Request, res: Response) => {
     res.status(500).json({ message: "Error responding to request", error: err });
   }
 };
+
+
 // Get pending connection requests for notifications
 export const getRequests = async (req: Request, res: Response) => {
   try {
