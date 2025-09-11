@@ -9,7 +9,7 @@ router.post("/send", protect, sendRequest);
 router.get("/requests", protect, getRequests);
 router.post("/respond", protect, respondRequest);
 router.get("/connections/my", protect, getMyConnections);
-
+router.get("/respond",  respondRequest);
 // router.post("/matching-idealogists", protect, getMatchingIdealogists);
 
 export default router;
