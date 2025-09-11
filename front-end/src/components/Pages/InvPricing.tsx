@@ -14,59 +14,46 @@ interface Plan {
 
 const InvPricing = () => {
   const navigate = useNavigate();
-  const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
 
-const plans: Plan[] = [
-  {
+  // Fixed Pro plan for investors
+  const investorPlan = {
     name: "Pro",
-    price: "₹708",
-    period: "/3 months",
-    description: "Full access for power users",
+    price: "₹708",      // GST included
+    period: "/3 months", // fixed 3 months
+    description: "Full access for investors",
     features: [
       "All Standard features",
       "Priority support",
       "Advanced analytics",
       "Featured profile badge",
     ],
-  },
-];
-
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
-    if (!selectedPlan) {
-      Swal.fire({
-        icon: "error",
-        title: "Please select a plan 💡",
-        text: "Choose one plan to continue.",
-        confirmButtonText: "Ok",
-        position: "center",
-      });
-      setLoading(false);
-      return;
-    }
-
     try {
-      const response = await axiosInstance.post(
-        "subscriptions/subscribe-public",
-        {
-          email,
-          password,
-          plan: selectedPlan.name.toLowerCase(),
-        }
-      );
+   const response = await axiosInstance.post(
+  "subscriptions/subscribe-public",
+  {
+    email,
+    password,
+    role: "investor",   // 👈 add this
+    // plan optional, backend auto "lite" save pannum investor ku
+  }
+);
+
 
       if (response.status === 200) {
         Swal.fire({
           icon: "success",
           title: "Subscription Successful! 🎉",
-          text: `You are subscribed to ${selectedPlan.name} plan.`,
+          text: `You are subscribed to Pro plan for 3 months.`,
           timer: 2000,
           showConfirmButton: false,
           position: "center",
@@ -95,80 +82,56 @@ const plans: Plan[] = [
     }
   };
 
-  const openSubscriptionModal = (plan: Plan) => {
-    setSelectedPlan(plan);
+  const openSubscriptionModal = () => {
     setShowModal(true);
   };
 
   return (
     <div className="min-h-screen bg-gray-900 text-gray-100 flex items-center justify-center p-4">
-      <div className="w-full max-w-6xl mx-auto rounded-xl shadow-2xl bg-gray-800 p-8">
+      <div className="w-full max-w-3xl mx-auto rounded-xl shadow-2xl bg-gray-800 p-8">
         <h1 className="text-4xl font-bold text-center text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-blue-500 mb-2">
-          Pricing Plans
+          Investor Subscription
         </h1>
         <p className="text-center text-gray-400 mb-10">
-          Choose the right plan for you and start connecting with idealogists today.
+          Subscribe to Pro plan for 3 months and unlock full access.
         </p>
 
-        {/* Pricing Cards */}
-<div className="flex justify-center flex-wrap gap-8 mb-10">
-          {plans.map((plan) => (
-            <div
-              key={plan.name}
- className={`w-full max-w-md relative p-8 rounded-2xl shadow-lg border-2 transform hover:scale-105 transition-transform duration-300 cursor-pointer                  selectedPlan?.name === plan.name
-                    ? "border-purple-500 ring-4 ring-purple-500"
-                    : "border-gray-700 hover:border-purple-500"
-                }`}
-                
-              onClick={() => openSubscriptionModal(plan)}
-            >
-              <h2 className="text-3xl font-extrabold text-white mb-2">{plan.name}</h2>
-              <p className="text-gray-400 mb-4">{plan.description}</p>
-              <div className="text-white text-5xl font-bold">
-                {plan.price}
-                <span className="text-xl font-normal text-gray-400">{plan.period}</span>
-              </div>
-              <ul className="mt-6 space-y-3 text-gray-300">
-                {plan.features.map((feature, index) => (
-                  <li key={index} className="flex items-center">
-                    <svg
-                      className="h-5 w-5 text-green-400 mr-2"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M5 13l4 4L19 7"
-                      />
-                    </svg>
-                    <span>{feature}</span>
-                  </li>
-                ))}
-              </ul>
-              <div className="mt-8 text-center">
-                <button
-                  type="button"
-                  onClick={() => openSubscriptionModal(plan)}
-                  className={`w-full py-3 rounded-lg font-semibold
-                    ${
-                      selectedPlan?.name === plan.name
-                        ? "bg-gradient-to-r from-purple-600 to-blue-600 text-white"
-                        : "bg-gray-700 text-gray-300 hover:text-white hover:bg-gray-600"
-                    }
-                    transition-all duration-300`}
+        {/* Single Card */}
+        <div className="w-full max-w-md mx-auto p-8 rounded-2xl shadow-lg border-2 border-purple-500">
+          <h2 className="text-3xl font-extrabold text-white mb-2">{investorPlan.name}</h2>
+          <p className="text-gray-400 mb-4">{investorPlan.description}</p>
+          <div className="text-white text-5xl font-bold">
+            {investorPlan.price}
+            <span className="text-xl font-normal text-gray-400">{investorPlan.period}</span>
+          </div>
+          <ul className="mt-6 space-y-3 text-gray-300">
+            {investorPlan.features.map((feature, index) => (
+              <li key={index} className="flex items-center">
+                <svg
+                  className="h-5 w-5 text-green-400 mr-2"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
                 >
-                  Select Plan
-                </button>
-              </div>
-            </div>
-          ))}
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7"/>
+                </svg>
+                <span>{feature}</span>
+              </li>
+            ))}
+          </ul>
+          <div className="mt-8 text-center">
+            <button
+              type="button"
+              onClick={openSubscriptionModal}
+              className="w-full py-3 rounded-lg font-semibold bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:from-purple-700 hover:to-blue-700 transition-all duration-300"
+            >
+              Subscribe Now
+            </button>
+          </div>
         </div>
 
         {/* Modal */}
-        {showModal && selectedPlan && (
+        {showModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-75 p-4">
             <div className="bg-gray-800 rounded-xl shadow-lg p-8 w-full max-w-sm relative">
               <button
@@ -176,30 +139,14 @@ const plans: Plan[] = [
                 onClick={() => setShowModal(false)}
                 className="absolute top-3 right-3 text-gray-400 hover:text-white transition-colors duration-200"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-6 w-6"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
+                ×
               </button>
               <h3 className="text-2xl font-bold text-center text-white mb-6">
-                Subscribe to {selectedPlan.name}
+                Subscribe to {investorPlan.name}
               </h3>
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div>
-                  <label
-                    htmlFor="email"
-                    className="block text-sm font-medium text-gray-400 mb-1"
-                  >
+                  <label htmlFor="email" className="block text-sm font-medium text-gray-400 mb-1">
                     Email
                   </label>
                   <input
@@ -212,10 +159,7 @@ const plans: Plan[] = [
                   />
                 </div>
                 <div>
-                  <label
-                    htmlFor="password"
-                    className="block text-sm font-medium text-gray-400 mb-1"
-                  >
+                  <label htmlFor="password" className="block text-sm font-medium text-gray-400 mb-1">
                     Password
                   </label>
                   <input
@@ -227,7 +171,6 @@ const plans: Plan[] = [
                     className="w-full p-3 rounded-lg bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-purple-500"
                   />
                 </div>
-
                 <button
                   type="submit"
                   disabled={loading}
@@ -243,5 +186,6 @@ const plans: Plan[] = [
     </div>
   );
 };
+
 
 export default InvPricing;

@@ -1,14 +1,13 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
 import Swal from "sweetalert2";
 import "sweetalert2/dist/sweetalert2.min.css";
 import axiosInstance from "../../utils/axiosInstance";
 
 interface Plan {
   name: string;
-  price: string;
-  period: string;
+  price: number;
+  gstPrice: number;
   description: string;
   features: string[];
 }
@@ -21,43 +20,44 @@ const Pricing = () => {
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
 
-const plans: Plan[] = [
-  {
-    name: "Lite",
-    price: "₹861.40",
-    period: "/month",
-    description: "Basic features to get started",
-    features: [
-      "Limited profile views",
-      "Basic matching",
-      "Community support",
-    ],
-  },
-  {
-    name: "Standard",
-    price: "₹1180.00",
-    period: "/month",
-    description: "Most popular plan for individuals",
-    features: [
-      "Unlimited profile views",
-      "Tinder-style matching",
-      "Direct messaging",
-      "KYC verification",
-    ],
-  },
-  {
-    name: "Premium",
-    price: "₹1534.00",
-    period: "/month",
-    description: "Full access for power users",
-    features: [
-      "All Standard features",
-      "Priority support",
-      "Advanced analytics",
-      "Featured profile badge",
-    ],
-  },
-];
+  // ✅ Plans for Idealogist (with GST included)
+  const plans: Plan[] = [
+    {
+      name: "Lite",
+      price: 730,
+      gstPrice: 730 + 730 * 0.18, // 861
+      description: "Basic features to get started",
+      features: [
+        "Limited profile views",
+        "Basic matching",
+        "Community support",
+      ],
+    },
+    {
+      name: "Standard",
+      price: 1000,
+      gstPrice: 1000 + 1000 * 0.18, // 1180
+      description: "Most popular plan for individuals",
+      features: [
+        "Unlimited profile views",
+        "Tinder-style matching",
+        "Direct messaging",
+        "KYC verification",
+      ],
+    },
+    {
+      name: "Premium",
+      price: 1300,
+      gstPrice: 1300 + 1300 * 0.18, // 1534
+      description: "Full access for power users",
+      features: [
+        "All Standard features",
+        "Priority support",
+        "Advanced analytics",
+        "Featured profile badge",
+      ],
+    },
+  ];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -82,6 +82,7 @@ const plans: Plan[] = [
           email,
           password,
           plan: selectedPlan.name.toLowerCase(),
+           role: "idealogist", // ✅ Add this
         }
       );
 
@@ -149,8 +150,8 @@ const plans: Plan[] = [
               <h2 className="text-3xl font-extrabold text-white mb-2">{plan.name}</h2>
               <p className="text-gray-400 mb-4">{plan.description}</p>
               <div className="text-white text-5xl font-bold">
-                {plan.price}
-                <span className="text-xl font-normal text-gray-400">{plan.period}</span>
+                ₹{plan.gstPrice.toFixed(0)}
+                <span className="text-xl font-normal text-gray-400"> (incl. GST)</span>
               </div>
               <ul className="mt-6 space-y-3 text-gray-300">
                 {plan.features.map((feature, index) => (
@@ -200,20 +201,7 @@ const plans: Plan[] = [
                 onClick={() => setShowModal(false)}
                 className="absolute top-3 right-3 text-gray-400 hover:text-white transition-colors duration-200"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-6 w-6"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
+                ×
               </button>
               <h3 className="text-2xl font-bold text-center text-white mb-6">
                 Subscribe to {selectedPlan.name}
