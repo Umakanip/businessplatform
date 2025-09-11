@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axiosInstance from "../../utils/axiosInstance";
-import home from "../../assest/img-slack-connect-hero@2x.png";
+import home from "../../assest/img-slack-connect-hero@2x-Photoroom.png";
 import idea from "../../assest/istockphoto-1392016982-612x612.jpg";
 import secure from "../../assest/istockphoto-1311598658-612x612.jpg";
 import connect from "../../assest/black-businessman-tablet-planning-and-desktop-at-2022-12-10-02-18-23-utc-1024x686.jpg";
