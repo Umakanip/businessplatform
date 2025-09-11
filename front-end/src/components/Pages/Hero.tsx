@@ -68,7 +68,7 @@ const Hero: React.FC = () => {
             <div className="flex justify-center lg:justify-start space-x-4">
               <button
                 onClick={() => handleButtonClick('ideaHolder')}
-                className="bg-purple-800 text-white font-semibold py-3 px-6 rounded-md hover:bg-purple-900 transition-colors"
+                className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-6 py-3 rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all duration-500"
               >
                 I HAVE AN IDEA
               </button>

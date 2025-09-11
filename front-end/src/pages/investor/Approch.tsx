@@ -36,6 +36,8 @@ const InvApproch: React.FC = () => {
   const [selectedProfile, setSelectedProfile] = useState<ProfileDetail | null>(
     null
   );
+   const [showContact, setShowContact] = useState(false); // ✅ new state
+  
   const [showModal, setShowModal] = useState(false);
   const [allowedIds, setAllowedIds] = useState<number[]>([]);
   const [subscription, setSubscription] = useState<any>(null);
@@ -58,64 +60,6 @@ const InvApproch: React.FC = () => {
     return "*".repeat(phone.length - 4) + visible;
   };
 
-// useEffect(() => {
-//   const fetchData = async () => {
-//     try {
-//       const token = localStorage.getItem("token");
-
-//       // profiles
-//       const res = await axiosInstance.get("/investors/matching-idealogists", {
-//         headers: { Authorization: `Bearer ${token}` },
-//       });
-//       const allProfiles: Profile[] = res.data.idealogists || [];
-
-//       // subscription
-//       const subRes = await axiosInstance.get("/subscriptions/status", {
-//         headers: { Authorization: `Bearer ${token}` },
-//       });
-
-//       const sub = subRes.data;
-//       setSubscription(sub);
-
-//       // Set premium user status
-//       setIsPremiumUser(sub?.active && sub.plan === "pro");
-
-//       let allowedCount = 0;
-//       const total = allProfiles.length;
-
-//       if (sub?.active) {
-//         if (sub.plan === "pro") {
-//           allowedCount = total;
-//         }
-//       } else {
-//         allowedCount = 0;
-//       }
-
-//       const allowed = allProfiles.slice(0, allowedCount).map((p) => p.id);
-
-//       setProfiles(allProfiles);
-//       setAllowedIds(allowed);
-//     } catch (error) {
-//       Swal.fire({
-//         title: "Error",
-//         text: "Failed to fetch investors or subscription.",
-//         icon: "error",
-//         confirmButtonColor: "#d33",
-//       });
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
-
-//   // 🔹 Initial fetch
-//   fetchData();
-
-//   // 🔹 Poll every 10 seconds
-//   const interval = setInterval(fetchData, 10000);
-
-//   // 🔹 Cleanup on unmount
-//   return () => clearInterval(interval);
-// }, []);
 useEffect(() => {
   const fetchData = async () => {
     try {
@@ -415,235 +359,132 @@ const handleViewProfile = async (id: number) => {
       </div>
 
       {/* Modal */}
-      {showModal && selectedProfile && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-          {!subscription?.active ? (
-            // 🔒 Locked Modal
-            <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden relative">
-              <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-6 text-center relative">
-                <button
-                  onClick={() => setShowModal(false)}
-                  className="absolute top-4 right-4 text-white hover:text-gray-200 text-lg"
-                >
-                  <FontAwesomeIcon icon={faTimes} />
-                </button>
-                <div className="relative w-24 h-24 mx-auto">
-                  {/* ✅ Profile Image-க்கு பதிலாக முதல் எழுத்து அவதார் */}
-                  <AvatarWithFirstLetter
-                    name={selectedProfile.name}
-                    isLocked={!allowedIds.includes(selectedProfile.id)}
-                  />
-                  {!allowedIds.includes(selectedProfile.id) && (
-                    <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center">
-                      <FontAwesomeIcon
-                        icon={faLock}
-                        className="text-white text-lg"
-                      />
-                    </div>
-                  )}
-                </div>
-
-                <h2 className="text-2xl font-bold text-white mt-4">
-                  {selectedProfile.name}
-                </h2>
-                <p className="text-indigo-100">{selectedProfile.role}</p>
-                <p className="text-indigo-200 text-sm">
-                  {selectedProfile.category.join(", ")}
-                </p>
-              </div>
-
-              <div className="p-6 space-y-4">
-                <div className="flex items-center space-x-3 text-gray-700">
-                  <FontAwesomeIcon icon={faEnvelope} className="text-blue-600" />
-                  <span className="font-medium">Email:</span>
-                  <span>
-                    {allowedIds.includes(selectedProfile.id)
-                      ? selectedProfile.email
-                      : maskEmail(selectedProfile.email)}
-                  </span>
-                </div>
-                <div className="flex items-center space-x-3 text-gray-700">
-                  <FontAwesomeIcon icon={faPhone} className="text-green-600" />
-                  <span className="font-medium">Primary Phone:</span>
-                  <span>
-                    {allowedIds.includes(selectedProfile.id)
-                      ? selectedProfile.primaryPhone || "-"
-                      : maskPhone(selectedProfile.primaryPhone)}
-                  </span>
-                </div>
-                <div className="flex items-center space-x-3 text-gray-700">
-                  <FontAwesomeIcon icon={faPhone} className="text-purple-600" />
-                  <span className="font-medium">Secondary Phone:</span>
-                  <span>
-                    {allowedIds.includes(selectedProfile.id)
-                      ? selectedProfile.secondaryPhone || "-"
-                      : maskPhone(selectedProfile.secondaryPhone)}
-                  </span>
-                </div>
-                <div className="flex items-center space-x-3 text-gray-700">
-                  <FontAwesomeIcon
-                    icon={faUserTag}
-                    className="text-orange-600"
-                  />
-                  <span className="font-medium">Role:</span>
-                  <span>{selectedProfile.role || "-"}</span>
-                </div>
-                <div className="flex items-center space-x-3 text-gray-700">
-                  <FontAwesomeIcon
-                    icon={faLayerGroup}
-                    className="text-pink-600"
-                  />
-                  <span className="font-medium">Category:</span>
-                  <div className="flex flex-wrap gap-2 mt-1">
-                    {selectedProfile.category.map((cat) => (
-                      <span
-                        key={cat}
-                        className="bg-indigo-100 text-indigo-800 text-xs font-medium px-2 py-1 rounded-full"
-                      >
-                        {cat}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-{/* ✅ Bio as separate block */}
-<div className="flex items-start space-x-3 text-gray-700 mt-3">
-  <FontAwesomeIcon icon={faUserTag} className="text-green-600 mt-1" />
-  <div>
-    <span className="font-medium block">Bio:</span>
-    {allowedIds.includes(selectedProfile.id) ? (
-      <p className="text-sm text-gray-800 mt-1">
-        {selectedProfile.bio || "No bio available"}
-      </p>
-    ) : (
-      <p className="text-sm text-gray-500 italic mt-1">
-        Subscribe to view full bio
-      </p>
-    )}
-  </div>
-</div>
-
-              {/* View Plans button separate */}
-              {!allowedIds.includes(selectedProfile.id) && (
-                <div className="mt-4 text-center">
-                  <button
-                    onClick={() => navigate("/inv/subscription")}
-                    className="px-6 py-2 rounded-lg font-semibold bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow hover:opacity-90"
-                  >
-                    View Plans
-                  </button>
-                </div>
-              )}
-              </div>
-            </div>
-          ) : (
-            // ✅ Normal Profile Details
-            <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden relative">
-              <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-6 text-center relative">
-                <button
-                  onClick={() => setShowModal(false)}
-                  className="absolute top-4 right-4 text-white hover:text-gray-200 text-lg"
-                >
-                  <FontAwesomeIcon icon={faTimes} />
-                </button>
-                <div className="relative w-24 h-24 mx-auto">
-                  {/* ✅ Profile Image-க்கு பதிலாக முதல் எழுத்து அவதார் */}
-                  <AvatarWithFirstLetter
-                    name={selectedProfile.name}
-                    isLocked={!allowedIds.includes(selectedProfile.id)}
-                  />
-                  {!allowedIds.includes(selectedProfile.id) && (
-                    <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center">
-                      <FontAwesomeIcon
-                        icon={faLock}
-                        className="text-white text-lg"
-                      />
-                    </div>
-                  )}
-                </div>
-
-                <h2 className="text-2xl font-bold text-white mt-4">
-                  {selectedProfile.name}
-                </h2>
-                <p className="text-indigo-100">{selectedProfile.role}</p>
-                <p className="text-indigo-200 text-sm">
-                  {selectedProfile.category.join(", ")}
-                </p>
-              </div>
-
-              <div className="p-6 space-y-4">
-                <div className="flex items-center space-x-3 text-gray-700">
-                  <FontAwesomeIcon icon={faEnvelope} className="text-blue-600" />
-                  <span className="font-medium">Email:</span>
-                  <span>
-                    {allowedIds.includes(selectedProfile.id)
-                      ? selectedProfile.email
-                      : maskEmail(selectedProfile.email)}
-                  </span>
-                </div>
-                <div className="flex items-center space-x-3 text-gray-700">
-                  <FontAwesomeIcon icon={faPhone} className="text-green-600" />
-                  <span className="font-medium">Primary Phone:</span>
-                  <span>
-                    {allowedIds.includes(selectedProfile.id)
-                      ? selectedProfile.primaryPhone || "-"
-                      : maskPhone(selectedProfile.primaryPhone)}
-                  </span>
-                </div>
-                <div className="flex items-center space-x-3 text-gray-700">
-                  <FontAwesomeIcon icon={faPhone} className="text-purple-600" />
-                  <span className="font-medium">Secondary Phone:</span>
-                  <span>
-                    {allowedIds.includes(selectedProfile.id)
-                      ? selectedProfile.secondaryPhone || "-"
-                      : maskPhone(selectedProfile.secondaryPhone)}
-                  </span>
-                </div>
-                <div className="flex items-center space-x-3 text-gray-700">
-                  <FontAwesomeIcon
-                    icon={faUserTag}
-                    className="text-orange-600"
-                  />
-                  <span className="font-medium">Role:</span>
-                  <span>{selectedProfile.role || "-"}</span>
-                </div>
-                <div className="flex items-center space-x-3 text-gray-700">
-                  <FontAwesomeIcon
-                    icon={faLayerGroup}
-                    className="text-pink-600"
-                  />
-                  <span className="font-medium">Category:</span>
-                  <div className="flex flex-wrap gap-2 mt-1">
-                    {selectedProfile.category.map((cat) => (
-                      <span
-                        key={cat}
-                        className="bg-indigo-100 text-indigo-800 text-xs font-medium px-2 py-1 rounded-full"
-                      >
-                        {cat}
-                      </span>
-                    ))}
-                  </div>
-              {/* ✅ Bio as separate block */}
-<div className="flex items-center space-x-3 text-gray-700">
-  <FontAwesomeIcon icon={faUserTag} className="text-green-600 mt-1" />
-  <div>
-    <span className="font-medium block">Bio:</span>
-    {allowedIds.includes(selectedProfile.id) ? (
-      <p className="text-sm text-gray-800 mt-1">
-        {selectedProfile.bio || "No bio available"}
-      </p>
-    ) : (
-      <p className="text-sm text-gray-500 italic mt-1">
-        Subscribe to view full bio
-      </p>
-    )}
-  </div>
-</div>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-      )}
+     {showModal && selectedProfile && (
+       <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+         <div className="bg-white rounded-xl shadow-xl max-w-md w-full overflow-hidden relative">
+           {/* Header (blue top bar) */}
+           <div className="bg-blue-700 p-6 text-center relative">
+             <button
+               onClick={() => setShowModal(false)}
+               className="absolute top-4 right-4 text-white hover:text-gray-200"
+             >
+               <FontAwesomeIcon icon={faTimes} />
+             </button>
+     
+         {/* Avatar */}
+     <div className="relative w-24 h-24 mx-auto">
+       {selectedProfile.profileImage ? (
+         <img
+           src={`http://localhost:5000/uploads/${selectedProfile.profileImage}`}
+           alt={selectedProfile.name}
+           className={`w-24 h-24 rounded-full object-cover border-4 border-white shadow-lg ${
+             !allowedIds.includes(selectedProfile.id) ? "blur-md" : ""
+           }`}
+         />
+       ) : (
+         <AvatarWithFirstLetter
+           name={selectedProfile.name}
+           isLocked={!allowedIds.includes(selectedProfile.id)}
+         />
+       )}
+     
+       {/* 🔒 lock overlay when locked */}
+       {!allowedIds.includes(selectedProfile.id) && (
+         <div className="absolute inset-0 bg-black/40 backdrop-blur-sm rounded-full flex items-center justify-center">
+           <FontAwesomeIcon icon={faLock} className="text-white text-lg" />
+         </div>
+       )}
+     </div>
+     
+     
+             {/* View Contact Button */}
+             <button
+               onClick={() => setShowContact(true)}
+               className="mt-3 px-4 py-1.5 rounded-md text-sm font-medium bg-white text-blue-700 border border-gray-200 hover:bg-gray-50 shadow-sm"
+             >
+               View Contact
+             </button>
+     
+             {/* Name + Role */}
+             <h2 className="text-lg font-semibold text-white mt-4">
+               {selectedProfile.name}
+             </h2>
+             <p className="text-blue-100 text-sm">{selectedProfile.role}</p>
+           </div>
+     
+           {/* Body (white clean section) */}
+           <div className="p-5">
+             {/* Bio */}
+             <div className="flex items-start space-x-2 text-gray-700 text-sm mb-3">
+               <FontAwesomeIcon icon={faUserTag} className="mt-0.5 text-blue-600" />
+               <p>{selectedProfile.bio || "No bio available"}</p>
+             </div>
+     
+             {/* Category */}
+             <div className="flex items-start space-x-2 text-gray-700 text-sm">
+               <FontAwesomeIcon icon={faLayerGroup} className="mt-0.5 text-blue-600" />
+               <div className="flex flex-wrap gap-2">
+                 {selectedProfile.category.map((cat) => (
+                   <span
+                     key={cat}
+                     className="bg-blue-50 text-blue-700 text-xs px-2 py-0.5 rounded-full border border-blue-100"
+                   >
+                     {cat}
+                   </span>
+                 ))}
+               </div>
+             </div>
+           </div>
+         </div>
+       </div>
+     )}
+     
+     {/* ✅ Separate Contact Popup */}
+     {showContact && selectedProfile && (
+       <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+         <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 relative">
+           <button
+             onClick={() => setShowContact(false)}
+             className="absolute top-4 right-4 text-gray-700 text-lg"
+           >
+             <FontAwesomeIcon icon={faTimes} />
+           </button>
+     
+           <h3 className="text-xl font-bold mb-4 text-gray-800">Contact Information</h3>
+     
+           <div className="space-y-3">
+             {/* Email */}
+             <div className="flex items-center space-x-3 text-gray-700">
+               <FontAwesomeIcon icon={faEnvelope} className="text-blue-600" />
+               <span>
+                 {allowedIds.includes(selectedProfile.id)
+                   ? selectedProfile.email
+                   : maskEmail(selectedProfile.email)}
+               </span>
+             </div>
+     
+             {/* Phones */}
+             <div className="flex items-center space-x-3 text-gray-700">
+               <FontAwesomeIcon icon={faPhone} className="text-blue-600" />
+               <span>
+                 {allowedIds.includes(selectedProfile.id)
+                   ? selectedProfile.primaryPhone || "-"
+                   : maskPhone(selectedProfile.primaryPhone)}
+               </span>
+             </div>
+     
+             <div className="flex items-center space-x-3 text-gray-700">
+               <FontAwesomeIcon icon={faPhone} className="text-blue-600" />
+               <span>
+                 {allowedIds.includes(selectedProfile.id)
+                   ? selectedProfile.secondaryPhone || "-"
+                   : maskPhone(selectedProfile.secondaryPhone)}
+               </span>
+             </div>
+           </div>
+         </div>
+       </div>
+     )}
     </div>
   );
 };
