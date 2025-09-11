@@ -8,19 +8,15 @@ import Subscription from "./subscription";
 
 const Home: React.FC = () => {
   return (
-    <div className="min-h-screen flex flex-col">
-      {/* Header stays clean without gradient */}
+    <div className="min-h-screen bg-white text-gray-900">
       <Header />
 
-      {/* Main content with gradient background */}
-      <main className="flex-1 bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
         <Hero />
         <Features />
         <Subscription />
         <Roles />
-      </main>
 
-      {/* Footer inside gradient */}
+
       <Footer />
     </div>
   );

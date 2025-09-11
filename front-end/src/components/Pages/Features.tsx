@@ -1,91 +1,72 @@
 import React from "react";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  faHandshake,
-  faKey,
-  faLayerGroup,
-  faFilter,
-} from "@fortawesome/free-solid-svg-icons";
+// Just ensure: import your image files as you need, e.g.
+import handshakeImg from '../../assest/network-business-man-tablet.jpg';
+import keyImg from '../../assest/business-technology-internet-network-concept-young-businessman-working-virtual-screen-future-sees-117233107.webp';
+import categoryImg from '../../assest/online-shopping-concept-businessman-use-600nw-2419777755.webp';
+import filterImg from '../../assest/businessman-team-analyzing-financial-statement-finance-task-with-smart-phone-laptop-tablet-wealth-management-concept_265022-8132.jpg';
 
-const Features: React.FC = () => {
+const Features = () => {
+  const features = [
+    {
+      img: handshakeImg,
+      title: "Mutual Connection",
+      desc: "Investors and Idea Holders both need to subscribe to connect.",
+    },
+    {
+      img: keyImg,
+      title: "Subscription Unlock",
+      desc: "With subscription, Idea Holders can view Investor profiles, and vice versa.",
+    },
+    {
+      img: categoryImg,
+      title: "Explore Categories",
+      desc: "Both sides can explore across multiple categories to discover the perfect match.",
+    },
+    {
+      img: filterImg,
+      title: "Smart Filtering",
+      desc: "Our system highlights matching profiles to save time and effort.",
+    },
+  ];
+
   return (
-    <section id="features" className="py-24 px-6 sm:px-12 lg:px-20">
+    <section id="features" className="py-28 px-6 sm:px-12 lg:px-20 bg-gradient-to-b from-white to-gray-50">
       <div className="max-w-7xl mx-auto">
-        {/* Title */}
+        {/* Section Heading */}
         <div className="text-center mb-20">
-          <h2 className="text-5xl font-extrabold text-white mb-5 tracking-wide drop-shadow-lg">
+          <h2 className="text-5xl font-extrabold text-gray-900 mb-6 tracking-wide">
             How It Works
           </h2>
-          <p className="text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed">
-            Both <span className="text-yellow-300 font-semibold">Idea Holders </span> 
-            and <span className="text-green-400 font-semibold">Investors</span> need an active{" "}
-            <span className="text-pink-400 font-semibold">Subscription</span> to connect, collaborate, and grow together.
+          <p className="text-lg sm:text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+            Both <span className="font-semibold text-blue-700"> Idea Holders </span>
+            and <span className="font-semibold text-blue-700"> Investors</span> need an active
+            <span className="font-semibold text-blue-600"> Subscription </span>
+            to connect, collaborate, and grow together.
           </p>
         </div>
+        {/* Feature Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+          {features.map((item, index) => (
+            <div
+              key={index}
+              className="flex flex-col bg-white rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 border border-gray-100 overflow-hidden"
+            >
+              {/* Image Container */}
+              <div className="w-full h-44 sm:h-48 lg:h-52">
+                <img
+                  src={item.img}
+                  alt={item.title}
+                  className="w-full h-full object-cover"
+                />
+              </div>
 
-        {/* Steps */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
-          {/* Step 1 */}
-          <div className="bg-gradient-to-br from-purple-700 to-indigo-700 rounded-xl p-8 border border-indigo-600 shadow-lg hover:shadow-indigo-500 transition-shadow duration-300 text-center">
-            <div className="flex items-center justify-center w-16 h-16 bg-gradient-to-r from-pink-500 via-red-500 to-yellow-400 rounded-full text-white text-3xl mb-6 shadow-md mx-auto">
-              <FontAwesomeIcon icon={faHandshake} />
+              {/* Card Content */}
+              <div className="p-6 flex flex-col items-center justify-center text-center">
+                <h3 className="text-2xl font-bold text-gray-900 mb-2">{item.title}</h3>
+                <p className="text-gray-600 text-base leading-relaxed">{item.desc}</p>
+              </div>
             </div>
-            <h3 className="text-2xl font-semibold text-white mb-3 tracking-tight">
-              Mutual Connection
-            </h3>
-            <p className="text-gray-300 leading-relaxed">
-              <span className="text-yellow-300 font-semibold">Investors</span> must subscribe 
-              to connect with Idea Holders, and{" "}
-              <span className="text-pink-400 font-semibold">Idea Holders</span> must subscribe 
-              to connect with Investors.
-            </p>
-          </div>
-
-          {/* Step 2 */}
-          <div className="bg-gradient-to-br from-indigo-700 to-purple-700 rounded-xl p-8 border border-purple-600 shadow-lg hover:shadow-purple-500 transition-shadow duration-300 text-center">
-            <div className="flex items-center justify-center w-16 h-16 bg-gradient-to-r from-yellow-400 via-red-500 to-pink-500 rounded-full text-white text-3xl mb-6 shadow-md mx-auto">
-              <FontAwesomeIcon icon={faKey} />
-            </div>
-            <h3 className="text-2xl font-semibold text-white mb-3 tracking-tight">
-              Subscription Unlock
-            </h3>
-            <p className="text-gray-300 leading-relaxed">
-              With an active subscription,{" "}
-              <span className="text-pink-400 font-semibold">Idea Holders </span> can view verified{" "}
-              <span className="text-green-400 font-semibold">Investor profiles</span>, 
-              and Investors can access Idea Holders’ details.
-            </p>
-          </div>
-
-          {/* Step 3 */}
-          <div className="bg-gradient-to-br from-purple-700 to-indigo-700 rounded-xl p-8 border border-indigo-600 shadow-lg hover:shadow-indigo-500 transition-shadow duration-300 text-center">
-            <div className="flex items-center justify-center w-16 h-16 bg-gradient-to-r from-pink-500 via-red-500 to-yellow-400 rounded-full text-white text-3xl mb-6 shadow-md mx-auto">
-              <FontAwesomeIcon icon={faLayerGroup} />
-            </div>
-            <h3 className="text-2xl font-semibold text-white mb-3 tracking-tight">
-              Explore Categories
-            </h3>
-            <p className="text-gray-300 leading-relaxed">
-              Both sides can explore across{" "}
-              <span className="text-green-400 font-semibold">Multiple Categories </span> 
-               to discover the perfect match for collaboration.
-            </p>
-          </div>
-
-          {/* Step 4 */}
-          <div className="bg-gradient-to-br from-indigo-700 to-purple-700 rounded-xl p-8 border border-purple-600 shadow-lg hover:shadow-purple-500 transition-shadow duration-300 text-center">
-            <div className="flex items-center justify-center w-16 h-16 bg-gradient-to-r from-yellow-400 via-red-500 to-pink-500 rounded-full text-white text-3xl mb-6 shadow-md mx-auto">
-              <FontAwesomeIcon icon={faFilter} />
-            </div>
-            <h3 className="text-2xl font-semibold text-white mb-3 tracking-tight">
-              Smart Filtering
-            </h3>
-            <p className="text-gray-300 leading-relaxed">
-              Our system highlights{" "}
-              <span className="text-yellow-300 font-semibold">Matching Profiles </span> 
-              from your chosen categories to save time and effort.
-            </p>
-          </div>
+          ))}
         </div>
       </div>
     </section>
