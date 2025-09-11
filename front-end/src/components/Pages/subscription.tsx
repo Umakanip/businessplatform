@@ -1,109 +1,117 @@
 import React from "react";
+import gift from "../../assest/animation-people-012221-2.gif";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faCheckCircle,
+  faUser,
+  faShieldAlt,
+  faHandshake,
+  faStar,
+} from "@fortawesome/free-solid-svg-icons";
+
+const plansData = [
+  {
+    name: "Lite",
+    price: "₹730 + 18% GST /month",
+    description: "Basic features to get started",
+    icon: faUser,
+    features: [
+      "Limited profile views",
+      "Basic matching",
+      "Community support",
+      "Limited access to contacts",
+    ],
+  },
+  {
+    name: "Standard",
+    price: "₹1000 + 18% GST /month",
+    description: "More profile views and contacts",
+    icon: faHandshake,
+    features: [
+      "More profile views (not unlimited)",
+      "Basic matching",
+      "Access to contacts",
+      "KYC verification",
+    ],
+  },
+  {
+    name: "Premium",
+    price: "₹1300 + 18% GST /month",
+    description: "Full access for power users",
+    icon: faStar,
+    features: [
+      "Unlimited profile views",
+      "Access to all contacts",
+      "Priority support",
+      "Featured profile badge",
+    ],
+  },
+  {
+    name: "Investor",
+    price: "₹600 + 18% GST /3 months",
+    description: "Investor subscription plan",
+    icon: faShieldAlt,
+    features: [
+      "Access to all idea holders",
+      "Investor verification badge",
+      "Direct connect with idea holders",
+    ],
+  },
+];
 
 const Subscription: React.FC = () => {
-  const plans = [
-    {
-      name: "Lite",
-      price: "$19",
-      period: "/month",
-      description: "Basic features to get started",
-      features: [
-        "Limited profile views",
-        "Basic matching",
-        "Community support",
-        "Limited Access to contacts",
-
-      ],
-    },
-    {
-      name: "Standard",
-      price: "$49",
-      period: "/month",
-      description: "More profile views and contacts",
-      features: [
-        "More profile views (not unlimited)",
-        "Basic matching",
-        "Access to contacts",
-        "KYC verification",
-      ],
-    },
-    {
-      name: "Premium",
-      price: "$99",
-      period: "/month",
-      description: "Full access for power users",
-      features: [
-        "Unlimited profile views",
-        "Access to all contacts",
-        "Priority support",
-        "Featured profile badge",
-      ],
-    },
-  ];
-
   return (
-    <section id="Subscription" className="py-20 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto">
-        <div className="text-center mb-20">
-          <h2 className="text-5xl font-extrabold text-white mb-5 tracking-wide drop-shadow-lg">
-            Subscription Required
-          </h2>
-          <p className="text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed">
-            Idea Holders{" "}
-            <span className="text-yellow-300 font-semibold">must subscribe</span>{" "}
-            to <span className="text-green-400 font-semibold">log in</span> and{" "}
-            <span className="text-blue-400 font-semibold">
-              connect with Investors
-            </span>
-            .
-          </p>
-        </div>
+    <section className="w-full min-h-screen bg-white flex flex-col lg:flex-row">
+      {/* Left: Plans */}
+      <div className="lg:flex-[1.2] py-16 px-6 sm:px-12 lg:px-20">
+        <h2 className="text-5xl lg:text-6xl font-extrabold text-gray-900 mb-6">
+          Subscription Plans
+        </h2>
+        <p className="text-xl lg:text-2xl text-gray-700 mb-12">
+          Choose a plan that fits your role.{" "}
+          <span className="font-semibold text-blue-700">Idea Holders</span> must
+          subscribe to <span className="font-semibold text-blue-700">log in</span>{" "}
+          and <span className="font-semibold text-blue-700">connect with Investors</span>.
+        </p>
 
-        {/* Subscription Cards */}
-        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto">
-          {plans.map((plan) => (
+        {/* Plan Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          {plansData.map((plan) => (
             <div
               key={plan.name}
-              className="bg-gradient-to-br from-purple-600/20 to-blue-600/20 rounded-2xl p-8 border border-white/10 flex flex-col"
+              className="bg-white border rounded-xl shadow hover:shadow-lg transition p-6 flex flex-col justify-between"
             >
-              <div className="text-center mb-8">
-                <h3 className="text-2xl font-bold text-white mb-2">
-                  {plan.name}
-                </h3>
-                <div className="text-4xl font-bold text-white mb-2">
-                  {plan.price}
-                  <span className="text-lg text-gray-300">{plan.period}</span>
+              <div>
+                <div className="flex items-center gap-3 mb-3">
+                  <FontAwesomeIcon
+                    icon={plan.icon}
+                    className="text-blue-600 text-2xl"
+                  />
+                  <h3 className="text-2xl font-bold text-gray-900">{plan.name}</h3>
                 </div>
-                <p className="text-gray-300">{plan.description}</p>
+                <p className="text-gray-600 font-semibold mb-2">{plan.price}</p>
+                <p className="text-gray-700 mb-3">{plan.description}</p>
+                <ul className="list-disc pl-5 space-y-1 text-gray-700 text-base">
+                  {plan.features.map((feature, idx) => (
+                    <li key={idx}>{feature}</li>
+                  ))}
+                </ul>
               </div>
-
-              <div className="space-y-4 mb-8 flex-1">
-                {plan.features.map((feature, idx) => (
-                  <div key={idx} className="flex items-center">
-                    <svg
-                      className="w-5 h-5 text-green-400 mr-3"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M5 13l4 4L19 7"
-                      />
-                    </svg>
-                    <span className="text-gray-300">{feature}</span>
-                  </div>
-                ))}
+              <div className="mt-4 flex justify-end">
+                <FontAwesomeIcon icon={faCheckCircle} className="text-green-600" />
               </div>
-
-              <button className="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white py-3 rounded-lg font-semibold hover:from-purple-700 hover:to-blue-700 transition-all duration-300 transform hover:scale-105">
-                Choose {plan.name}
-              </button>
             </div>
           ))}
         </div>
+      </div>
+
+      {/* Right: GIF */}
+      <div className="hidden lg:flex lg:flex-1 items-center justify-center sticky top-0 h-screen">
+        <img
+          src={gift}
+          alt="Subscription Animation"
+          className="w-[400px] h-[400px] max-w-full max-h-full object-contain"
+        />
       </div>
     </section>
   );

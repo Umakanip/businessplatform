@@ -1,82 +1,114 @@
-import React from 'react';
+import React from "react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faBolt, faFileAlt, faHandPointer, faStar } from "@fortawesome/free-solid-svg-icons";
 
 const Roles: React.FC = () => {
   return (
-    <section id="roles" className=" py-20 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl font-bold text-white mb-4">Join as a Idea Holders or Investor</h2>
-          <p className="text-xl text-gray-300">Different benefits for different roles</p>
+    <section
+      id="roles"
+      className="w-full min-h-screen flex flex-col lg:flex-row"
+    >
+      {/* Left Side - White Background */}
+      <div className="flex-1 bg-white py-20 px-8 flex items-center">
+        <div className="max-w-xl mx-auto">
+          <p className="text-sm font-semibold text-gray-800 mb-2">Got an idea?</p>
+          <h2 className="text-3xl md:text-4xl font-extrabold text-gray-900 mb-8">
+        Idea holders 
+          </h2>
+
+          <div className="space-y-6">
+            <div className="flex items-start">
+              <div className="w-10 h-10 rounded-full bg-pink-200 flex items-center justify-center mr-4">
+                <FontAwesomeIcon icon={faBolt} className="text-pink-600 text-lg" />
+              </div>
+              <p className="text-gray-700">
+                Connect directly with verified investors – no middlemen.
+              </p>
+            </div>
+
+            <div className="flex items-start">
+              <div className="w-10 h-10 rounded-full bg-pink-200 flex items-center justify-center mr-4">
+                <FontAwesomeIcon icon={faFileAlt} className="text-pink-600 text-lg" />
+              </div>
+              <p className="text-gray-700">
+                Showcase everything upfront – idea details, funding needs, and vision.
+              </p>
+            </div>
+
+            <div className="flex items-start">
+              <div className="w-10 h-10 rounded-full bg-pink-200 flex items-center justify-center mr-4">
+                <FontAwesomeIcon icon={faHandPointer} className="text-pink-600 text-lg" />
+              </div>
+              <p className="text-gray-700">
+                No long proposals – your profile is enough. One click to connect.
+              </p>
+            </div>
+
+            <div className="flex items-start">
+              <div className="w-10 h-10 rounded-full bg-pink-200 flex items-center justify-center mr-4">
+                <FontAwesomeIcon icon={faStar} className="text-pink-600 text-lg" />
+              </div>
+              <p className="text-gray-700">
+                Unique opportunities with serious investors you won’t find elsewhere.
+              </p>
+            </div>
+          </div>
+
+          
         </div>
+      </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-          {/* Idea Holders Section */}
-          <div className="bg-gradient-to-br from-purple-600/10 to-transparent rounded-lg p-8 border border-purple-500/20">
-            <div className="text-center mb-8">
-              <div className="w-16 h-16 bg-gradient-to-r from-purple-600 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
+      {/* Right Side - Pink Background */}
+      <div className="flex-1 bg-pink-50 py-20 px-8 flex items-center">
+        <div className="max-w-xl mx-auto">
+          <p className="text-sm font-semibold text-gray-800 mb-2">Need ideas?</p>
+          <h2 className="text-3xl md:text-4xl font-extrabold text-gray-900 mb-8">
+            Investor
+          </h2>
+
+          <div className="space-y-6">
+            <div className="flex items-start">
+              <div className="w-10 h-10 rounded-full bg-pink-200 flex items-center justify-center mr-4">
+                <FontAwesomeIcon icon={faBolt} className="text-pink-600 text-lg" />
               </div>
-              <h3 className="text-2xl font-bold text-white mb-2">For Idea Holders</h3>
-              <p className="text-gray-300">Connect with verified investors who match your vision</p>
+              <p className="text-gray-700">
+                Access a community of 10K+ startup-ready idea holders.
+              </p>
             </div>
-            
-            <div className="space-y-4">
-              <div className="flex items-center">
-                <div className="w-2 h-2 bg-purple-400 rounded-full mr-3"></div>
-                <span className="text-gray-300">Showcase your idea with detailed profiles</span>
+
+            <div className="flex items-start">
+              <div className="w-10 h-10 rounded-full bg-pink-200 flex items-center justify-center mr-4">
+                <FontAwesomeIcon icon={faFileAlt} className="text-pink-600 text-lg" />
               </div>
-              <div className="flex items-center">
-                <div className="w-2 h-2 bg-purple-400 rounded-full mr-3"></div>
-                <span className="text-gray-300">Specify funding needs and stage</span>
+              <p className="text-gray-700">
+                Everything you need to kickstart – filters, profiles, and criteria setup in minutes.
+              </p>
+            </div>
+
+            <div className="flex items-start">
+              <div className="w-10 h-10 rounded-full bg-pink-200 flex items-center justify-center mr-4">
+                <FontAwesomeIcon icon={faHandPointer} className="text-pink-600 text-lg" />
               </div>
-              <div className="flex items-center">
-                <div className="w-2 h-2 bg-purple-400 rounded-full mr-3"></div>
-                <span className="text-gray-300">Direct access to investor network</span>
+              <p className="text-gray-700">
+                Free matching system, or integrate with your own tools.
+              </p>
+            </div>
+
+            <div className="flex items-start">
+              <div className="w-10 h-10 rounded-full bg-pink-200 flex items-center justify-center mr-4">
+                <FontAwesomeIcon icon={faStar} className="text-pink-600 text-lg" />
               </div>
-              <div className="flex items-center">
-                <div className="w-2 h-2 bg-purple-400 rounded-full mr-3"></div>
-                <span className="text-gray-300">KYC verified for authenticity</span>
-              </div>
+              <p className="text-gray-700">
+                AI-based matching scans 500+ ideas and shortlists the best for you in days.
+              </p>
             </div>
           </div>
 
-          {/* Investor Section */}
-          <div className="bg-gradient-to-br from-blue-600/10 to-transparent rounded-lg p-8 border border-blue-500/20">
-            <div className="text-center mb-8">
-              <div className="w-16 h-16 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
-                </svg>
-              </div>
-              <h3 className="text-2xl font-bold text-white mb-2">For Investors</h3>
-              <p className="text-gray-300">Discover promising startups that fit your criteria</p>
-            </div>
-            
-            <div className="space-y-4">
-              <div className="flex items-center">
-                <div className="w-2 h-2 bg-blue-400 rounded-full mr-3"></div>
-                <span className="text-gray-300">Filter by industry and ticket size</span>
-              </div>
-              <div className="flex items-center">
-                <div className="w-2 h-2 bg-blue-400 rounded-full mr-3"></div>
-                <span className="text-gray-300">Access verified Idea Holders profiles</span>
-              </div>
-              <div className="flex items-center">
-                <div className="w-2 h-2 bg-blue-400 rounded-full mr-3"></div>
-                <span className="text-gray-300">Direct messaging with Idea Holders</span>
-              </div>
-              <div className="flex items-center">
-                <div className="w-2 h-2 bg-blue-400 rounded-full mr-3"></div>
-                <span className="text-gray-300">Investment tracking tools</span>
-              </div>
-            </div>
-          </div>
+          
         </div>
       </div>
     </section>
   );
 };
 
-export default Roles; 
+export default Roles;
