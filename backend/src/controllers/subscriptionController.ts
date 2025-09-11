@@ -3,12 +3,24 @@ import bcrypt from "bcryptjs";
 import Subscription, { PlanType } from "../models/subscription";
 import User from "../models/user";
 import Payment from "../models/payment";
-import { PLAN_MONTHS, PLAN_PRICE } from "../utils/plan";
 import { addMonths, isActive } from "../utils/dates";
+import {
+  PLAN_PRICE,
+  PLAN_TOTAL_PRICE,
+  PLAN_MONTHS,
+  INVESTOR_BASE_PRICE,
+  INVESTOR_GST_RATE,
+  INVESTOR_TOTAL_PRICE,
+  INVESTOR_MONTHS,
+} from "../utils/plan";
+
+
 
 interface AuthRequest extends Request {
   user: User;
 }
+
+// ------------------ Idealogist Subscription ------------------
 export const subscribe = async (req: AuthRequest, res: Response) => {
   try {
     const user = req.user;
@@ -24,8 +36,11 @@ export const subscribe = async (req: AuthRequest, res: Response) => {
     const now = new Date();
     let sub = await Subscription.findOne({ where: { userId: user.id } });
 
+    const months = PLAN_MONTHS[plan];
+    const amount = PLAN_PRICE[plan];
+
     const startDate = sub && isActive(sub.endDate) ? sub.endDate : now;
-    const endDate = addMonths(new Date(startDate), PLAN_MONTHS[plan]);
+    const endDate = addMonths(new Date(startDate), months);
 
     if (!sub) {
       sub = await Subscription.create({
@@ -45,7 +60,7 @@ export const subscribe = async (req: AuthRequest, res: Response) => {
 
     await Payment.create({
       subscriptionId: sub.id,
-      amount: PLAN_PRICE[plan],
+      amount,
       status: "success",
     });
 
@@ -54,7 +69,7 @@ export const subscribe = async (req: AuthRequest, res: Response) => {
       success: true,
       message: "Subscription active",
       subscriptionId: sub.id,
-      amount: PLAN_PRICE[plan],
+      amount,
       status: "success",
       subscription: sub,
     });
@@ -64,88 +79,75 @@ export const subscribe = async (req: AuthRequest, res: Response) => {
   }
 };
 
-/**
- * Public subscription: idealogist who cannot log in yet can subscribe
- */
 export const subscribePublic = async (req: Request, res: Response) => {
   try {
-    const { email, password, plan } = req.body as {
-      email: string;
-      password: string;
-      plan: PlanType;
-    };
+const { email, password, plan, role } = req.body as {
+  email: string;
+  password: string;
+  plan?: PlanType;
+  role: "investor" | "idealogist";
+};
 
-    if (!email || !password || !plan) {
-      return res.status(400).json({ message: "Missing fields" });
-    }
-    if (!PLAN_MONTHS[plan]) {
-      return res.status(400).json({ message: "Invalid plan" });
-    }
+    // 1️⃣ User check
+    let user = await User.findOne({ where: { email } });
+    if (!user) {
+   user = await User.create({
+  email,
+  password,
+  role,
+} as any);
 
-    const user = await User.findOne({ where: { email } });
-
-    if (!user || (user.role !== "idealogist" && user.role !== "investor")) {
-      return res.status(403).json({
-        message: "Only idealogists or investors can subscribe here",
-      });
     }
 
-    // ✅ investor ku "pro" plan mattum allow
-    if (user.role === "investor" && plan !== "pro") {
-      return res
-        .status(400)
-        .json({ message: "Investors can only subscribe to Pro plan" });
-    }
+    // 2️⃣ Plan check & amount/months set
+    let amount = 0;
+    let months = 0;
 
-    const ok = await bcrypt.compare(password, user.password);
-    if (!ok) return res.status(401).json({ message: "Invalid credentials" });
-
-    const now = new Date();
-    let sub = await Subscription.findOne({ where: { userId: user.id } });
-
-    const startDate = sub && isActive(sub.endDate) ? sub.endDate : now;
-    const endDate = addMonths(new Date(startDate), PLAN_MONTHS[plan]);
-
-    if (!sub) {
-      sub = await Subscription.create({
-        userId: user.id,
-        plan,
-        startDate,
-        endDate,
-        status: "active",
-      });
+    if (role === "investor") {
+      amount = INVESTOR_TOTAL_PRICE;
+      months = INVESTOR_MONTHS;
+    } else if (role === "idealogist") {
+      if (!plan || !PLAN_TOTAL_PRICE[plan]) {
+        return res.status(400).json({ message: "Invalid plan selected" });
+      }
+      amount = PLAN_TOTAL_PRICE[plan];
+      months = PLAN_MONTHS[plan];
     } else {
-      sub.plan = plan;
-      sub.startDate = startDate;
-      sub.endDate = endDate;
-      sub.status = "active";
-      await sub.save();
+      return res.status(400).json({ message: "Invalid role" });
     }
 
-    await Payment.create({
-      subscriptionId: sub.id,
-      amount: PLAN_PRICE[plan],
-      status: "success",
-    });
+  // 3️⃣ Subscription create
+const subscription = await Subscription.create({
+  userId: user.id,
+  plan: role === "investor" ? ("pro" as PlanType) : (plan as PlanType), // ✅ change lite → pro
+  status: "active",
+  startDate: new Date(),
+  endDate: new Date(Date.now() + months * 30 * 24 * 60 * 60 * 1000),
+});
 
-    await sub.reload();
-    return res.json({
-      success: true,
-      message: "Subscription activated. You can now login.",
-      subscriptionId: sub.id,
-      amount: PLAN_PRICE[plan],
-      status: "success",
-      subscription: sub,
+
+
+    // 4️⃣ Response
+    res.status(200).json({
+      message: "Subscription successful",
+      subscriptionId: subscription.id,
+      role,
+      plan,
+      amount,
     });
-  } catch (e) {
-    console.error(e);
-    return res.status(500).json({ message: "Server error" });
+  } catch (error: any) {
+    console.error(error);
+    res.status(500).json({ message: "Subscription failed", error: error.message });
   }
 };
 
-/**
- * Check subscription status
- */
+
+
+
+
+
+
+// ------------------ Check Subscription Status ------------------
 export const status = async (req: AuthRequest, res: Response) => {
   try {
     const user = req.user;
@@ -163,4 +165,8 @@ export const status = async (req: AuthRequest, res: Response) => {
     return res.status(500).json({ message: "Server error" });
   }
 };
+
+
+
+
 
