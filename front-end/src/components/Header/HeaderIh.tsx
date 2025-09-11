@@ -15,12 +15,46 @@ const HeaderIh: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [inviteCount, setInviteCount] = useState(0);
+  const [viewCount, setViewCount] = useState(0);
   const [userProfileData, setUserProfileData] = useState<{
     profileImage: string | null;
     name: string;
   } | null>(null);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+const fetchViewCount = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
 
+    const storedUser = localStorage.getItem("user");
+    if (!storedUser) return;
+    const parsed = JSON.parse(storedUser); // Add this line to get the user info
+
+    try {
+        const res = await axiosInstance.get(`/profile-views/${parsed.id}`, {
+            headers: { Authorization: `Bearer ${token}` }
+        });
+        setViewCount(res.data.viewCount);
+    } catch (err) {
+        console.error("Failed to fetch view count", err);
+    }
+};
+
+
+useEffect(() => {
+    fetchViewCount();
+
+    const handleRefresh = () => {
+        fetchInviteCount();
+        fetchUserProfile();
+        fetchViewCount();
+    };
+
+    window.addEventListener("refreshViews", handleRefresh);
+
+    return () => {
+        window.removeEventListener("refreshViews", handleRefresh);
+    };
+}, []);
   // 🔹 Fetch invites count
   const fetchInviteCount = async () => {
     try {
@@ -67,15 +101,18 @@ const HeaderIh: React.FC = () => {
   useEffect(() => {
     fetchInviteCount();
     fetchUserProfile();
+    fetchViewCount();
 
     const interval = setInterval(() => {
       fetchInviteCount();
       fetchUserProfile();
+      fetchViewCount();
     }, 20000);
 
     const handleRefresh = () => {
       fetchInviteCount();
       fetchUserProfile();
+      fetchViewCount();
     };
     window.addEventListener("refreshInvites", handleRefresh);
 
@@ -160,15 +197,15 @@ const HeaderIh: React.FC = () => {
         ))}
 
         {/* ✅ Profile Image Link */}
-        <Link
-          to="/ih/profile"
-          className={`relative flex items-center justify-center px-3 py-2 rounded-lg font-medium transition-all
-          ${location.pathname === "/ih/profile"
-            ? "bg-gradient-to-r from-indigo-500/30 to-pink-500/30 text-pink-300 shadow"
-            : ""}`}
-        >
-          <AvatarWithFirstLetter />
-        </Link>
+       <Link to="/ih/profile" className="relative flex items-center ...">
+    <AvatarWithFirstLetter />
+    {viewCount > 0 && (
+        <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full shadow-md">
+            {viewCount}
+        </span>
+    )}
+</Link>
+
 
         {/* ✅ Logout Button */}
         <button

@@ -25,7 +25,6 @@ const ProfileDrawer: React.FC<ProfileDrawerProps> = ({ isOpen, onClose }) => {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [showConfirm, setShowConfirm] = useState(false);
 
-  // Fetch user profile
   useEffect(() => {
     if (!isOpen) return;
 
@@ -56,23 +55,47 @@ const ProfileDrawer: React.FC<ProfileDrawerProps> = ({ isOpen, onClose }) => {
     navigate("/auth");
   };
 
+  // ✅ First-letter Avatar Component
+  const AvatarWithFirstLetter = () => {
+    const profileSizeClasses = "w-28 h-28";
+
+    const imgClasses = `${profileSizeClasses} rounded-full object-cover border-4 border-pink-400 shadow-lg mb-4`;
+    const divClasses = `${profileSizeClasses} rounded-full flex items-center justify-center bg-gradient-to-r from-purple-500 to-pink-500 text-white text-4xl font-bold border-4 border-white shadow-lg mb-4`;
+
+    const getFirstLetter = (name: string) => {
+      return name ? name.charAt(0).toUpperCase() : "U";
+    };
+
+    if (user?.profileImage) {
+      return (
+        <img
+          src={`http://localhost:5000/uploads/${user.profileImage}`}
+          alt="Profile"
+          className={imgClasses}
+        />
+      );
+    }
+
+    return (
+      <div className={divClasses}>
+        {getFirstLetter(user?.name || "")}
+      </div>
+    );
+  };
+
   if (!isOpen) return null;
 
   return (
     <div className="fixed top-16 right-0 bottom-0 z-40 flex">
-      {/* Overlay */}
       <div
         className="absolute inset-0 bg-black/40 transition-opacity"
         onClick={onClose}
       />
-
-      {/* Drawer */}
       <div
         className={`relative ml-auto w-96 bg-white h-full shadow-2xl rounded-l-xl transform transition-transform duration-300 ease-in-out ${
           isOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >
-        {/* Close button */}
         <button
           onClick={onClose}
           className="absolute top-3 right-3 text-gray-500 hover:text-black"
@@ -85,26 +108,11 @@ const ProfileDrawer: React.FC<ProfileDrawerProps> = ({ isOpen, onClose }) => {
             <p className="text-gray-500">Loading...</p>
           ) : (
             <>
-              {/* Avatar */}
-              <div className="relative w-28 h-28 rounded-full overflow-hidden border-4 border-pink-400 shadow-lg mb-4">
-                <img
-                  src={
-                    user.profileImage
-                      ? `http://localhost:5000/uploads/${user.profileImage}`
-                      : "https://via.placeholder.com/150"
-                  }
-                  alt="Profile"
-                  className="w-full h-full object-cover"
-                />
-              </div>
+              <AvatarWithFirstLetter />
 
-              {/* Name + Role */}
-              <h2 className="text-xl font-semibold text-gray-600">
-                {user.name}
-              </h2>
+              <h2 className="text-xl font-semibold text-gray-600">{user.name}</h2>
               <p className="text-pink-500">{user.role}</p>
 
-              {/* Categories */}
               <div className="w-full mt-4">
                 <label className="block font-semibold text-gray-700 mb-1">
                   Categories
@@ -112,9 +120,7 @@ const ProfileDrawer: React.FC<ProfileDrawerProps> = ({ isOpen, onClose }) => {
                 <div className="w-full text-left px-4 py-2 bg-gray-100 rounded border border-gray-300">
                   <span
                     className={`${
-                      user.category.length === 0
-                        ? "text-gray-400"
-                        : "text-gray-800"
+                      user.category.length === 0 ? "text-gray-400" : "text-gray-800"
                     }`}
                   >
                     {user.category.length > 0
@@ -124,7 +130,6 @@ const ProfileDrawer: React.FC<ProfileDrawerProps> = ({ isOpen, onClose }) => {
                 </div>
               </div>
 
-              {/* Other Details */}
               <div className="mt-6 w-full space-y-4 text-sm text-gray-700">
                 <div>
                   <span className="font-semibold">Email:</span>
@@ -142,7 +147,6 @@ const ProfileDrawer: React.FC<ProfileDrawerProps> = ({ isOpen, onClose }) => {
                 </div>
               </div>
 
-              {/* Logout Button */}
               <div className="mt-6 flex gap-3">
                 <button
                   onClick={() => setShowConfirm(true)}
@@ -156,7 +160,6 @@ const ProfileDrawer: React.FC<ProfileDrawerProps> = ({ isOpen, onClose }) => {
         </div>
       </div>
 
-      {/* Confirmation Popup */}
       {showConfirm && (
         <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
           <div className="bg-white p-6 rounded-xl shadow-lg w-80 text-center">

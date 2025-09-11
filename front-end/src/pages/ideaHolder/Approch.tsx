@@ -141,13 +141,27 @@ const IhApproch: React.FC = () => {
     fetchData();
   }, []);
 
-  const handleViewProfile = (id: number) => {
+ const handleViewProfile = async (id: number) => {
     const profile = profiles.find((p) => p.id === id);
     if (profile) {
-      setSelectedProfile(profile);
-      setShowModal(true);
+        setSelectedProfile(profile);
+        setShowModal(true);
+
+        try {
+            const token = localStorage.getItem("token");
+            if (token) {
+                await axiosInstance.post('/profile-views/increment', { ideaHolderId: id }, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                // Notify HeaderIh to refresh count
+                window.dispatchEvent(new Event("refreshViews"));
+            }
+        } catch (err) {
+            console.error("Failed to increment view count", err);
+        }
     }
-  };
+};
+
 
   if (loading) {
     return <p className="text-center py-10">Loading suggestions...</p>;
@@ -433,7 +447,7 @@ const IhApproch: React.FC = () => {
               </div>
               {!allowedIds.includes(selectedProfile.id) && (
                 <button
-                  onClick={() => navigate("/inv/subscription")}
+                  onClick={() => navigate("/subscription")}
                   className="px-6 py-2 rounded-lg font-semibold bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow hover:opacity-90"
                 >
                   View Plans

@@ -635,13 +635,27 @@ const InvApproch: React.FC = () => {
     fetchData();
   }, []);
 
-  const handleViewProfile = (id: number) => {
+const handleViewProfile = async (id: number) => {
     const profile = profiles.find((p) => p.id === id);
     if (profile) {
-      setSelectedProfile(profile);
-      setShowModal(true);
+        setSelectedProfile(profile);
+        setShowModal(true);
+
+        try {
+            const token = localStorage.getItem("token");
+            await axiosInstance.post('/profile-views/increment', { ideaHolderId: id }, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+
+            // Notify HeaderIh to refresh count
+            window.dispatchEvent(new Event("refreshViews"));
+        } catch (err) {
+            console.error("Failed to increment view count", err);
+        }
     }
-  };
+};
+
+
 
   // ✅ New component to render first letter instead of image
   const AvatarWithFirstLetter = ({ name, isLocked }: { name: string; isLocked: boolean }) => {
