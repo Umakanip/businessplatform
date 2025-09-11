@@ -79,7 +79,7 @@ export const getMatchingIdealogists = async (req: Request & { user?: any }, res:
           "primaryPhone",
           "secondaryPhone",
           "role",
-          "bio", // ✅ include bio
+          "bio",
         ],
         include: [
           {
@@ -91,14 +91,15 @@ export const getMatchingIdealogists = async (req: Request & { user?: any }, res:
             },
             required: true,
           },
-          { model: ConnectionRequest, as: "receivedRequests", where: { senderId: investorId }, required: false, attributes: ["status"] },
-          { model: ConnectionRequest, as: "sentRequests", where: { receiverId: investorId }, required: false, attributes: ["status"] },
+          // ✅ fixed aliases
+          { model: ConnectionRequest, as: "requestsReceived", where: { senderId: investorId }, required: false, attributes: ["status"] },
+          { model: ConnectionRequest, as: "requestsSent", where: { receiverId: investorId }, required: false, attributes: ["status"] },
           { model: Connection, as: "connectionsAsUser1", where: { user2Id: investorId }, required: false },
           { model: Connection, as: "connectionsAsUser2", where: { user1Id: investorId }, required: false },
         ],
       });
     } else {
-      // 🚫 Free investor → show all idealogists (even without subscription)
+      // 🚫 Free investor → show all idealogists
       idealogists = await User.findAll({
         where: { role: "idealogist", ...categoryCondition },
         attributes: [
@@ -110,12 +111,13 @@ export const getMatchingIdealogists = async (req: Request & { user?: any }, res:
           "primaryPhone",
           "secondaryPhone",
           "role",
-          "bio", // ✅ include bio
+          "bio",
         ],
         include: [
           { model: Subscription, as: "subscription", required: false },
-          { model: ConnectionRequest, as: "receivedRequests", where: { senderId: investorId }, required: false, attributes: ["status"] },
-          { model: ConnectionRequest, as: "sentRequests", where: { receiverId: investorId }, required: false, attributes: ["status"] },
+          // ✅ fixed aliases
+          { model: ConnectionRequest, as: "requestsReceived", where: { senderId: investorId }, required: false, attributes: ["status"] },
+          { model: ConnectionRequest, as: "requestsSent", where: { receiverId: investorId }, required: false, attributes: ["status"] },
           { model: Connection, as: "connectionsAsUser1", where: { user2Id: investorId }, required: false },
           { model: Connection, as: "connectionsAsUser2", where: { user1Id: investorId }, required: false },
         ],
@@ -126,10 +128,10 @@ export const getMatchingIdealogists = async (req: Request & { user?: any }, res:
       let status: "none" | "pending" | "accepted" | "rejected" = "none";
       if (i.connectionsAsUser1?.length > 0 || i.connectionsAsUser2?.length > 0) {
         status = "accepted";
-      } else if (i.receivedRequests?.length > 0) {
-        status = i.receivedRequests[0].status;
-      } else if (i.sentRequests?.length > 0) {
-        status = i.sentRequests[0].status;
+      } else if (i.requestsReceived?.length > 0) {
+        status = i.requestsReceived[0].status;
+      } else if (i.requestsSent?.length > 0) {
+        status = i.requestsSent[0].status;
       }
 
       const matchingCategories = i.category.filter((c: string) =>
@@ -144,7 +146,7 @@ export const getMatchingIdealogists = async (req: Request & { user?: any }, res:
         primaryPhone: i.primaryPhone,
         secondaryPhone: i.secondaryPhone,
         profileImage: i.profileImage,
-        bio: i.bio, // ✅ pass bio in response
+        bio: i.bio,
         category: matchingCategories,
         status,
         isSubscribed: i.subscription && i.subscription.status === "active" && i.subscription.endDate >= new Date(),
