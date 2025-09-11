@@ -58,6 +58,69 @@ const IhApproch: React.FC = () => {
     return "*".repeat(phone.length - 4) + visible;
   };
 
+// useEffect(() => {
+//   const fetchData = async () => {
+//     try {
+//       const token = localStorage.getItem("token");
+
+//       // profiles
+//       const res = await axiosInstance.get("/idealogists/matching-investors", {
+//         headers: { Authorization: `Bearer ${token}` },
+//       });
+//       const allProfiles: Profile[] = res.data.investors || [];
+
+//       // subscription
+//       const subRes = await axiosInstance.get("/subscriptions/status", {
+//         headers: { Authorization: `Bearer ${token}` },
+//       });
+
+//       const sub = subRes.data;
+//       setSubscription(sub);
+
+//       // Set premium user status
+//       setIsPremiumUser(sub?.active && sub.plan === "premium");
+
+//       let allowedCount = 0;
+//       const total = allProfiles.length;
+
+//       if (sub?.active) {
+//         if (sub.plan === "lite") {
+//           allowedCount = Math.ceil(total * 0.3);
+//         } else if (sub.plan === "standard") {
+//           allowedCount = Math.ceil(total * 0.6);
+//         } else if (sub.plan === "premium") {
+//           allowedCount = total;
+//         }
+//       } else {
+//         allowedCount = 0;
+//       }
+
+//       const allowed = allProfiles.slice(0, allowedCount).map((p) => p.id);
+
+//       setProfiles(allProfiles);
+//       setAllowedIds(allowed);
+//     } catch (error) {
+//       Swal.fire({
+//         title: "Error",
+//         text: "Failed to fetch investors or subscription.",
+//         icon: "error",
+//         confirmButtonColor: "#d33",
+//       });
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+
+//   // 🔹 Initial fetch
+//   fetchData();
+
+//   // 🔹 Poll every 10 seconds
+//   const interval = setInterval(fetchData, 10000);
+
+//   // 🔹 Cleanup on unmount
+//   return () => clearInterval(interval);
+// }, []);
+
 useEffect(() => {
   const fetchData = async () => {
     try {
