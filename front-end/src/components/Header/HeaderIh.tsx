@@ -8,6 +8,7 @@ import {
   faHome,
   faLightbulb,
   faSignOutAlt,
+  faEye, // 👁️ added
 } from "@fortawesome/free-solid-svg-icons";
 import axiosInstance from "../../utils/axiosInstance";
 
@@ -21,41 +22,27 @@ const HeaderIh: React.FC = () => {
     name: string;
   } | null>(null);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
-const fetchViewCount = async () => {
+
+  // 🔹 Profile View Count
+  const fetchViewCount = async () => {
     const token = localStorage.getItem("token");
     if (!token) return;
 
     const storedUser = localStorage.getItem("user");
     if (!storedUser) return;
-    const parsed = JSON.parse(storedUser); // Add this line to get the user info
+    const parsed = JSON.parse(storedUser);
 
     try {
-        const res = await axiosInstance.get(`/profile-views/${parsed.id}`, {
-            headers: { Authorization: `Bearer ${token}` }
-        });
-        setViewCount(res.data.viewCount);
+      const res = await axiosInstance.get(`/profile-views/${parsed.id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setViewCount(res.data.viewCount);
     } catch (err) {
-        console.error("Failed to fetch view count", err);
+      console.error("Failed to fetch view count", err);
     }
-};
+  };
 
-
-useEffect(() => {
-    fetchViewCount();
-
-    const handleRefresh = () => {
-        fetchInviteCount();
-        fetchUserProfile();
-        fetchViewCount();
-    };
-
-    window.addEventListener("refreshViews", handleRefresh);
-
-    return () => {
-        window.removeEventListener("refreshViews", handleRefresh);
-    };
-}, []);
-  // 🔹 Fetch invites count
+  // 🔹 Invites Count
   const fetchInviteCount = async () => {
     try {
       const token = localStorage.getItem("token");
@@ -70,7 +57,7 @@ useEffect(() => {
     }
   };
 
-  // ✅ Fetch user profile data including name and image
+  // 🔹 User Profile
   const fetchUserProfile = async () => {
     const storedUser = localStorage.getItem("user");
     const token = localStorage.getItem("token");
@@ -109,17 +96,7 @@ useEffect(() => {
       fetchViewCount();
     }, 20000);
 
-    const handleRefresh = () => {
-      fetchInviteCount();
-      fetchUserProfile();
-      fetchViewCount();
-    };
-    window.addEventListener("refreshInvites", handleRefresh);
-
-    return () => {
-      clearInterval(interval);
-      window.removeEventListener("refreshInvites", handleRefresh);
-    };
+    return () => clearInterval(interval);
   }, []);
 
   const ideaHolderMenu = [
@@ -130,110 +107,103 @@ useEffect(() => {
     { name: "Notifications", path: "/ih/notifications", icon: faBell },
   ];
 
-  const handleLogout = () => {
-    setShowLogoutModal(true);
-  };
-
+  const handleLogout = () => setShowLogoutModal(true);
   const confirmLogout = () => {
     localStorage.clear();
     navigate("/");
   };
 
-  // 🔹 ஒரு எழுத்து கொண்ட அவதார்-ஐ ரெண்டர் செய்யும் காம்போனென்ட்
+  // 🔹 Avatar
   const AvatarWithFirstLetter = () => {
-    // நீங்கள் அனுப்பிய கோடில் உள்ள கிளாஸ்நேம்கள்
-    const baseClasses = "w-10 h-10 rounded-full object-cover cursor-pointer";
-    const commonStyles = "ring-2 ring-white shadow-lg transition-all duration-500";
-    const getFirstLetter = (name: string) => {
-      return name ? name.charAt(0).toUpperCase() : "";
-    };
+    const getFirstLetter = (name: string) =>
+      name ? name.charAt(0).toUpperCase() : "";
 
     if (userProfileData?.profileImage) {
       return (
         <img
           src={userProfileData.profileImage}
           alt="Profile"
-          className={`${baseClasses} ${commonStyles}`}
+          className="w-10 h-10 rounded-full object-cover border border-gray-300 shadow-sm"
         />
       );
     }
-
-    // `w-10 h-10` என்ற அளவு மாறாமல், உங்கள் ஸ்டைல்கள்
     return (
-      <div className={`w-10 h-10 rounded-full flex items-center justify-center ring-2 ring-white shadow-lg transition-all duration-500 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-lg font-[Pacifico]`}>
+      <div className="w-10 h-10 rounded-full flex items-center justify-center bg-gray-700 text-white font-semibold shadow-sm">
         {getFirstLetter(userProfileData?.name || "")}
       </div>
     );
   };
 
   return (
-    <header className="w-full bg-gradient-to-r from-purple-900 via-slate-900 to-purple-800 text-white shadow-lg flex items-center justify-between px-8 py-4 fixed top-0 left-0 z-50">
-      <div className="font-extrabold text-2xl tracking-wide">Idea Holder</div>
-      <nav className="flex items-center gap-6">
-        {ideaHolderMenu.map((item) => (
-          <Link
-            key={item.name}
-            to={item.path}
-            className={`relative flex items-center justify-center px-3 py-2 rounded-lg font-medium transition-all
-              ${location.pathname === item.path
-                ? "bg-gradient-to-r from-indigo-500/30 to-pink-500/30 text-pink-300 shadow"
-                : ""}`}
-          >
-            {/* Icon */}
-            <div className="relative">
+    <header className="w-full bg-white border-b border-gray-200 shadow-sm fixed top-0 left-0 z-50">
+      <div className="max-w-7xl mx-auto flex items-center justify-between px-6 py-3">
+        {/* Logo */}
+        <div className="text-xl font-bold text-gray-800">Idea Holder</div>
+
+        {/* Menu */}
+        <nav className="flex items-center gap-6">
+          {ideaHolderMenu.map((item) => (
+            <Link
+              key={item.name}
+              to={item.path}
+              className={`relative flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-indigo-600 transition
+                ${location.pathname === item.path ? "text-indigo-600" : ""}`}
+            >
               <FontAwesomeIcon icon={item.icon} className="text-lg" />
-              {/* 🔹 Badge only for Notifications */}
+              {item.name !== "Notifications" && <span>{item.name}</span>}
               {item.name === "Notifications" && inviteCount > 0 && (
-                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full shadow-md">
+                <span className="absolute -top-2 -right-3 bg-red-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full shadow">
                   {inviteCount}
                 </span>
               )}
-            </div>
-            {/* Text → hide for Notifications */}
-            {item.name !== "Notifications" && (
-              <span className="hidden md:inline">{item.name}</span>
-            )}
+            </Link>
+          ))}
+        </nav>
+
+        {/* Profile + Views + Logout */}
+        <div className="flex items-center gap-4">
+          {/* 👁️ Separate view count */}
+          <div className="flex items-center gap-1 text-gray-600">
+            <FontAwesomeIcon icon={faEye} className="text-lg" />
+            <span className="text-sm font-medium">{viewCount}</span>
+          </div>
+
+          {/* Profile */}
+          <Link to="/ih/profile">
+            <AvatarWithFirstLetter />
           </Link>
-        ))}
 
-        {/* ✅ Profile Image Link */}
-       <Link to="/ih/profile" className="relative flex items-center ...">
-    <AvatarWithFirstLetter />
-    {viewCount > 0 && (
-        <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full shadow-md">
-            {viewCount}
-        </span>
-    )}
-</Link>
+          {/* Logout */}
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-2 px-3 py-2 text-sm bg-gray-100 hover:bg-red-500 hover:text-white rounded-lg transition"
+          >
+            <FontAwesomeIcon icon={faSignOutAlt} />
+            <span className="hidden md:inline">Logout</span>
+          </button>
+        </div>
+      </div>
 
-
-        {/* ✅ Logout Button */}
-        <button
-          onClick={handleLogout}
-          className="bg-red-500 text-white px-4 py-2 rounded-lg text-sm flex items-center gap-2 hover:bg-red-600 transition"
-        >
-          <FontAwesomeIcon icon={faSignOutAlt} />
-        </button>
-      </nav>
-
-      {/* ✅ Logout Confirmation Modal */}
+      {/* Logout Modal */}
       {showLogoutModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-[#2a2a2a] p-8 rounded-xl shadow-2xl text-center">
-            <h4 className="text-xl text-white mb-4">Are you sure?</h4>
-            <p className="text-[#c0c0c0] mb-6">
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl p-6 max-w-sm w-full text-center">
+            <h4 className="text-lg font-semibold text-gray-800 mb-2">
+              Are you sure?
+            </h4>
+            <p className="text-sm text-gray-500 mb-6">
               You will be logged out of your account.
             </p>
             <div className="flex justify-center gap-4">
               <button
                 onClick={() => setShowLogoutModal(false)}
-                className="bg-gray-500 text-white px-6 py-2 rounded-lg hover:bg-gray-600 transition"
+                className="px-4 py-2 bg-gray-200 rounded-lg text-gray-700 hover:bg-gray-300 transition"
               >
                 Cancel
               </button>
               <button
                 onClick={confirmLogout}
-                className="bg-red-500 text-white px-6 py-2 rounded-lg hover:bg-red-600 transition"
+                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
               >
                 Yes, Logout
               </button>

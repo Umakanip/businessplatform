@@ -45,13 +45,13 @@ const App: React.FC = () => {
       <Routes>
         {/* Public Pages */}
         <Route path="/" element={<Home />} />
-        <Route path="/auth" element={<AuthContainer />} />  
+        <Route path="/auth" element={<AuthContainer />} />
         <Route path="/payment" element={<PaymentPage />} />
         <Route path="/connect" element={<ConnectPage />} />
         <Route path="/subscription" element={<Pricing />} />
 
         {/* Idea Holder Layout with Nested Routes */}
-        <Route path="/ih" element={<MainLayout role="idealogist"/>}>
+        <Route path="/ih" element={<MainLayout role="idealogist" />}>
           <Route path="subscription" element={<Subscription />} />
           <Route path="connections" element={<Connections />} />
           <Route path="notifications" element={<NotificationsIH />} />
@@ -63,12 +63,13 @@ const App: React.FC = () => {
 
         {/* Investor Layout with Nested Routes */}
         <Route path="/inv" element={<MainLayout role="investor" />}>
-          <Route path="subscription" element={<InvPricing/>} />
+          <Route path="plan/subscription" element={<Subscription />} />
+          <Route path="subscription" element={<InvPricing />} />
           <Route path="connections" element={<InvConnections />} />
           <Route path="notifications" element={<NotificationsInv />} />
           <Route path="profile" element={<ProfileInv />} />
           <Route path="settings" element={<SettingsInv />} />
-          <Route path="approach" element={<InvApproch/>} />
+          <Route path="approach" element={<InvApproch />} />
 
         </Route>
 
@@ -96,10 +97,10 @@ const MainLayout: React.FC<{ role: "idealogist" | "investor" }> = ({
       {role === "investor" ? <HeaderInv /> : <HeaderIh />}
 
       {/* Main Content Area */}
-  <div className="pt-15"> {/* 👈 header height ku padding-top */}
-            <Outlet />
+      <div className="pt-15"> {/* 👈 header height ku padding-top */}
+        <Outlet />
+      </div>
     </div>
-        </div>
 
   );
 };
