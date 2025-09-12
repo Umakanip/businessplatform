@@ -43,7 +43,7 @@ const IhApproch: React.FC = () => {
  const [showContact, setShowContact] = useState(false); // ✅ new state
   const navigate = useNavigate();
 
-  // mask helpers (keep as is)
+  // mask helper (keep as is)
   const maskEmail = (email: string): string => {
     const [user, domain] = email.split("@");
     if (user.length <= 2) return "*".repeat(user.length) + "@" + domain;
