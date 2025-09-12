@@ -396,13 +396,27 @@ useEffect(() => {
 </div>
 
 
-        {/* View Contact Button */}
-        <button
-          onClick={() => setShowContact(true)}
-          className="mt-3 px-4 py-1.5 rounded-md text-sm font-medium bg-white text-blue-700 border border-gray-200 hover:bg-gray-50 shadow-sm"
-        >
-          View Contact
-        </button>
+{/* Action Buttons */}
+<div className="flex items-center justify-center gap-3 mt-4">
+  {/* View Contact Button (always visible) */}
+  <button
+    onClick={() => setShowContact(true)}
+    className="px-4 py-2 rounded-md text-sm font-medium bg-white text-blue-700 border border-gray-200 hover:bg-gray-50 shadow-sm transition"
+  >
+    View Contact
+  </button>
+
+  {/* View Plans Button (only for locked profiles) */}
+  {!allowedIds.includes(selectedProfile.id) && (
+    <button
+      onClick={() => navigate("/inv/subscription")}
+      className="px-4 py-2 rounded-md text-sm font-medium bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow hover:opacity-90 transition"
+    >
+      View Plans
+    </button>
+  )}
+</div>
+
 
         {/* Name + Role */}
         <h2 className="text-lg font-semibold text-white mt-4">
@@ -433,12 +447,7 @@ useEffect(() => {
             ))}
           </div>
         </div>
-           <button
-                    onClick={() => navigate("/subscription")}
-                    className="px-6 py-2 rounded-lg font-semibold bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow hover:opacity-90"
-                  >
-                    View Plans
-                  </button>
+        
       </div>
     </div>
   </div>
