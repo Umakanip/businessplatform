@@ -204,7 +204,7 @@ useEffect(() => {
                   <div className="relative">
                     {profile.profileImage ? (
                       <img
-                        src={`http://localhost:5000/uploads/${profile.profileImage}`}
+                        src={` http://localhost:5000/uploads/${profile.profileImage}`}
                         alt={profile.name}
                         className={`w-20 h-20 rounded-full object-cover mb-4 ring-2 ring-white shadow-lg transition-all duration-500 ${
                           isLocked ? "blur-md" : ""
@@ -374,7 +374,7 @@ useEffect(() => {
 <div className="relative w-24 h-24 mx-auto">
   {selectedProfile.profileImage ? (
     <img
-      src={`http://localhost:5000/uploads/${selectedProfile.profileImage}`}
+      src={` http://localhost:5000/uploads/${selectedProfile.profileImage}`}
       alt={selectedProfile.name}
       className={`w-24 h-24 rounded-full object-cover border-4 border-white shadow-lg ${
         !allowedIds.includes(selectedProfile.id) ? "blur-md" : ""
@@ -433,6 +433,12 @@ useEffect(() => {
             ))}
           </div>
         </div>
+           <button
+                    onClick={() => navigate("/subscription")}
+                    className="px-6 py-2 rounded-lg font-semibold bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow hover:opacity-90"
+                  >
+                    View Plans
+                  </button>
       </div>
     </div>
   </div>

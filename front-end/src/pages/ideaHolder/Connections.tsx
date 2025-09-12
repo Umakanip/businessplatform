@@ -1,5 +1,3 @@
-
-
 import React, { useEffect, useState } from "react";
 import axiosInstance from "../../utils/axiosInstance";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -26,13 +24,37 @@ type ProfileDetail = ConnectionType & {
   role?: string;
 };
 
+// ✅ AvatarWithFirstLetter component
+const AvatarWithFirstLetter: React.FC<{ name: string; profileImage: string | null; size?: number }> = ({ name, profileImage, size = 80 }) => {
+  const getFirstLetter = (name: string) => name ? name.charAt(0).toUpperCase() : "";
+  const dimension = `${size}px`;
+
+  if (profileImage) {
+    return (
+      <img
+        src={`http://localhost:5000/uploads/${profileImage}`}
+        alt={name}
+        style={{ width: dimension, height: dimension }}
+        className="rounded-full object-cover border-2 border-purple-200 shadow-sm"
+      />
+    );
+  }
+
+  return (
+    <div
+      style={{ width: dimension, height: dimension }}
+      className="rounded-full flex items-center justify-center border-2 border-purple-200 shadow-sm bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xl font-bold"
+    >
+      {getFirstLetter(name)}
+    </div>
+  );
+};
+
 const Connections: React.FC = () => {
   const [connections, setConnections] = useState<ConnectionType[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const [selectedProfile, setSelectedProfile] = useState<ProfileDetail | null>(
-    null
-  );
+  const [selectedProfile, setSelectedProfile] = useState<ProfileDetail | null>(null);
   const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
@@ -96,15 +118,7 @@ const Connections: React.FC = () => {
             >
               {/* Profile Image */}
               <div className="relative flex-shrink-0">
-                <img
-                  src={
-                    c.profileImage
-                      ? `http://localhost:5000/uploads/${c.profileImage}`
-                      : "https://via.placeholder.com/100"
-                  }
-                  alt={c.name}
-                  className="w-20 h-20 rounded-full object-cover border-2 border-purple-200 shadow-sm"
-                />
+                <AvatarWithFirstLetter name={c.name} profileImage={c.profileImage} size={80} />
                 <span
                   className={`absolute bottom-1 right-1 w-4 h-4 rounded-full border-2 border-white ${
                     c.status === "connected" ? "bg-green-500" : "bg-yellow-400"
@@ -155,15 +169,7 @@ const Connections: React.FC = () => {
               >
                 <FontAwesomeIcon icon={faTimes} />
               </button>
-              <img
-                src={
-                  selectedProfile.profileImage
-                    ? `http://localhost:5000/uploads/${selectedProfile.profileImage}`
-                    : "https://via.placeholder.com/100"
-                }
-                alt={selectedProfile.name}
-                className="w-24 h-24 rounded-full object-cover border-4 border-white mx-auto shadow-lg"
-              />
+              <AvatarWithFirstLetter name={selectedProfile.name} profileImage={selectedProfile.profileImage} size={96} />
               <h2 className="text-2xl font-bold text-white mt-4">
                 {selectedProfile.name}
               </h2>
