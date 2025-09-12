@@ -4,6 +4,8 @@ export function addMonths(date: Date, months: number) {
   return d;
 }
 
-export function isActive(endDate: Date) {
-  return new Date(endDate).getTime() >= Date.now();
-}
+export const isActive = (endDate: Date | null): boolean => {
+  if (!endDate) return true; // null na lifetime → always active
+  return endDate > new Date();
+};
+
