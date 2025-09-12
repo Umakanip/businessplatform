@@ -44,7 +44,7 @@ export const sendRequest = async (req: Request, res: Response) => {
     const receiver = await User.findByPk(receiverId);
 
     if (receiver && sender) {
- const baseUrl = process.env.BACKEND_URL; // example: http://localhost:5000
+ const baseUrl = process.env.BACKEND_URL; // example: http://192.168.18.173:5000
 
 const acceptUrl = `${baseUrl}/api/connections/respond?requestId=${request.id}&action=accept`;
 const rejectUrl = `${baseUrl}/api/connections/respond?requestId=${request.id}&action=reject`;
@@ -81,26 +81,26 @@ const rejectUrl = `${baseUrl}/api/connections/respond?requestId=${request.id}&ac
   }
 };
 
-
 export const respondRequest = async (req: Request, res: Response) => {
   try {
-     console.log("req.query:", req.query);
+    console.log("req.query:", req.query);
     console.log("req.body:", req.body);
 
     const requestId = req.body?.requestId || req.query?.requestId;
     const action = req.body?.action || req.query?.action;
 
     if (!requestId || !action) {
-      return res.status(400).json({ message: "Missing requestId or action" });
+      return res.send("<h2>⚠️ Missing requestId or action</h2>");
     }
+
     const request = await ConnectionRequest.findByPk(requestId);
-    if (!request) return res.status(404).json({ message: "Request not found" });
+    if (!request) return res.send("<h2>❌ Request not found</h2>");
 
     // Fetch sender & receiver
     const sender = await User.findByPk(request.senderId);
     const receiver = await User.findByPk(request.receiverId);
     if (!sender || !receiver) {
-      return res.status(404).json({ message: "Sender or receiver not found" });
+      return res.send("<h2>❌ Sender or Receiver not found</h2>");
     }
 
     if (action === "accept") {
@@ -112,6 +112,7 @@ export const respondRequest = async (req: Request, res: Response) => {
         user2Id: request.receiverId,
       });
 
+      // Notify sender via email
       await sendEmail(
         sender.email,
         "Connection Accepted 🎉",
@@ -121,10 +122,16 @@ export const respondRequest = async (req: Request, res: Response) => {
          <p>You are now connected on Business Platform 🚀</p>`
       );
 
-      return res.json({ message: "Request accepted successfully", requestId, action });
-    } 
+      // 👇 HTML response instead of JSON
+      return res.send(`
+        <div style="text-align:center; margin-top:50px; font-family:sans-serif;">
+          <h2 style="color:green;">✅ Connection Request Accepted</h2>
+          <p>You are now connected with <b>${sender.name}</b> 🎉</p>
+        </div>
+      `);
+    }
 
-    else if (action === "reject") {
+    if (action === "reject") {
       request.status = "rejected";
       await request.save();
 
@@ -136,16 +143,20 @@ export const respondRequest = async (req: Request, res: Response) => {
          <p>Unfortunately, <b>${receiver.name}</b> has rejected your connection request.</p>`
       );
 
-      return res.json({ message: "Request rejected successfully", requestId, action });
+      return res.send(`
+        <div style="text-align:center; margin-top:50px; font-family:sans-serif;">
+          <h2 style="color:red;">❌ Connection Request Rejected</h2>
+          <p>The request from <b>${sender.name}</b> was dismissed.</p>
+        </div>
+      `);
     }
 
-    return res.status(400).json({ message: "Invalid action" });
+    return res.send("<h2>⚠️ Invalid action</h2>");
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: "Error responding to request", error: err });
+    res.send("<h2>❌ Something went wrong</h2>");
   }
 };
-
 
 // Get pending connection requests for notifications
 export const getRequests = async (req: Request, res: Response) => {
