@@ -5,7 +5,7 @@ import home from "../../assest/img-slack-connect-hero@2x-Photoroom.png";
 import idea from "../../assest/istockphoto-1392016982-612x612.jpg";
 import secure from "../../assest/istockphoto-1311598658-612x612.jpg";
 import connect from "../../assest/black-businessman-tablet-planning-and-desktop-at-2022-12-10-02-18-23-utc-1024x686.jpg";
-
+import connection from "../../assest/people-connected-in-a-web-vector-clipart_800.png";
 const Hero: React.FC = () => {
   const [subscription, setSubscription] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -56,7 +56,7 @@ const Hero: React.FC = () => {
   return (
     <div className="font-sans text-gray-800">
       {/* Hero Section */}
-      <section className="bg-white py-16 px-6 sm:px-12 lg:px-20 border-b border-gray-200">
+      <section className="bg-white py-14 px-6 sm:px-12 lg:px-20 border-b border-gray-200">
         <div className="max-w-7xl mx-auto flex flex-col lg:flex-row items-center justify-between gap-12">
           <div className="lg:w-1/2 text-center lg:text-left">
             <h1 className="text-5xl font-extrabold mb-4 leading-tight">
@@ -101,14 +101,23 @@ const Hero: React.FC = () => {
             </div>
 
           </div>
-          <div className="lg:w-1/2 flex justify-center lg:justify-end">
-            <img
-              src={home}
-              alt="Illustration of connection"
-              className="w-[38rem] h-auto rounded-xl"
-            />
-          </div>
-        </div>
+        {/* Right Side Images */}
+    <div className="lg:w-1/2 flex flex-col items-center lg:items-end gap-6">
+      {/* Main Big Image */}
+      <img
+        src={home}
+        alt="Illustration of connection"
+        className="w-[38rem] h-auto rounded-xl "
+      />
+
+      {/* Small Connection Image */}
+      <img
+        src={connection}   // 👉 import connection image at top
+        alt="Connection illustration"
+        className="w-40 h-auto rounded-lg "
+      />
+    </div>
+  </div>
       </section>
       {/* Stats Section */}
       <section className="bg-white py-16 px-6 sm:px-12 lg:px-20 border-b border-gray-200">
