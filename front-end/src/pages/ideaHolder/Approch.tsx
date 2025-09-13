@@ -63,23 +63,22 @@ useEffect(() => {
     try {
       const token = localStorage.getItem("token");
 
-      // profiles
+      // fetch all profiles
       const res = await axiosInstance.get("/idealogists/matching-investors", {
         headers: { Authorization: `Bearer ${token}` },
       });
       const allProfiles: Profile[] = res.data.investors || [];
 
-      // subscription
+      // fetch subscription
       const subRes = await axiosInstance.get("/subscriptions/status", {
         headers: { Authorization: `Bearer ${token}` },
       });
-
       const sub = subRes.data;
       setSubscription(sub);
 
-      // Set premium user status
       setIsPremiumUser(sub?.active && sub.plan === "premium");
 
+      // calculate allowed profiles count
       let allowedCount = 0;
       const total = allProfiles.length;
 
@@ -91,14 +90,14 @@ useEffect(() => {
         } else if (sub.plan === "premium") {
           allowedCount = total;
         }
-      } else {
-        allowedCount = 0;
       }
 
-      const allowed = allProfiles.slice(0, allowedCount).map((p) => p.id);
+      // ✅ filter only allowed profiles
+      const allowedProfiles = allProfiles.slice(0, allowedCount);
+      const allowedProfileIds = allowedProfiles.map((p) => p.id);
 
-      setProfiles(allProfiles);
-      setAllowedIds(allowed);
+      setProfiles(allowedProfiles); // only allowed profiles
+      setAllowedIds(allowedProfileIds); // needed for modal/actions
     } catch (error) {
       Swal.fire({
         title: "Error",
@@ -111,13 +110,8 @@ useEffect(() => {
     }
   };
 
-  // 🔹 Initial fetch
   fetchData();
-
-  // 🔹 Poll every 10 seconds
   const interval = setInterval(fetchData, 10000);
-
-  // 🔹 Cleanup on unmount
   return () => clearInterval(interval);
 }, []);
 
