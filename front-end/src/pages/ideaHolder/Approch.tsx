@@ -122,26 +122,30 @@ useEffect(() => {
 }, []);
 
 
- const handleViewProfile = async (id: number) => {
-    const profile = profiles.find((p) => p.id === id);
-    if (profile) {
-        setSelectedProfile(profile);
-        setShowModal(true);
+const handleViewProfile = async (id: number) => {
+  const profile = profiles.find((p) => p.id === id);
+  if (profile) {
+    setSelectedProfile(profile);
+    setShowModal(true);
 
-        try {
-            const token = localStorage.getItem("token");
-            if (token) {
-                await axiosInstance.post('/profile-views/increment', { ideaHolderId: id }, {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
-                // Notify HeaderIh to refresh count
-                window.dispatchEvent(new Event("refreshViews"));
-            }
-        } catch (err) {
-            console.error("Failed to increment view count", err);
-        }
+    try {
+      const token = localStorage.getItem("token");
+      if (token) {
+        await axiosInstance.post(
+          "/profile-views/increment",
+          { ideaHolderId: id },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        window.dispatchEvent(new Event("refreshViews"));
+      }
+    } catch (err) {
+      console.error("Failed to increment view count", err);
+      // ❌ removed the Swal "Upgrade Required" popup
     }
+  }
 };
+
+
 
 
   // ✅ New component to render first letter instead of image
