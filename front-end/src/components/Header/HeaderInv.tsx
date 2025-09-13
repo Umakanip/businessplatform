@@ -85,29 +85,37 @@ const HeaderInv: React.FC = () => {
     }
   };
 
-  useEffect(() => {
+ useEffect(() => {
+  fetchInviteCount();
+  fetchUserProfile();
+  fetchViewCount();
+
+  const interval = setInterval(() => {
     fetchInviteCount();
     fetchUserProfile();
     fetchViewCount();
+  }, 20000);
 
-    const interval = setInterval(() => {
-      fetchInviteCount();
-      fetchUserProfile();
-      fetchViewCount();
-    }, 20000);
+  // 🔹 Handle manual refresh events
+  const handleRefreshInvites = () => {
+    fetchInviteCount();
+    fetchUserProfile();
+    fetchViewCount();
+  };
+  const handleRefreshViews = () => {
+    fetchViewCount();
+  };
 
-    const handleRefresh = () => {
-      fetchInviteCount();
-      fetchUserProfile();
-      fetchViewCount();
-    };
-    window.addEventListener("refreshInvites", handleRefresh);
+  window.addEventListener("refreshInvites", handleRefreshInvites);
+  window.addEventListener("refreshViews", handleRefreshViews);
 
-    return () => {
-      clearInterval(interval);
-      window.removeEventListener("refreshInvites", handleRefresh);
-    };
-  }, []);
+  return () => {
+    clearInterval(interval);
+    window.removeEventListener("refreshInvites", handleRefreshInvites);
+    window.removeEventListener("refreshViews", handleRefreshViews);
+  };
+}, []);
+
 
   // ✅ Menu
   const investorMenu = [

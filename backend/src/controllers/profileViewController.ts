@@ -1,9 +1,14 @@
 import { Request, Response } from "express";
+import ProfileView from "../models/ProfileView";
 import User from "../models/user";
+import Subscription from "../models/subscription";
+import { Op } from "sequelize";
 
-// Increment view count
+// Increment unique view count
 export const incrementViewCount = async (req: Request, res: Response) => {
   const { ideaHolderId } = req.body;
+  const viewerId = (req as any).user.id; // from protect middleware
+
   if (!ideaHolderId) {
     return res.status(400).json({ message: "Missing ideaHolderId" });
   }
@@ -14,15 +19,49 @@ export const incrementViewCount = async (req: Request, res: Response) => {
       return res.status(404).json({ message: "Idea holder not found" });
     }
 
-    ideaHolder.viewCount = (ideaHolder.viewCount || 0) + 1;
-    await ideaHolder.save();
+    // 🔑 Subscription check
+    const subscription = await Subscription.findOne({
+      where: {
+        userId: viewerId,
+        status: "active",
+        [Op.or]: [
+          { endDate: null },                // no expiry
+          { endDate: { [Op.gt]: new Date() } }, // or not expired
+        ],
+      },
+    });
 
-    return res.status(200).json({ message: "View count incremented", viewCount: ideaHolder.viewCount });
+    if (!subscription) {
+      return res.status(403).json({
+        message: "You need an active subscription to view profiles",
+      });
+    }
+
+    // check if this viewer already viewed
+    const alreadyViewed = await ProfileView.findOne({
+      where: { viewerId, ideaHolderId },
+    });
+
+    if (!alreadyViewed) {
+      // create record
+      await ProfileView.create({ viewerId, ideaHolderId });
+
+      // increment count
+      ideaHolder.viewCount = (ideaHolder.viewCount || 0) + 1;
+      await ideaHolder.save();
+    }
+
+    return res.status(200).json({
+      message: "View processed",
+      viewCount: ideaHolder.viewCount,
+    });
   } catch (error) {
     console.error("Error incrementing view count:", error);
     return res.status(500).json({ message: "Internal server error" });
   }
 };
+
+// Get profile view count
 export const getViewCount = async (req: Request, res: Response) => {
   const ideaHolderId = parseInt(req.params.ideaHolderId, 10);
   if (!ideaHolderId) {
@@ -30,15 +69,10 @@ export const getViewCount = async (req: Request, res: Response) => {
   }
 
   try {
-    const ideaHolder = await User.findByPk(ideaHolderId, {
-      attributes: ["viewCount"]
-    });
+    // count unique viewers
+    const count = await ProfileView.count({ where: { ideaHolderId } });
 
-    if (!ideaHolder) {
-      return res.status(404).json({ message: "Idea holder not found" });
-    }
-
-    return res.status(200).json({ viewCount: ideaHolder.viewCount || 0 });
+    return res.status(200).json({ viewCount: count });
   } catch (error) {
     console.error("Error getting view count:", error);
     return res.status(500).json({ message: "Internal server error" });
