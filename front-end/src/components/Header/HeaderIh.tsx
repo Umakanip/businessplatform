@@ -85,19 +85,20 @@ const HeaderIh: React.FC = () => {
     }
   };
 
-  useEffect(() => {
+ useEffect(() => {
+  fetchInviteCount();
+  fetchUserProfile();
+  fetchViewCount();
+
+  const interval = setInterval(() => {
     fetchInviteCount();
     fetchUserProfile();
     fetchViewCount();
+  }, 1000); // 🔹 now every 5 seconds
 
-    const interval = setInterval(() => {
-      fetchInviteCount();
-      fetchUserProfile();
-      fetchViewCount();
-    }, 20000);
+  return () => clearInterval(interval);
+}, []);
 
-    return () => clearInterval(interval);
-  }, []);
 
   const ideaHolderMenu = [
     { name: "Home", path: "/", icon: faHome },

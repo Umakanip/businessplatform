@@ -94,7 +94,7 @@ const HeaderInv: React.FC = () => {
     fetchInviteCount();
     fetchUserProfile();
     fetchViewCount();
-  }, 20000);
+  }, 1000);
 
   // 🔹 Handle manual refresh events
   const handleRefreshInvites = () => {

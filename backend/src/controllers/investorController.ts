@@ -17,16 +17,9 @@ export const getMatchingIdealogists = async (
       return res.status(401).json({ message: "Unauthorized" });
     }
 
-    console.log("🔹 Logged in User:", req.user);
-
     const user = await User.findByPk(req.user.id, {
       include: [{ model: Subscription, as: "subscription" }],
     });
-
-    console.log(
-      "🔹 User with subscription include:",
-      JSON.stringify(user, null, 2)
-    );
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
