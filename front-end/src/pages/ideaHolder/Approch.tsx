@@ -19,7 +19,7 @@ type Profile = {
   name: string;
   email: string;
   category: string[];
-  profileImage: string | null;
+  profileImage: string|null;
   status?: "pending" | "accepted" | "rejected" | "none";
 };
 type ProfileDetail = Profile & {
@@ -42,7 +42,10 @@ const IhApproch: React.FC = () => {
   const [isPremiumUser, setIsPremiumUser] = useState(false);
  const [showContact, setShowContact] = useState(false); // ✅ new state
   const navigate = useNavigate();
-
+ // ✅ Add it here, after states
+  const checkLocked = (profileId: number) => {
+    return !allowedIds.includes(profileId);
+  };
   // mask helper (keep as is)
   const maskEmail = (email: string): string => {
     const [user, domain] = email.split("@");
@@ -63,41 +66,45 @@ useEffect(() => {
     try {
       const token = localStorage.getItem("token");
 
-      // fetch all profiles
+      // Step 1: Fetch all profiles
       const res = await axiosInstance.get("/idealogists/matching-investors", {
         headers: { Authorization: `Bearer ${token}` },
       });
       const allProfiles: Profile[] = res.data.investors || [];
 
-      // fetch subscription
+      // Step 2: Fetch subscription
       const subRes = await axiosInstance.get("/subscriptions/status", {
         headers: { Authorization: `Bearer ${token}` },
       });
       const sub = subRes.data;
       setSubscription(sub);
-
       setIsPremiumUser(sub?.active && sub.plan === "premium");
 
-      // calculate allowed profiles count
-      let allowedCount = 0;
       const total = allProfiles.length;
+      let allowedCount = 0;
 
-      if (sub?.active) {
-        if (sub.plan === "lite") {
-          allowedCount = Math.ceil(total * 0.3);
-        } else if (sub.plan === "standard") {
-          allowedCount = Math.ceil(total * 0.6);
-        } else if (sub.plan === "premium") {
-          allowedCount = total;
-        }
+      // 👉 Logic
+      if (!sub?.active) {
+        // No subscription → show all but locked
+        setProfiles(allProfiles);
+        setAllowedIds([]); 
+        return;
       }
 
-      // ✅ filter only allowed profiles
-      const allowedProfiles = allProfiles.slice(0, allowedCount);
-      const allowedProfileIds = allowedProfiles.map((p) => p.id);
+      if (sub.plan === "lite") {
+        allowedCount = Math.ceil(total * 0.3);
+      } else if (sub.plan === "standard") {
+        allowedCount = Math.ceil(total * 0.6);
+      } else if (sub.plan === "premium") {
+        allowedCount = total;
+      }
 
-      setProfiles(allowedProfiles); // only allowed profiles
-      setAllowedIds(allowedProfileIds); // needed for modal/actions
+      // 👉 For sub: only slice (visible only, no lock for others)
+      const visibleProfiles = allProfiles.slice(0, allowedCount);
+
+      setProfiles(visibleProfiles);
+      setAllowedIds(visibleProfiles.map((p) => p.id));
+
     } catch (error) {
       Swal.fire({
         title: "Error",
@@ -114,6 +121,10 @@ useEffect(() => {
   const interval = setInterval(fetchData, 10000);
   return () => clearInterval(interval);
 }, []);
+
+
+
+
 
 
 const handleViewProfile = async (id: number) => {
@@ -174,10 +185,12 @@ const handleViewProfile = async (id: number) => {
       </div>
       <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
         {profiles.map((profile) => {
-          // show only first 2 categories, rest hidden with "+more"
-          const categoriesToShow = profile.category.slice(0, 2);
-          const isLocked = !allowedIds.includes(profile.id);
-
+  // show only first 2 categories, rest hidden with "+more"
+  const categoriesToShow = Array.isArray(profile.category)
+    ? profile.category.slice(0, 2)
+    : [];
+// ✅ use helper
+  const isLocked = checkLocked(profile.id);
           return (
             <div
               key={profile.id}
@@ -357,99 +370,103 @@ const handleViewProfile = async (id: number) => {
       </div>
 
 {showModal && selectedProfile && (
-  <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-    <div className="bg-white rounded-xl shadow-xl max-w-md w-full overflow-hidden relative">
-      {/* Header (blue top bar) */}
-      <div className="bg-blue-700 p-6 text-center relative">
-        <button
-          onClick={() => setShowModal(false)}
-          className="absolute top-4 right-4 text-white hover:text-gray-200"
-        >
-          <FontAwesomeIcon icon={faTimes} />
-        </button>
+  (() => {
+    const isLocked = checkLocked(selectedProfile.id); // ✅ one line add panni use panrom
 
-    {/* Avatar */}
-<div className="relative w-24 h-24 mx-auto">
-  {selectedProfile.profileImage ? (
-    <img
-      src={` http://localhost:5000/uploads/${selectedProfile.profileImage}`}
-      alt={selectedProfile.name}
-      className={`w-24 h-24 rounded-full object-cover border-4 border-white shadow-lg ${
-        !allowedIds.includes(selectedProfile.id) ? "blur-md" : ""
-      }`}
-    />
-  ) : (
-    <AvatarWithFirstLetter
-      name={selectedProfile.name}
-      isLocked={!allowedIds.includes(selectedProfile.id)}
-    />
-  )}
+    return (
+      <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-xl shadow-xl max-w-md w-full overflow-hidden relative">
+          {/* Header (blue top bar) */}
+          <div className="bg-blue-700 p-6 text-center relative">
+            <button
+              onClick={() => setShowModal(false)}
+              className="absolute top-4 right-4 text-white hover:text-gray-200"
+            >
+              <FontAwesomeIcon icon={faTimes} />
+            </button>
 
-  {/* 🔒 lock overlay when locked */}
-  {!allowedIds.includes(selectedProfile.id) && (
-    <div className="absolute inset-0 bg-black/40 backdrop-blur-sm rounded-full flex items-center justify-center">
-      <FontAwesomeIcon icon={faLock} className="text-white text-lg" />
-    </div>
-  )}
-</div>
+            {/* Avatar */}
+            <div className="relative w-24 h-24 mx-auto">
+              {selectedProfile.profileImage ? (
+                <img
+                  src={`http://localhost:5000/uploads/${selectedProfile.profileImage}`}
+                  alt={selectedProfile.name}
+                  className={`w-24 h-24 rounded-full object-cover border-4 border-white shadow-lg ${
+                    isLocked ? "blur-md" : ""
+                  }`}
+                />
+              ) : (
+                <AvatarWithFirstLetter
+                  name={selectedProfile.name}
+                  isLocked={isLocked}
+                />
+              )}
 
+              {/* 🔒 lock overlay when locked */}
+              {isLocked && (
+                <div className="absolute inset-0 bg-black/40 backdrop-blur-sm rounded-full flex items-center justify-center">
+                  <FontAwesomeIcon icon={faLock} className="text-white text-lg" />
+                </div>
+              )}
+            </div>
 
-{/* Action Buttons */}
-<div className="flex items-center justify-center gap-3 mt-4">
-  {/* View Contact Button (always visible) */}
-  <button
-    onClick={() => setShowContact(true)}
-    className="px-4 py-2 rounded-md text-sm font-medium bg-white text-blue-700 border border-gray-200 hover:bg-gray-50 shadow-sm transition"
-  >
-    View Contact
-  </button>
-
-  {/* View Plans Button (only for locked profiles) */}
-  {!allowedIds.includes(selectedProfile.id) && (
-    <button
-      onClick={() => navigate("/subscription")}
-      className="px-4 py-2 rounded-md text-sm font-medium bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow hover:opacity-90 transition"
-    >
-      View Plans
-    </button>
-  )}
-</div>
-
-
-        {/* Name + Role */}
-        <h2 className="text-lg font-semibold text-white mt-4">
-          {selectedProfile.name}
-        </h2>
-        <p className="text-blue-100 text-sm">{selectedProfile.role}</p>
-      </div>
-
-      {/* Body (white clean section) */}
-      <div className="p-5">
-        {/* Bio */}
-        <div className="flex items-start space-x-2 text-gray-700 text-sm mb-3">
-          <FontAwesomeIcon icon={faUserTag} className="mt-0.5 text-blue-600" />
-          <p>{selectedProfile.bio || "No bio available"}</p>
-        </div>
-
-        {/* Category */}
-        <div className="flex items-start space-x-2 text-gray-700 text-sm">
-          <FontAwesomeIcon icon={faLayerGroup} className="mt-0.5 text-blue-600" />
-          <div className="flex flex-wrap gap-2">
-            {selectedProfile.category.map((cat) => (
-              <span
-                key={cat}
-                className="bg-blue-50 text-blue-700 text-xs px-2 py-0.5 rounded-full border border-blue-100"
+            {/* Action Buttons */}
+            <div className="flex items-center justify-center gap-3 mt-4">
+              {/* View Contact Button (always visible) */}
+              <button
+                onClick={() => setShowContact(true)}
+                className="px-4 py-2 rounded-md text-sm font-medium bg-white text-blue-700 border border-gray-200 hover:bg-gray-50 shadow-sm transition"
               >
-                {cat}
-              </span>
-            ))}
+                View Contact
+              </button>
+
+              {/* View Plans Button (only for locked profiles) */}
+              {isLocked && (
+                <button
+                  onClick={() => navigate("/subscription")}
+                  className="px-4 py-2 rounded-md text-sm font-medium bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow hover:opacity-90 transition"
+                >
+                  View Plans
+                </button>
+              )}
+            </div>
+
+            {/* Name + Role */}
+            <h2 className="text-lg font-semibold text-white mt-4">
+              {selectedProfile.name}
+            </h2>
+            <p className="text-blue-100 text-sm">{selectedProfile.role}</p>
+          </div>
+
+          {/* Body (white clean section) */}
+          <div className="p-5">
+            {/* Bio */}
+            <div className="flex items-start space-x-2 text-gray-700 text-sm mb-3">
+              <FontAwesomeIcon icon={faUserTag} className="mt-0.5 text-blue-600" />
+              <p>{selectedProfile.bio || "No bio available"}</p>
+            </div>
+
+            {/* Category */}
+            <div className="flex items-start space-x-2 text-gray-700 text-sm">
+              <FontAwesomeIcon icon={faLayerGroup} className="mt-0.5 text-blue-600" />
+              <div className="flex flex-wrap gap-2">
+                {selectedProfile.category.map((cat) => (
+                  <span
+                    key={cat}
+                    className="bg-blue-50 text-blue-700 text-xs px-2 py-0.5 rounded-full border border-blue-100"
+                  >
+                    {cat}
+                  </span>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
-        
       </div>
-    </div>
-  </div>
+    );
+  })()
 )}
+
 
 {/* ✅ Separate Contact Popup */}
 {showContact && selectedProfile && (
