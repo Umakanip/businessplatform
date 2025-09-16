@@ -1,8 +1,15 @@
+// src/components/Login.tsx
+
 import React, { useState } from 'react';
 import axiosInstance from '../../utils/axiosInstance';
 import { useNavigate } from 'react-router-dom';
 import Swal from "sweetalert2";
 import "sweetalert2/dist/sweetalert2.min.css";
+import login from "../../assest/logimage.webp";
+
+// Import Font Awesome icons
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faEye, faEyeSlash, faSpinner } from '@fortawesome/free-solid-svg-icons';
 
 interface LoginProps {
   onSwitchToRegister: () => void;
@@ -15,6 +22,7 @@ const Login: React.FC<LoginProps> = ({ onSwitchToRegister }) => {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
 
   const navigate = useNavigate();
 
@@ -39,17 +47,15 @@ const Login: React.FC<LoginProps> = ({ onSwitchToRegister }) => {
     try {
       const response = await axiosInstance.post('/auth/login', loginData);
 
-      // Store the token and user
       localStorage.setItem('token', response.data.token);
       localStorage.setItem('user', JSON.stringify(response.data.user));
 
       const { role } = response.data.user;
 
-      // ✅ Cute success alert (center tick)
       Swal.fire({
         icon: "success",
-        title: "Welcome ",
-        text: "Login successful",
+        title: "Welcome!",
+        text: "Login successful.",
         timer: 2000,
         showConfirmButton: false,
         position: "center",
@@ -65,11 +71,10 @@ const Login: React.FC<LoginProps> = ({ onSwitchToRegister }) => {
 
     } catch (error: any) {
       console.error('Login error:', error);
-
       Swal.fire({
         icon: "error",
         title: "Oops!",
-        text: error.response?.data?.message || "Login failed. Please try again.",
+        text: error.response?.data?.message || "Login failed. Please check your credentials.",
         confirmButtonText: "Close",
         position: "center",
       });
@@ -79,27 +84,58 @@ const Login: React.FC<LoginProps> = ({ onSwitchToRegister }) => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 px-4">
-      <div className="max-w-md w-full space-y-8">
-        {/* Logo/Header */}
-        <div className="text-center">
-          <div className="mx-auto h-16 w-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
-            <svg className="h-8 w-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-            </svg>
+    <div 
+      className="min-h-screen flex items-center justify-center relative overflow-hidden"
+      style={{ backgroundImage: `url(${login})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
+    >
+      {/* Full screen background overlay */}
+      <div className="absolute inset-0 bg-black opacity-60"></div>
+
+      {/* Main content card */}
+      <div className="relative z-10 bg-white dark:bg-gray-800 shadow-2xl rounded-2xl overflow-hidden max-w-4xl w-full m-4 flex flex-col md:flex-row">
+        
+        {/* Left Side - Image with a new subtle gradient overlay */}
+        <div 
+          className="hidden md:block w-full md:w-1/2 relative rounded-l-2xl"
+          style={{ 
+            backgroundImage: `url(${login})`, 
+            backgroundSize: 'cover', 
+            backgroundPosition: 'center' 
+          }}
+        >
+          {/* Subtle gradient overlay from black to transparent */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-70 rounded-l-2xl"></div>
+          
+          <div className="absolute inset-0 flex items-end justify-start text-white p-8">
+            <div className="text-left mb-8">
+              <h3 className="text-3xl font-bold mb-10">"Ideas are the seeds of the future."</h3>
+              <p className="text-lg leading-relaxed">Join us to grow your ideas into reality. Connect with investors and bring your vision to life. Let's innovate together!</p>
+            </div>
           </div>
-          <h2 className="mt-6 text-3xl font-bold text-white">Welcome Back</h2>
-          <p className="mt-2 text-sm text-gray-300">Sign in to your account to continue</p>
         </div>
 
-        {/* Login Form */}
-        <div className="bg-white/10 backdrop-blur-lg rounded-2xl shadow-2xl p-8 border border-white/20">
+        {/* Right Side - Form */}
+        <div className="w-full md:w-1/2 p-8 md:p-12 flex flex-col justify-center bg-white dark:bg-gray-800">
+          <div className="text-center mb-8">
+            <h2 className="text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight">
+              Welcome Back!
+            </h2>
+            <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+              Please sign in to your account.
+            </p>
+          </div>
+          
           <form className="space-y-6" onSubmit={handleSubmit}>
             {apiError && (
-              <div className="bg-red-500/20 text-red-400 p-3 rounded-lg text-center">{apiError}</div>
+              <div className="bg-red-100 text-red-700 p-3 rounded-lg text-center dark:bg-red-900 dark:text-red-200">
+                {apiError}
+              </div>
             )}
+            
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-200 mb-2">Email Address</label>
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Email Address
+              </label>
               <input
                 id="email"
                 name="email"
@@ -108,71 +144,81 @@ const Login: React.FC<LoginProps> = ({ onSwitchToRegister }) => {
                 required
                 value={formData.email}
                 onChange={handleChange}
-                className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
-                placeholder="Enter your email"
+                className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                placeholder="you@example.com"
               />
             </div>
+            
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-200 mb-2">Password</label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                autoComplete="current-password"
-                required
-                value={formData.password}
-                onChange={handleChange}
-                className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
-                placeholder="Enter your password"
-              />
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Password
+              </label>
+              <div className="mt-1 relative rounded-lg shadow-sm">
+                <input
+                  id="password"
+                  name="password"
+                  type={showPassword ? 'text' : 'password'}
+                  autoComplete="current-password"
+                  required
+                  value={formData.password}
+                  onChange={handleChange}
+                  className="block w-full px-4 py-2 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                  placeholder="********"
+                />
+                <button
+                  type="button"
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-sm leading-5 dark:text-gray-400 text-gray-500"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} className="h-5 w-5" />
+                </button>
+              </div>
             </div>
+            
             <div className="flex items-center justify-between">
               <div className="flex items-center">
-                <input id="remember-me" name="remember-me" type="checkbox" className="h-4 w-4 text-purple-500 focus:ring-purple-500 border-gray-300 rounded" />
-                <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-300">Remember me</label>
+                <input
+                  id="remember-me"
+                  name="remember-me"
+                  type="checkbox"
+                  className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600"
+                />
+                <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-900 dark:text-gray-300">
+                  Remember me
+                </label>
               </div>
-              <div className="text-sm">
-                <a href="#" className="font-medium text-purple-400 hover:text-purple-300 transition-colors duration-200">Forgot password?</a>
-              </div>
+            
             </div>
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 transform hover:scale-105"
-            >
-              {isLoading ? (
-                <div className="flex items-center">
-                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  Signing in...
-                </div>
-              ) : (
-                'Sign In'
-              )}
-            </button>
+            
+            <div>
+              <button
+                type="submit"
+                disabled={isLoading}
+                className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white ${isLoading ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500'}`}
+              >
+                {isLoading ? (
+                  <div className="flex items-center">
+                    <FontAwesomeIcon icon={faSpinner} className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" />
+                    Signing in...
+                  </div>
+                ) : (
+                  'Sign In'
+                )}
+              </button>
+            </div>
           </form>
 
-          {/* Switch to Register */}
           <div className="mt-6 text-center">
-            <p className="text-sm text-gray-300">
+            <p className="text-sm text-gray-600 dark:text-gray-400">
               Don't have an account?{' '}
               <button
                 onClick={onSwitchToRegister}
-                className="font-medium text-purple-400 hover:text-purple-300 transition-colors duration-200"
+                className="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300"
               >
-                Sign up here
+                Sign up
               </button>
             </p>
           </div>
-        </div>
-
-        {/* Footer */}
-        <div className="text-center">
-          <p className="text-xs text-gray-400">
-            By signing in, you agree to our Terms of Service and Privacy Policy
-          </p>
         </div>
       </div>
     </div>
