@@ -36,45 +36,47 @@ const Notifications: React.FC = () => {
     fetchInvites();
   }, []);
 
-const handleRespond = async (requestId: number, action: "accept" | "reject") => {
-  try {
-    const token = localStorage.getItem("token");
-    const res = await axiosInstance.post(
-      "/connections/respond",
-      { requestId, action },
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
+  const handleRespond = async (requestId: number, action: "accept" | "reject") => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await axiosInstance.post(
+        "/connections/respond",
+        { requestId, action },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
 
-     // ✅ colorful auto-close toast
-   Swal.fire({
-   title: action === "accept" ? "Accepted " : "Rejected 🚫",
-   text: res.data.message || 
-         (action === "accept" ? "Connection accepted successfully!" : "Invite rejected."),
-   icon: "success",
-   showConfirmButton: false,  // OK button கிடையாது
-   timer: 2000,               // 2 sec auto-close
-   timerProgressBar: true,
-   background: action === "accept" 
-     ? "linear-gradient(135deg, #d0fceaff, #8db3f0ff)" 
-     : "linear-gradient(135deg, #FCA5A5, #e7bcbcff)",
-   color: "#fff",
- });
+      Swal.fire({
+        title: action === "accept" ? "Accepted ✅" : "Rejected 🚫",
+        text:
+          res.data.message ||
+          (action === "accept"
+            ? "Connection accepted successfully!"
+            : "Invite rejected."),
+        icon: "success",
+        showConfirmButton: false,
+        timer: 2000,
+        timerProgressBar: true,
+        background:
+          action === "accept"
+            ? "linear-gradient(135deg, #d0fceaff, #8db3f0ff)"
+            : "linear-gradient(135deg, #FCA5A5, #e7bcbcff)",
+        color: "#fff",
+      });
 
-    setInvites(invites.filter((invite) => invite.id !== requestId));
-  } catch (error: any) {
-    // ❌ colorful error toast
-    Swal.fire({
-   title: "Error ⚠️",
-   text: error.response?.data?.message || "Error responding to invite",
-   icon: "error",
-   showConfirmButton: false,
-   timer: 2500,
-   timerProgressBar: true,
-   background: "linear-gradient(135deg, #FDE68A, #e29f2aff)",
-   color: "#000",
- });
-  }
-};
+      setInvites(invites.filter((invite) => invite.id !== requestId));
+    } catch (error: any) {
+      Swal.fire({
+        title: "Error ⚠️",
+        text: error.response?.data?.message || "Error responding to invite",
+        icon: "error",
+        showConfirmButton: false,
+        timer: 2500,
+        timerProgressBar: true,
+        background: "linear-gradient(135deg, #FDE68A, #e29f2aff)",
+        color: "#000",
+      });
+    }
+  };
 
   if (loading) {
     return <p className="text-center py-10 text-gray-400">Loading invites...</p>;
@@ -100,15 +102,19 @@ const handleRespond = async (requestId: number, action: "accept" | "reject") => 
               key={item.id}
               className="flex items-center p-4 bg-gray-800 rounded-2xl shadow-lg transform hover:scale-105 transition-all duration-300"
             >
-              <img
-                src={
-                  item.sender.profileImage
-                    ? `http://localhost:5000/uploads/${item.sender.profileImage}`
-                    : "https://via.placeholder.com/100"
-                }
-                alt={item.sender.name}
-                className="w-16 h-16 rounded-full border-2 border-purple-500 object-cover mr-6 shadow-inner"
-              />
+              {/* ✅ Profile Image or First Letter Fallback */}
+              {item.sender.profileImage ? (
+                <img
+                  src={`http://localhost:5000/uploads/${item.sender.profileImage}`}
+                  alt={item.sender.name}
+                  className="w-16 h-16 rounded-full border-2 border-purple-500 object-cover mr-6 shadow-inner"
+                />
+              ) : (
+                <div className="w-16 h-16 rounded-full border-2 border-purple-500 bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold text-xl mr-6 shadow-inner">
+                  {item.sender.name.charAt(0).toUpperCase()}
+                </div>
+              )}
+
               <div className="flex-1">
                 <div className="text-xl font-semibold text-gray-200">
                   {item.sender.name}
@@ -117,6 +123,7 @@ const handleRespond = async (requestId: number, action: "accept" | "reject") => 
                   </span>
                 </div>
               </div>
+
               <div className="flex items-center gap-2 ml-4">
                 <button
                   onClick={() => handleRespond(item.id, "reject")}
