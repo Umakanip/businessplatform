@@ -75,7 +75,7 @@ const plansData = [
 
 const Subscription: React.FC = () => {
   return (
-    <section className="w-full min-h-screen bg-gray-50 flex flex-col lg:flex-row">
+    <section className="w-full min-h-screen bg-white flex flex-col lg:flex-row">
       {/* Left: Plans */}
       <div className="lg:flex-[1.2] py-16 px-6 sm:px-12 lg:px-20">
         <h2 className="text-5xl lg:text-6xl font-extrabold text-gray-900 mb-6">
@@ -150,7 +150,7 @@ const Subscription: React.FC = () => {
       </div>
 
       {/* Right: GIF */}
-      <div className="hidden lg:flex lg:flex-1 items-center justify-center sticky top-0 h-screen bg-gray-100">
+      <div className="hidden lg:flex lg:flex-1 items-center justify-center sticky top-0 h-screen bg-white">
         <img
           src={gift}
           alt="Subscription Animation"
