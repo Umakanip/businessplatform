@@ -1,4 +1,3 @@
-
 import { Request, Response } from "express";
 import User from "../models/user";
 import ConnectionRequest from "../models/connectionrequests";
@@ -39,13 +38,13 @@ export const getMatchingIdealogists = async (
 
     const investorId = user.id;
 
-    // ✅ Fix: allow premium (no endDate) and pro (with endDate)
-    const isSubscribed =
+    // ✅ Check investor subscription properly (any plan with active status and valid endDate)
+    const allowedInvestorPlans = ["pro"]; // only the investor's allowed plan
+    const investorSubscribed =
       user.subscription &&
       user.subscription.status === "active" &&
-      (user.subscription.plan === "premium" ||
-        (user.subscription.endDate &&
-          user.subscription.endDate >= new Date()));
+      allowedInvestorPlans.includes(user.subscription.plan) &&
+      (!user.subscription.endDate || user.subscription.endDate >= new Date());
 
     // 🔑 Match by categories
     const categoryCondition = {
@@ -56,8 +55,8 @@ export const getMatchingIdealogists = async (
 
     let idealogists;
 
-    if (isSubscribed) {
-      // 🔥 Investor has active sub → show only subscribed idealogists
+    if (investorSubscribed) {
+      // Investor active → show only idea holders with active subscription
       idealogists = await User.findAll({
         where: { role: "idealogist", ...categoryCondition },
         attributes: [
@@ -78,11 +77,13 @@ export const getMatchingIdealogists = async (
             where: {
               status: "active",
               [Op.or]: [
-                { plan: "premium" }, // lifetime subs
-                { endDate: { [Op.gte]: new Date() } }, // pro active subs
+                { plan: "lite" },
+                { plan: "standard" },
+                { plan: "premium" },
+                { endDate: { [Op.gte]: new Date() } },
               ],
             },
-            required: true, // 👈 only subscribed idealogists
+            required: true, // only idea holders with active subscription
           },
           {
             model: ConnectionRequest,
@@ -113,7 +114,7 @@ export const getMatchingIdealogists = async (
         ],
       });
     } else {
-      // 🚫 Free investor → show all idealogists (even unsubscribed)
+      // Free investor → show all idea holders (even unsubscribed)
       idealogists = await User.findAll({
         where: { role: "idealogist", ...categoryCondition },
         attributes: [
@@ -128,11 +129,7 @@ export const getMatchingIdealogists = async (
           "bio",
         ],
         include: [
-          {
-            model: Subscription,
-            as: "subscription",
-            required: false, // 👈 include unsubscribed too
-          },
+          { model: Subscription, as: "subscription", required: false },
           {
             model: ConnectionRequest,
             as: "requestsReceived",
@@ -166,10 +163,7 @@ export const getMatchingIdealogists = async (
     // Format result
     const formatted = idealogists.map((i: any) => {
       let status: "none" | "pending" | "accepted" | "rejected" = "none";
-      if (
-        i.connectionsAsUser1?.length > 0 ||
-        i.connectionsAsUser2?.length > 0
-      ) {
+      if (i.connectionsAsUser1?.length > 0 || i.connectionsAsUser2?.length > 0) {
         status = "accepted";
       } else if (i.requestsReceived?.length > 0) {
         status = i.requestsReceived[0].status;
@@ -180,6 +174,13 @@ export const getMatchingIdealogists = async (
       const matchingCategories = i.category.filter((c: string) =>
         user.category.includes(c)
       );
+
+      // ✅ Correct idea holder subscription check
+      const ideaHolderSubscribed =
+        i.subscription &&
+        i.subscription.status === "active" &&
+        ["lite", "standard", "premium"].includes(i.subscription.plan) &&
+        (!i.subscription.endDate || i.subscription.endDate >= new Date());
 
       return {
         id: i.id,
@@ -192,16 +193,11 @@ export const getMatchingIdealogists = async (
         bio: i.bio,
         category: matchingCategories,
         status,
-        isSubscribed:
-          i.subscription &&
-          i.subscription.status === "active" &&
-          (i.subscription.plan === "premium" ||
-            (i.subscription.endDate &&
-              i.subscription.endDate >= new Date())),
+        isSubscribed: ideaHolderSubscribed,
       };
     });
 
-    res.json({ idealogists: formatted, isSubscribed });
+    res.json({ idealogists: formatted, isSubscribed: investorSubscribed });
   } catch (error) {
     console.error("Get Matching Idealogists error:", error);
     res.status(500).json({ message: "Internal server error" });
