@@ -2,6 +2,7 @@ import User from "./user";
 import Subscription from "./subscription";
 import ConnectionRequest from "./connectionrequests";
 import Connection from "./connection";
+import Payment from "./payment";
 
 // 🔹 User ↔ Subscription
 User.hasOne(Subscription, { foreignKey: "userId", as: "subscription" });
@@ -19,4 +20,13 @@ User.hasMany(Connection, { foreignKey: "user2Id", as: "connectionsAsUser2" });
 Connection.belongsTo(User, { foreignKey: "user1Id", as: "user1" });
 Connection.belongsTo(User, { foreignKey: "user2Id", as: "user2" });
 
-export { User, Subscription, ConnectionRequest, Connection };
+// 🔹 Subscription ↔ Payment
+Subscription.hasMany(Payment, { foreignKey: "subscriptionId", as: "payments" });
+Payment.belongsTo(Subscription, { foreignKey: "subscriptionId", as: "subscription" });
+
+// 🔹 User ↔ Payment (optional, for tracking all payments of a user)
+User.hasMany(Payment, { foreignKey: "userId", as: "userPayments" });
+Payment.belongsTo(User, { foreignKey: "userId", as: "paymentUser" });
+
+// ✅ Export everything
+export { User, Subscription, ConnectionRequest, Connection, Payment };

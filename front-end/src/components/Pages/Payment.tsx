@@ -3,6 +3,7 @@ import axios from "axios";
 import { useLocation, useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import "sweetalert2/dist/sweetalert2.min.css";
+import axiosInstance from "../../utils/axiosInstance";
 // ---------------- ICONS ----------------
 function BankIcon({ color = "#2563eb" }: { color?: string }) {
   return (
@@ -188,14 +189,16 @@ export default function PaymentPage() {
     setLoading(true);
     setPaymentStatus("idle");
 
-    const payload = {
-      subscriptionId,
-      amount: planAmount,
-      status: "success",
-    };
+   const payload = {
+  subscriptionId,
+  amount: planAmount,
+  status: "success",
+  userId: localStorage.getItem("userId"), // or from your auth context/token
+};
+
 
     try {
-      const response = await axios.post("http://localhost:5000/api/payments", payload);
+      const response = await axiosInstance.post("http://localhost:5000/api/payments", payload);
       if (response.data.success) {
         if (response.data.success) {
           setPaymentStatus("success");

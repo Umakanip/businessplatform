@@ -2,7 +2,7 @@
 
 import { DataTypes, Model, Optional } from "sequelize";
 import sequelize from "../config/db";
-
+import Payment from "./payment"; // 🔹 add this line
 export type PlanType = "lite" | "standard" | "premium" | "pro";
 export type SubscriptionStatus = "active" | "expired";
 
@@ -22,16 +22,22 @@ type SubscriptionCreation = Optional<SubscriptionAttributes, "id" | "status" | "
 
 class Subscription
   extends Model<SubscriptionAttributes, SubscriptionCreation>
-  implements SubscriptionAttributes {
+  implements SubscriptionAttributes 
+{
   public id!: number;
   public userId!: number;
   public plan!: PlanType;
   public startDate!: Date;
-  public endDate!: Date | null;   // allow null
+  public endDate!: Date | null;
   public status!: SubscriptionStatus;
+
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
+
+  // 👇 put it here
+  public payments?: Payment[];
 }
+
 
 
 Subscription.init(

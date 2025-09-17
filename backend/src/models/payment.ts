@@ -7,33 +7,43 @@ type PaymentStatus = "success" | "failed";
 interface PaymentAttributes {
   id: number;
   subscriptionId: number;
+   userId: number; 
   amount: number;
   status: PaymentStatus;
+  razorpayPaymentId?: string;  // 🔹 New
+  razorpayOrderId?: string;    // 🔹 New
   createdAt?: Date;
   updatedAt?: Date;
 }
 
 // Fields not required when creating a new record
-type PaymentCreation = Optional<PaymentAttributes, "id" | "status">;
+type PaymentCreation = Optional<
+  PaymentAttributes,
+  "id" | "status" | "razorpayPaymentId" | "razorpayOrderId"
+>;
 
 class Payment
   extends Model<PaymentAttributes, PaymentCreation>
-  implements PaymentAttributes 
+  implements PaymentAttributes
 {
   public id!: number;
   public subscriptionId!: number;
   public amount!: number;
   public status!: PaymentStatus;
+ public userId!: number;
+  public razorpayPaymentId?: string; // 🔹 New
+  public razorpayOrderId?: string;   // 🔹 New
 
   // Sequelize adds timestamps automatically
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
+  
 }
 
 Payment.init(
   {
     id: {
-      type: DataTypes.INTEGER.UNSIGNED, // MySQL unsigned integer
+      type: DataTypes.INTEGER.UNSIGNED,
       autoIncrement: true,
       primaryKey: true,
     },
@@ -41,8 +51,13 @@ Payment.init(
       type: DataTypes.INTEGER.UNSIGNED,
       allowNull: false,
     },
+    // 🔹 Ithu inge add pannum
+    userId: {
+      type: DataTypes.INTEGER.UNSIGNED,
+      allowNull: false,
+    },
     amount: {
-      type: DataTypes.DECIMAL(10, 2), // precise money values
+      type: DataTypes.DECIMAL(10, 2),
       allowNull: false,
     },
     status: {
@@ -50,18 +65,24 @@ Payment.init(
       allowNull: false,
       defaultValue: "success",
     },
+    razorpayPaymentId: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    razorpayOrderId: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
   },
   {
     sequelize,
     modelName: "Payment",
     tableName: "payments",
-    timestamps: true, // ensures createdAt/updatedAt
-    underscored: false, // keep camelCase in DB if you want
+    timestamps: true,
+    underscored: false,
   }
 );
 
-// Associations
-Payment.belongsTo(Subscription, { foreignKey: "subscriptionId", as: "subscription" });
-Subscription.hasMany(Payment, { foreignKey: "subscriptionId", as: "payments" });
+
 
 export default Payment;
