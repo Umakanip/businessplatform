@@ -18,7 +18,7 @@ const app = express();
 // Configure CORS to allow your React app to send credentials (like cookies)
 const corsOptions = {
   // Replace with the exact URL of your React app
-  origin: "http://localhost:3001",
+  origin: "http://localhost:3000",
   // This is required to allow cookies/credentials to be sent with requests
   credentials: true,
 };
