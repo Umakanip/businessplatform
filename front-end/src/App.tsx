@@ -36,6 +36,7 @@ import InvConnections from "./pages/investor/InvConnection";
 import IhApproch from "./pages/ideaHolder/Approch";
 import InvApproch from "./pages/investor/Approch";
 import InvPricing from "./components/Pages/InvPricing";
+import InvSubscriptionStatus from "./pages/investor/Subscription";
 const App: React.FC = () => {
   // ⚡ Later, get this from auth/login state
   const role: "idealogist" | "investor" = "idealogist";
@@ -63,7 +64,7 @@ const App: React.FC = () => {
 
         {/* Investor Layout with Nested Routes */}
         <Route path="/inv" element={<MainLayout role="investor" />}>
-          <Route path="plan/subscription" element={<Subscription />} />
+          <Route path="inv/subscription" element={<InvSubscriptionStatus/>} />
           <Route path="subscription" element={<InvPricing />} />
           <Route path="connections" element={<InvConnections />} />
           <Route path="notifications" element={<NotificationsInv />} />

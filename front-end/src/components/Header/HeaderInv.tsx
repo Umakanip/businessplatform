@@ -122,7 +122,7 @@ const HeaderInv: React.FC = () => {
     { name: "Home", path: "/", icon: faHome },
     { name: "Ideas Hub", path: "/inv/approach", icon: faLightbulb },
     { name: "My Connections", path: "/inv/connections", icon: faLink },
-    { name: "Subscription", path: "plan/subscription", icon: faCreditCard },
+    { name: "Subscription", path: "inv/subscription", icon: faCreditCard },
     { name: "Notifications", path: "/inv/notifications", icon: faBell },
   ];
 
