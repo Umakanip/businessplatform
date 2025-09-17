@@ -82,80 +82,92 @@ const rejectUrl = `${baseUrl}/api/connections/respond?requestId=${request.id}&ac
 };
 
 export const respondRequest = async (req: Request, res: Response) => {
-  try {
-    console.log("req.query:", req.query);
-    console.log("req.body:", req.body);
+  try {
+    console.log("req.query:", req.query);
+    console.log("req.body:", req.body);
 
-    const requestId = req.body?.requestId || req.query?.requestId;
-    const action = req.body?.action || req.query?.action;
+    const requestId = req.body?.requestId || req.query?.requestId;
+    const action = req.body?.action || req.query?.action;
 
-    if (!requestId || !action) {
-      return res.send("<h2>⚠️ Missing requestId or action</h2>");
-    }
+    if (!requestId || !action) {
+      return res.send("<h2>⚠️ Missing requestId or action</h2>");
+    }
 
-    const request = await ConnectionRequest.findByPk(requestId);
-    if (!request) return res.send("<h2>❌ Request not found</h2>");
+    const request = await ConnectionRequest.findByPk(requestId);
+    if (!request) return res.send("<h2>❌ Request not found</h2>");
 
-    // Fetch sender & receiver
-    const sender = await User.findByPk(request.senderId);
-    const receiver = await User.findByPk(request.receiverId);
-    if (!sender || !receiver) {
-      return res.send("<h2>❌ Sender or Receiver not found</h2>");
-    }
+    // Fetch sender & receiver
+    const sender = await User.findByPk(request.senderId);
+    const receiver = await User.findByPk(request.receiverId);
+    if (!sender || !receiver) {
+      return res.send("<h2>❌ Sender or Receiver not found</h2>");
+    }
 
-    if (action === "accept") {
-      request.status = "accepted";
-      await request.save();
+    if (action === "accept") {
+      request.status = "accepted";
+      await request.save();
 
-      await Connection.create({
-        user1Id: request.senderId,
-        user2Id: request.receiverId,
+      // ** New check to prevent duplicate connections **
+      const existingConnection = await Connection.findOne({
+        where: {
+          [Op.or]: [
+            { user1Id: request.senderId, user2Id: request.receiverId },
+            { user1Id: request.receiverId, user2Id: request.senderId },
+          ],
+        },
       });
 
-      // Notify sender via email
-      await sendEmail(
-        sender.email,
-        "Connection Accepted 🎉",
-        `${receiver.name} has accepted your connection request.`,
-        `<p>Hi ${sender.name},</p>
-         <p><b>${receiver.name}</b> has accepted your connection request.</p>
-         <p>You are now connected on Business Platform 🚀</p>`
-      );
+      if (!existingConnection) {
+        await Connection.create({
+          user1Id: request.senderId,
+          user2Id: request.receiverId,
+        });
+      }
 
-      // 👇 HTML response instead of JSON
-      return res.send(`
-        <div style="text-align:center; margin-top:50px; font-family:sans-serif;">
-          <h2 style="color:green;">✅ Connection Request Accepted</h2>
-          <p>You are now connected with <b>${sender.name}</b> 🎉</p>
-        </div>
-      `);
-    }
+      // Notify sender via email
+      await sendEmail(
+        sender.email,
+        "Connection Accepted 🎉",
+        `${receiver.name} has accepted your connection request.`,
+        `<p>Hi ${sender.name},</p>
+         <p><b>${receiver.name}</b> has accepted your connection request.</p>
+         <p>You are now connected on Business Platform 🚀</p>`
+      );
 
-    if (action === "reject") {
-      request.status = "rejected";
-      await request.save();
+      // 👇 HTML response instead of JSON
+      return res.send(`
+        <div style="text-align:center; margin-top:50px; font-family:sans-serif;">
+          <h2 style="color:green;">✅ Connection Request Accepted</h2>
+          <p>You are now connected with <b>${sender.name}</b> 🎉</p>
+        </div>
+      `);
+    }
 
-      await sendEmail(
-        sender.email,
-        "Connection Request Rejected ❌",
-        `${receiver.name} has rejected your connection request.`,
-        `<p>Hi ${sender.name},</p>
-         <p>Unfortunately, <b>${receiver.name}</b> has rejected your connection request.</p>`
-      );
+    if (action === "reject") {
+      request.status = "rejected";
+      await request.save();
 
-      return res.send(`
-        <div style="text-align:center; margin-top:50px; font-family:sans-serif;">
-          <h2 style="color:red;">❌ Connection Request Rejected</h2>
-          <p>The request from <b>${sender.name}</b> was dismissed.</p>
-        </div>
-      `);
-    }
+      await sendEmail(
+        sender.email,
+        "Connection Request Rejected ❌",
+        `${receiver.name} has rejected your connection request.`,
+        `<p>Hi ${sender.name},</p>
+         <p>Unfortunately, <b>${receiver.name}</b> has rejected your connection request.</p>`
+      );
 
-    return res.send("<h2>⚠️ Invalid action</h2>");
-  } catch (err) {
-    console.error(err);
-    res.send("<h2>❌ Something went wrong</h2>");
-  }
+      return res.send(`
+        <div style="text-align:center; margin-top:50px; font-family:sans-serif;">
+          <h2 style="color:red;">❌ Connection Request Rejected</h2>
+          <p>The request from <b>${sender.name}</b> was dismissed.</p>
+        </div>
+      `);
+    }
+
+    return res.send("<h2>⚠️ Invalid action</h2>");
+  } catch (err) {
+    console.error(err);
+    res.send("<h2>❌ Something went wrong</h2>");
+  }
 };
 
 // Get pending connection requests for notifications
