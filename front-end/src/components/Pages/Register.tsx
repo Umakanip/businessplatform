@@ -304,7 +304,7 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
             </div>
 
             {/* Profile Image - positioned below phones */}
-            <div>
+            {/* <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Profile Image</label>
               <div className="flex items-center gap-4">
                 <div className="w-20 h-20 border-2 border-dashed border-gray-300 rounded-full flex items-center justify-center dark:border-gray-600">
@@ -317,7 +317,7 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
                 <button type="button" onClick={triggerFileInput} className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700 transition-all duration-200">Choose Image</button>
                 <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
               </div>
-            </div>
+            </div> */}
 
             {/* Bio for investors */}
             {formData.role === 'investor' && (
