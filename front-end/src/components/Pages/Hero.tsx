@@ -55,96 +55,119 @@ const Hero: React.FC = () => {
 
   return (
     <div className="font-sans text-gray-800">
-      {/* Hero Section */}
-      <section className="bg-white py-14 px-6 sm:px-12 lg:px-20 border-b border-gray-200">
-        <div className="max-w-7xl mx-auto flex flex-col lg:flex-row items-center justify-between gap-12">
+   {/* Hero Section */}
+      <section className="bg-white py-10 px-4 sm:px-8 lg:px-20 border-b border-gray-200">
+        <div className="max-w-7xl mx-auto flex flex-col lg:flex-row items-center justify-between gap-8">
           <div className="lg:w-1/2 text-center lg:text-left">
-            <h1 className="text-5xl font-extrabold mb-4 leading-tight">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold mb-3 leading-snug">
               Connect Idea Holders with Investors Seamlessly
             </h1>
-            <p className="text-lg text-gray-600 mb-8 max-w-lg lg:max-w-none mx-auto">
-              Share your ideas with the right investors, get feedback, and grow your venture. Our platform helps you find the perfect match for collaboration and funding.
+            <p className="text-sm sm:text-base md:text-lg text-gray-600 mb-6 max-w-lg lg:max-w-none mx-auto">
+              Share your ideas with the right investors, get feedback, and grow
+              your venture. Our platform helps you find the perfect match for
+              collaboration and funding.
             </p>
-            <div className="flex justify-center lg:justify-start space-x-4">
+            <div className="flex justify-center lg:justify-start space-x-3 sm:space-x-4">
               <button
-                onClick={() => handleButtonClick('ideaHolder')}
-                className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-6 py-3 rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all duration-500"
+                onClick={() => handleButtonClick("ideaHolder")}
+                className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-4 sm:px-5 md:px-6 py-2 sm:py-2.5 md:py-3 text-sm sm:text-base rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all duration-500"
               >
                 I HAVE AN IDEA
               </button>
               <button
-                onClick={() => handleButtonClick('investor')}
-                className="border border-purple-800 text-purple-800 font-semibold py-3 px-6 rounded-md hover:bg-purple-50 transition-colors"
+                onClick={() => handleButtonClick("investor")}
+                className="border border-purple-800 text-purple-800 font-semibold px-4 sm:px-5 md:px-6 py-2 sm:py-2.5 md:py-3 text-sm sm:text-base rounded-md hover:bg-purple-50 transition-colors"
               >
                 I AM AN INVESTOR
               </button>
             </div>
 
             {/* Dynamic Content Section */}
-            <div className="mt-8 text-left">
-              {activeContent === 'ideaHolder' && (
-                <div className="bg-gray-100 p-6 rounded-lg shadow-md">
-                  <h2 className="text-2xl font-bold mb-4">Are you an Idea Holder?</h2>
-                  <p className="text-gray-700">
-                    Many people have brilliant ideas but lack the financial resources to turn them into reality. If you have a solid business concept but need investment, you're in the right place. Our platform allows you to showcase your innovation and connect directly with investors who are actively looking for the next big thing. You can present your idea, discuss your vision, and secure the funding needed to launch and grow your venture.
+            <div className="mt-6 text-left">
+              {activeContent === "ideaHolder" && (
+                <div className="bg-gray-100 p-4 sm:p-6 rounded-lg shadow-md">
+                  <h2 className="text-xl sm:text-2xl font-bold mb-3">
+                    Are you an Idea Holder?
+                  </h2>
+                  <p className="text-sm sm:text-base text-gray-700">
+                    Many people have brilliant ideas but lack the financial
+                    resources to turn them into reality. If you have a solid
+                    business concept but need investment, you're in the right
+                    place. Our platform allows you to showcase your innovation
+                    and connect directly with investors who are actively looking
+                    for the next big thing.
                   </p>
                 </div>
               )}
-              {activeContent === 'investor' && (
-                <div className="bg-gray-100 p-6 rounded-lg shadow-md">
-                  <h2 className="text-2xl font-bold mb-4">Are you an Investor?</h2>
-                  <p className="text-gray-700">
-                    You have the capital, but you're searching for a promising opportunity. Instead of waiting for ideas to come to you, our platform gives you direct access to a curated list of innovative business concepts. You can browse various industries, evaluate potential ventures, and connect with passionate idea holders. By investing in these ideas, you not only find a new avenue for growth but also help a new generation of entrepreneurs succeed.
+              {activeContent === "investor" && (
+                <div className="bg-gray-100 p-4 sm:p-6 rounded-lg shadow-md">
+                  <h2 className="text-xl sm:text-2xl font-bold mb-3">
+                    Are you an Investor?
+                  </h2>
+                  <p className="text-sm sm:text-base text-gray-700">
+                    You have the capital, but you're searching for a promising
+                    opportunity. Instead of waiting for ideas to come to you,
+                    our platform gives you direct access to a curated list of
+                    innovative business concepts.
                   </p>
                 </div>
               )}
             </div>
-
           </div>
-        {/* Right Side Images */}
-    <div className="lg:w-1/2 flex flex-col items-center lg:items-end gap-6">
-      {/* Main Big Image */}
-      <img
-        src={home}
-        alt="Illustration of connection"
-        className="w-[38rem] h-auto rounded-xl "
-      />
 
-      {/* Small Connection Image */}
-      <img
-        src={connection}   // 👉 import connection image at top
-        alt="Connection illustration"
-        className="w-40 h-auto rounded-lg "
-      />
-    </div>
-  </div>
+          {/* Right Side Images */}
+          <div className="lg:w-1/2 flex flex-col items-center lg:items-end gap-4 sm:gap-6">
+            <img
+              src={home}
+              alt="Illustration of connection"
+              className="w-60 sm:w-72 md:w-[30rem] lg:w-[38rem] h-auto rounded-xl"
+            />
+            <img
+              src={connection}
+              alt="Connection illustration"
+              className="w-24 sm:w-28 md:w-32 lg:w-40 h-auto rounded-lg"
+            />
+          </div>
+        </div>
       </section>
+
       {/* Stats Section */}
-      <section className="bg-white py-16 px-6 sm:px-12 lg:px-20 border-b border-gray-200">
+      <section className="bg-white py-12 px-4 sm:px-8 lg:px-20 border-b border-gray-200">
         <div className="max-w-5xl mx-auto text-center">
-          <h2 className="text-3xl font-bold mb-4">
+          <h2 className="text-2xl sm:text-3xl font-bold mb-3">
             Grow Your Network and Ideas Faster
           </h2>
-          <p className="text-lg text-gray-600 mb-12">
-            Whether you are an investor looking for promising ideas or an idea holder seeking support, our platform connects you with the right people efficiently.
+          <p className="text-sm sm:text-base md:text-lg text-gray-600 mb-8">
+            Whether you are an investor looking for promising ideas or an idea
+            holder seeking support, our platform connects you with the right
+            people efficiently.
           </p>
-          <div className="flex flex-col sm:flex-row justify-around items-center space-y-8 sm:space-y-0 sm:space-x-8">
-            <div className="text-center">
-              <div className="text-6xl font-extrabold text-purple-800">100+</div>
-              <p className="text-gray-600 mt-2">investors actively seeking new ideas</p>
+          <div className="flex flex-col sm:flex-row justify-around items-center space-y-6 sm:space-y-0 sm:space-x-6">
+            <div>
+              <div className="text-3xl sm:text-4xl md:text-6xl font-extrabold text-purple-800">
+                100+
+              </div>
+              <p className="text-xs sm:text-sm md:text-base text-gray-600 mt-1">
+                investors actively seeking new ideas
+              </p>
             </div>
-            <div className="text-center">
-              <div className="text-6xl font-extrabold text-purple-800">500+</div>
-              <p className="text-gray-600 mt-2">idea holders sharing their projects</p>
+            <div>
+              <div className="text-3xl sm:text-4xl md:text-6xl font-extrabold text-purple-800">
+                500+
+              </div>
+              <p className="text-xs sm:text-sm md:text-base text-gray-600 mt-1">
+                idea holders sharing their projects
+              </p>
             </div>
-            <div className="text-center">
-              <div className="text-6xl font-extrabold text-purple-800">90%</div>
-              <p className="text-gray-600 mt-2">successful connections between investors and idea holders</p>
+            <div>
+              <div className="text-3xl sm:text-4xl md:text-6xl font-extrabold text-purple-800">
+                90%
+              </div>
+              <p className="text-xs sm:text-sm md:text-base text-gray-600 mt-1">
+                successful connections between investors and idea holders
+              </p>
             </div>
           </div>
-          <p className="text-sm text-gray-500 mt-8">
-            Metrics based on verified connections on our platform. Results may vary.
-          </p>
         </div>
       </section>
 
