@@ -4,17 +4,79 @@ import User from "../models/user";
 import generateToken from "../utils/generateToken";
 
 // ========================== REGISTER ==========================
+// export const register = async (req: Request, res: Response) => {
+//   try {
+//     const { 
+//       name, 
+//       email, 
+//       password, 
+//       role, 
+//       primaryPhone, 
+//       secondaryPhone,
+//       categories,
+//       bio   // ✅ include bio from request
+//     } = req.body;
+
+//     const profileImage = req.file ? req.file.filename : "";
+
+//     if (!name || !email || !password || !role) {
+//       return res.status(400).json({ message: "Missing required fields" });
+//     }
+
+//     // Normalize role
+//     const normalizedRole = role === "ideaholder" ? "idealogist" : role;
+
+//     // ✅ Bio required only for investors
+//     if (normalizedRole === "investor" && (!bio || bio.trim() === "")) {
+//       return res.status(400).json({ message: "Investor must provide a bio" });
+//     }
+
+//     // Parse categories
+//     let parsedCategories: string[] = [];
+//     if (categories) {
+//       try {
+//         parsedCategories = JSON.parse(categories);
+//         if (!Array.isArray(parsedCategories)) {
+//           return res.status(400).json({ message: "Categories must be an array" });
+//         }
+//       } catch (err) {
+//         return res.status(400).json({ message: "Invalid categories format" });
+//       }
+//     }
+
+//     const exists = await User.findOne({ where: { email } });
+//     if (exists) {
+//       return res.status(409).json({ message: "Email already registered" });
+//     }
+
+//     const hash = await bcrypt.hash(password, 10);
+
+//     const user = await User.create({ 
+//       name, 
+//       email, 
+//       password: hash, 
+//       role: normalizedRole, 
+//       primaryPhone, 
+//       secondaryPhone, 
+//       category: parsedCategories, 
+//       profileImage,
+//       bio: normalizedRole === "investor" ? bio : null  // ✅ only store for investors
+//     });
+
+//     return res.status(201).json({
+//       message: "Registered successfully",
+//       user
+//     });
+//   } catch (error) {
+//     console.error("Register error:", error);
+//     return res.status(500).json({ message: "Internal server error" });
+//   }
+// };
 export const register = async (req: Request, res: Response) => {
   try {
     const { 
-      name, 
-      email, 
-      password, 
-      role, 
-      primaryPhone, 
-      secondaryPhone,
-      categories,
-      bio   // ✅ include bio from request
+      name, email, password, role, primaryPhone, secondaryPhone,
+      categories, bio, state, city   // ✅ include state & city
     } = req.body;
 
     const profileImage = req.file ? req.file.filename : "";
@@ -26,7 +88,7 @@ export const register = async (req: Request, res: Response) => {
     // Normalize role
     const normalizedRole = role === "ideaholder" ? "idealogist" : role;
 
-    // ✅ Bio required only for investors
+    // Bio required only for investors
     if (normalizedRole === "investor" && (!bio || bio.trim() === "")) {
       return res.status(400).json({ message: "Investor must provide a bio" });
     }
@@ -60,7 +122,9 @@ export const register = async (req: Request, res: Response) => {
       secondaryPhone, 
       category: parsedCategories, 
       profileImage,
-      bio: normalizedRole === "investor" ? bio : null  // ✅ only store for investors
+      bio: normalizedRole === "investor" ? bio : null,
+      state,  // ✅ store state
+      city    // ✅ store city
     });
 
     return res.status(201).json({

@@ -306,32 +306,47 @@ const ProfileInv: React.FC = () => {
             <h3 className="text-lg font-semibold text-white">
               Profile Details
             </h3>
-            <div className="flex items-center gap-2">
-              <span className="w-2.5 h-2.5 bg-green-500 rounded-full shadow-[0_0_5px_rgba(40,167,69,1)]"></span>
-              {editing ? (
-                <button
-                  onClick={handleSave}
-                  className="bg-green-500 text-white px-4 py-2 rounded-lg text-sm flex items-center gap-2 hover:bg-green-600 transition"
-                >
-                  <FontAwesomeIcon icon={faSave} /> Save
-                </button>
-              ) : (
-                <>
-                  <button
-                    onClick={handleEditClick}
-                    className="bg-pink-500 text-white px-4 py-2 rounded-lg text-sm flex items-center gap-2 hover:bg-pink-600 transition"
-                  >
-                    <FontAwesomeIcon icon={faEdit} /> Edit
-                  </button>
-                  <button
-                    onClick={handleLogout}
-                    className="bg-red-500 text-white px-4 py-2 rounded-lg text-sm flex items-center gap-2 hover:bg-red-600 transition"
-                  >
-                    <FontAwesomeIcon icon={faSignOutAlt} /> Logout
-                  </button>
-                </>
-              )}
-            </div>
+           <div className="flex items-center gap-2">
+  <span className="w-2.5 h-2.5 bg-green-500 rounded-full shadow-[0_0_5px_rgba(40,167,69,1)]"></span>
+  {editing ? (
+    <>
+      <button
+        onClick={handleSave}
+        className="bg-green-500 text-white px-4 py-2 rounded-lg text-sm flex items-center gap-2 hover:bg-green-600 transition"
+      >
+        <FontAwesomeIcon icon={faSave} /> Save
+      </button>
+      <button
+        onClick={() => {
+          if (initialUserData.current) setUser(initialUserData.current);
+          setEditing(false);
+          setIsBioEditing(false);
+          setSelectedFile(null);
+          setNewPassword("");
+        }}
+        className="bg-gray-500 text-white px-4 py-2 rounded-lg text-sm flex items-center gap-2 hover:bg-gray-600 transition"
+      >
+        Cancel
+      </button>
+    </>
+  ) : (
+    <>
+      <button
+        onClick={handleEditClick}
+        className="bg-pink-500 text-white px-4 py-2 rounded-lg text-sm flex items-center gap-2 hover:bg-pink-600 transition"
+      >
+        <FontAwesomeIcon icon={faEdit} /> Edit
+      </button>
+      <button
+        onClick={handleLogout}
+        className="bg-red-500 text-white px-4 py-2 rounded-lg text-sm flex items-center gap-2 hover:bg-red-600 transition"
+      >
+        <FontAwesomeIcon icon={faSignOutAlt} /> Logout
+      </button>
+    </>
+  )}
+</div>
+
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">

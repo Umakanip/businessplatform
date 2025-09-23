@@ -20,6 +20,8 @@ interface UserAttributes {
   createdAt?: Date;
   updatedAt?: Date;
   viewCount?: number;
+  state?: string;        // ✅ new
+  city?: string;         // ✅ new
 }
 
 type UserCreation = Optional<UserAttributes, "id" | "connect">;
@@ -41,6 +43,9 @@ class User extends Model<UserAttributes, UserCreation> implements UserAttributes
 public viewCount?: number;
   // 👇 Only type hint, not real association
   public subscription?: Subscription;
+   // ✅ Make state and city public
+  public state?: string;
+  public city?: string;
 }
 
 User.init(
@@ -57,6 +62,8 @@ User.init(
     bio: { type: DataTypes.STRING(250), allowNull: true },
     connect: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 },
     viewCount: { type: DataTypes.INTEGER.UNSIGNED, allowNull: false, defaultValue: 0 },
+    state: { type: DataTypes.STRING(100), allowNull: true },  // ✅ new
+    city: { type: DataTypes.STRING(100), allowNull: true },   // ✅ new
   },
   { sequelize, modelName: "User", tableName: "users", timestamps: true }
 );
