@@ -62,21 +62,21 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
     'Real Estate', 'Manufacturing', 'Retail & E-commerce', 'Entertainment & Media',
     'Food & Beverage', 'Transportation & Logistics', 'Energy & Environment', 'Other'
   ];
-const [statesList, setStatesList] = useState<any[]>([]);
-const [citiesList, setCitiesList] = useState<any[]>([]);
+  const [statesList, setStatesList] = useState<any[]>([]);
+  const [citiesList, setCitiesList] = useState<any[]>([]);
 
-useEffect(() => {
-  const indianStates = State.getStatesOfCountry("IN"); // Only India
-  setStatesList(indianStates);
-}, []);
+  useEffect(() => {
+    const indianStates = State.getStatesOfCountry("IN"); // Only India
+    setStatesList(indianStates);
+  }, []);
 
-const handleStateChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-  const selectedState = e.target.value;
-  setFormData({ ...formData, state: selectedState, city: '' });
-  
-  const cities = City.getCitiesOfState("IN", selectedState);
-  setCitiesList(cities);
-};
+  const handleStateChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedState = e.target.value;
+    setFormData({ ...formData, state: selectedState, city: '' });
+
+    const cities = City.getCitiesOfState("IN", selectedState);
+    setCitiesList(cities);
+  };
 
 
   useEffect(() => {
@@ -121,8 +121,8 @@ const handleStateChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     else if (!/^\d{10}$/.test(formData.primaryPhone)) newErrors.primaryPhone = "Phone must be exactly 10 digits";
     if (formData.categories.length === 0) newErrors.categories = ['Please select at least one category'];
     if (formData.role === "investor" && !formData.bio.trim()) newErrors.bio = "Bio is required for investors";
-if (!formData.state) newErrors.state = "State is required";
-if (!formData.city) newErrors.city = "City is required";
+    if (!formData.state) newErrors.state = "State is required";
+    if (!formData.city) newErrors.city = "City is required";
 
     setErrors(newErrors);
 
@@ -134,52 +134,52 @@ if (!formData.city) newErrors.city = "City is required";
     return true;
   };
 
-const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  if (!validateForm()) return;
-  setIsLoading(true);
-  setApiError(null);
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!validateForm()) return;
+    setIsLoading(true);
+    setApiError(null);
 
-  try {
-    const formDataToSend = new FormData();
-    formDataToSend.append("role", formData.role);
-    formDataToSend.append("name", formData.name);
-    formDataToSend.append("email", formData.email);
-    formDataToSend.append("password", formData.password);
-    formDataToSend.append("primaryPhone", formData.primaryPhone);
-    formDataToSend.append("secondaryPhone", formData.secondaryPhone);
-    formDataToSend.append("categories", JSON.stringify(formData.categories));
-    formDataToSend.append("state", formData.state);  // ✅ Add this
-    formDataToSend.append("city", formData.city);    // ✅ Add this
-    if (formData.profileImage) formDataToSend.append("profileImage", formData.profileImage);
-    if (formData.role === "investor") formDataToSend.append("bio", formData.bio);
+    try {
+      const formDataToSend = new FormData();
+      formDataToSend.append("role", formData.role);
+      formDataToSend.append("name", formData.name);
+      formDataToSend.append("email", formData.email);
+      formDataToSend.append("password", formData.password);
+      formDataToSend.append("primaryPhone", formData.primaryPhone);
+      formDataToSend.append("secondaryPhone", formData.secondaryPhone);
+      formDataToSend.append("categories", JSON.stringify(formData.categories));
+      formDataToSend.append("state", formData.state);  // ✅ Add this
+      formDataToSend.append("city", formData.city);    // ✅ Add this
+      if (formData.profileImage) formDataToSend.append("profileImage", formData.profileImage);
+      if (formData.role === "investor") formDataToSend.append("bio", formData.bio);
 
-    await axiosInstance.post("/auth/register", formDataToSend, { 
-      headers: { "Content-Type": "multipart/form-data" } 
-    });
+      await axiosInstance.post("/auth/register", formDataToSend, {
+        headers: { "Content-Type": "multipart/form-data" }
+      });
 
-    Swal.fire({ 
-      icon: "success", 
-      title: "Registration Successful!", 
-      text: "Your account has been created.", 
-      timer: 2000, 
-      showConfirmButton: false, 
-      position: "center" 
-    });
-    onSwitchToLogin();
-  } catch (error: any) {
-    console.error("Registration error:", error);
-    Swal.fire({ 
-      icon: "error", 
-      title: "Registration Failed", 
-      text: error.response?.data?.message || "Something went wrong. Please try again.", 
-      confirmButtonText: "Close", 
-      position: "center" 
-    });
-  } finally { 
-    setIsLoading(false); 
-  }
-};
+      Swal.fire({
+        icon: "success",
+        title: "Registration Successful!",
+        text: "Your account has been created.",
+        timer: 2000,
+        showConfirmButton: false,
+        position: "center"
+      });
+      onSwitchToLogin();
+    } catch (error: any) {
+      console.error("Registration error:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Registration Failed",
+        text: error.response?.data?.message || "Something went wrong. Please try again.",
+        confirmButtonText: "Close",
+        position: "center"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
 
   const triggerFileInput = () => { fileInputRef.current?.click(); };
@@ -363,41 +363,44 @@ const handleSubmit = async (e: React.FormEvent) => {
             </div> */}
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-  {/* State */}
-<div>
-  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">State *</label>
- <select
-  name="state"
-  value={formData.state}
-  onChange={handleStateChange} // <-- use this
-  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white ${errors.state ? 'border-red-500' : 'border-gray-300'}`}
->
-  <option value="">Select State</option>
-  {statesList.map((state) => (
-    <option key={state.isoCode} value={state.isoCode}>{state.name}</option>
-  ))}
-</select>
+              {/* State */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">State *</label>
+                <select
+                  name="state"
+                  value={formData.state}
+                  onChange={handleStateChange} // <-- use this
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white ${errors.state ? 'border-red-500' : 'border-gray-300'}`}
+                >
+                  <option value="">Select State</option>
+                  {statesList.map((state) => (
+                    <option key={state.isoCode} value={state.name}>
+                      {state.name}
+                    </option>
 
-  {errors.state && <p className="text-red-500 text-sm mt-1">{errors.state}</p>}
-</div>
+                  ))}
+                </select>
+
+                {errors.state && <p className="text-red-500 text-sm mt-1">{errors.state}</p>}
+              </div>
 
 
-  {/* City */}
- <div>
-  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">City *</label>
-  <input
-    type="text"
-    name="city"
-    value={formData.city}
-    onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-    placeholder={formData.state ? "Enter city" : "Select state first"}
-    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white ${errors.city ? 'border-red-500' : 'border-gray-300'}`}
-    disabled={!formData.state}
-  />
-  {errors.city && <p className="text-red-500 text-sm mt-1">{errors.city}</p>}
-</div>
+              {/* City */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">City *</label>
+                <input
+                  type="text"
+                  name="city"
+                  value={formData.city}
+                  onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                  placeholder={formData.state ? "Enter city" : "Select state first"}
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white ${errors.city ? 'border-red-500' : 'border-gray-300'}`}
+                  disabled={!formData.state}
+                />
+                {errors.city && <p className="text-red-500 text-sm mt-1">{errors.city}</p>}
+              </div>
 
-</div>
+            </div>
 
 
             {/* Bio for investors */}

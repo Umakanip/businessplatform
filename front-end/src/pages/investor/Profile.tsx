@@ -22,6 +22,8 @@ interface UserProfile {
   category: string[];
   profileImage?: string;
   bio?: string;
+  state?: string;   // ✅ new
+  city?: string;    // ✅ new
 }
 
 const ProfileInv: React.FC = () => {
@@ -34,6 +36,8 @@ const ProfileInv: React.FC = () => {
   const [showSuccess, setShowSuccess] = useState(false);
   const [isCategoriesDropdownOpen, setIsCategoriesDropdownOpen] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  // State to control bio editing separate from general editing
+  const [isBioEditing, setIsBioEditing] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Store initial user data to check for changes
@@ -157,6 +161,7 @@ const ProfileInv: React.FC = () => {
 
     if (!isChanged) {
       setEditing(false);
+      setIsBioEditing(false);
       return; // Do nothing if no changes were made
     }
 
@@ -170,6 +175,10 @@ const ProfileInv: React.FC = () => {
     if (newPassword) form.append("password", newPassword);
     if (selectedFile) form.append("profileImage", selectedFile);
     if (user.bio) form.append("bio", user.bio);
+    if (user.bio === '') form.append("bio", '');
+// ✅ Add new fields
+if (user.state) form.append("state", user.state);
+if (user.city) form.append("city", user.city);
 
     try {
       await axios.put(
@@ -184,6 +193,7 @@ const ProfileInv: React.FC = () => {
       );
 
       setEditing(false);
+      setIsBioEditing(false);
       setNewPassword("");
       setSelectedFile(null);
       
@@ -217,6 +227,19 @@ const ProfileInv: React.FC = () => {
     navigate("/auth");
   };
 
+  const handleEditClick = () => {
+    setEditing(true);
+    // If the user has a bio, also enable bio editing
+    if (user?.bio) {
+      setIsBioEditing(true);
+    }
+  };
+
+  const handleBioEditClick = () => {
+    setIsBioEditing(true);
+    setEditing(true); // Also set the main editing mode
+  };
+
   if (!user) {
     return (
       <div className="min-h-screen bg-[#1a1a1a] flex items-center justify-center text-[#c0c0c0]">
@@ -231,6 +254,7 @@ const ProfileInv: React.FC = () => {
         {/* Left Panel */}
         <div className="flex-grow md:flex-grow-0 md:basis-1/3 bg-[#2a2a2a] p-6 rounded-xl shadow-xl flex flex-col items-center text-center">
           <div className="relative w-48 h-48 md:w-52 md:h-52 rounded-full border-4 border-[#3c3c3c] p-1 bg-[#2a2a2a] flex items-center justify-center">
+            {/* Conditional rendering for profile image or first letter */}
             {preview || user.profileImage ? (
               <img
                 src={
@@ -286,46 +310,47 @@ const ProfileInv: React.FC = () => {
             <h3 className="text-lg font-semibold text-white">
               Profile Details
             </h3>
-            <div className="flex items-center gap-2">
-              <span className="w-2.5 h-2.5 bg-green-500 rounded-full shadow-[0_0_5px_rgba(40,167,69,1)]"></span>
-             {editing ? (
-  <>
-    <button
-      onClick={handleSave}
-      className="bg-green-500 text-white px-4 py-2 rounded-lg text-sm flex items-center gap-2 hover:bg-green-600 transition"
-    >
-      <FontAwesomeIcon icon={faSave} /> Save
-    </button>
-    <button
-      onClick={() => {
-        if (initialUserData.current) setUser(initialUserData.current);
-        setEditing(false);
-        setSelectedFile(null);
-        setNewPassword("");
-      }}
-      className="bg-gray-500 text-white px-4 py-2 rounded-lg text-sm flex items-center gap-2 hover:bg-gray-600 transition"
-    >
-      Cancel
-    </button>
-  </>
-) : (
-  <>
-    <button
-      onClick={() => setEditing(true)}
-      className="bg-pink-500 text-white px-4 py-2 rounded-lg text-sm flex items-center gap-2 hover:bg-pink-600 transition"
-    >
-      <FontAwesomeIcon icon={faEdit} /> Edit
-    </button>
-    <button
-      onClick={handleLogout}
-      className="bg-red-500 text-white px-4 py-2 rounded-lg text-sm flex items-center gap-2 hover:bg-red-600 transition"
-    >
-      <FontAwesomeIcon icon={faSignOutAlt} /> Logout
-    </button>
-  </>
-)}
+           <div className="flex items-center gap-2">
+  <span className="w-2.5 h-2.5 bg-green-500 rounded-full shadow-[0_0_5px_rgba(40,167,69,1)]"></span>
+  {editing ? (
+    <>
+      <button
+        onClick={handleSave}
+        className="bg-green-500 text-white px-4 py-2 rounded-lg text-sm flex items-center gap-2 hover:bg-green-600 transition"
+      >
+        <FontAwesomeIcon icon={faSave} /> Save
+      </button>
+      <button
+        onClick={() => {
+          if (initialUserData.current) setUser(initialUserData.current);
+          setEditing(false);
+          setIsBioEditing(false);
+          setSelectedFile(null);
+          setNewPassword("");
+        }}
+        className="bg-gray-500 text-white px-4 py-2 rounded-lg text-sm flex items-center gap-2 hover:bg-gray-600 transition"
+      >
+        Cancel
+      </button>
+    </>
+  ) : (
+    <>
+      <button
+        onClick={handleEditClick}
+        className="bg-pink-500 text-white px-4 py-2 rounded-lg text-sm flex items-center gap-2 hover:bg-pink-600 transition"
+      >
+        <FontAwesomeIcon icon={faEdit} /> Edit
+      </button>
+      <button
+        onClick={handleLogout}
+        className="bg-red-500 text-white px-4 py-2 rounded-lg text-sm flex items-center gap-2 hover:bg-red-600 transition"
+      >
+        <FontAwesomeIcon icon={faSignOutAlt} /> Logout
+      </button>
+    </>
+  )}
+</div>
 
-            </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
@@ -417,6 +442,43 @@ const ProfileInv: React.FC = () => {
                 </span>
               )}
             </div>
+
+            <div className="flex flex-col">
+  <span className="text-xs text-[#808080]">State</span>
+  {editing ? (
+    <input
+      type="text"
+      name="state"
+      value={user.state || ""}
+      onChange={handleEditChange}
+      className="text-base text-[#e0e0e0] bg-[#3a3a3a] rounded px-2 py-1"
+      placeholder="Enter your state"
+    />
+  ) : (
+    <span className="text-base text-[#e0e0e0]">
+      {user.state || "—"}
+    </span>
+  )}
+</div>
+
+<div className="flex flex-col">
+  <span className="text-xs text-[#808080]">City</span>
+  {editing ? (
+    <input
+      type="text"
+      name="city"
+      value={user.city || ""}
+      onChange={handleEditChange}
+      className="text-base text-[#e0e0e0] bg-[#3a3a3a] rounded px-2 py-1"
+      placeholder="Enter your city"
+    />
+  ) : (
+    <span className="text-base text-[#e0e0e0]">
+      {user.city || "—"}
+    </span>
+  )}
+</div>
+
             <div className="flex flex-col">
               <span className="text-xs text-[#808080]">Role</span>
               <span className="text-base text-[#e0e0e0] capitalize">
@@ -439,36 +501,37 @@ const ProfileInv: React.FC = () => {
             <div className="flex flex-col col-span-1 md:col-span-2">
               <div className="flex justify-between items-center">
                 <span className="text-xs text-[#808080]">Bio</span>
-                {/* ✅ New logic for Add/Edit Bio button */}
-                {!editing && user.bio && (
-                  <button
-                    onClick={() => setEditing(true)}
-                    className="text-pink-500 hover:text-pink-400 transition"
-                  >
-                    <FontAwesomeIcon icon={faEdit} className="mr-1" /> Edit Bio
-                  </button>
-                )}
+                {/* Conditionally render "Add Bio" or "Edit Bio" button */}
                 {!editing && !user.bio && (
                   <button
-                    onClick={() => setEditing(true)}
-                    className="text-pink-500 hover:text-pink-400 transition"
+                    onClick={handleBioEditClick}
+                    className="text-xs text-pink-500 hover:text-purple-500 transition flex items-center gap-1"
                   >
-                    <FontAwesomeIcon icon={faPlus} className="mr-1" /> Add Bio
+                    <FontAwesomeIcon icon={faPlus} className="text-xs" /> Add Bio
+                  </button>
+                )}
+                {!editing && user.bio && (
+                  <button
+                    onClick={handleBioEditClick}
+                    className="text-xs text-pink-500 hover:text-purple-500 transition flex items-center gap-1"
+                  >
+                    <FontAwesomeIcon icon={faEdit} className="text-xs" /> Edit Bio
                   </button>
                 )}
               </div>
-              {editing ? (
+              {/* Conditionally render the textarea for editing */}
+              {isBioEditing ? (
                 <textarea
                   name="bio"
                   value={user.bio || ""}
                   onChange={handleEditChange}
                   maxLength={250}
                   rows={3}
-                  className="text-base text-[#e0e0e0] bg-[#3a3a3a] rounded px-2 py-1 resize-none mt-2"
+                  className="text-base text-[#e0e0e0] bg-[#3a3a3a] rounded px-2 py-1 resize-none"
                   placeholder="Write something about yourself (max 250 characters)..."
                 />
               ) : (
-                <span className="text-base text-[#e0e0e0] whitespace-pre-line mt-2">
+                <span className="text-base text-[#e0e0e0] whitespace-pre-line">
                   {user.bio || ""}
                 </span>
               )}
@@ -511,4 +574,5 @@ const ProfileInv: React.FC = () => {
     </div>
   );
 };
+
 export default ProfileInv;

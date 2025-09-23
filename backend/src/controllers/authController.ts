@@ -232,7 +232,7 @@ export const updateProfile = async (req: Request & { user?: any }, res: Response
   try {
     if (!req.user) return res.status(401).json({ message: "Unauthorized" });
 
-    const { name, email, primaryPhone, secondaryPhone, category, bio, password } = req.body;
+    const { name, email, primaryPhone, secondaryPhone, category, bio, password,state,city } = req.body;
     const profileImage = req.file ? req.file.filename : undefined;
 
     // ✅ Parse categories if it's a JSON string
@@ -259,6 +259,8 @@ export const updateProfile = async (req: Request & { user?: any }, res: Response
       secondaryPhone,
       category: parsedCategories, // ✅ Correctly store as array
       bio,
+      state,
+      city
     };
 
     if (password) {

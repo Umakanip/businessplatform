@@ -22,9 +22,11 @@ interface UserProfile {
   category: string[];
   profileImage?: string;
   bio?: string;
+  state?: string;   // ✅ new
+  city?: string;    // ✅ new
 }
 
-const ProfileInv: React.FC = () => {
+const ProfileIH: React.FC = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState<UserProfile | null>(null);
   const [editing, setEditing] = useState(false);
@@ -174,7 +176,9 @@ const ProfileInv: React.FC = () => {
     if (selectedFile) form.append("profileImage", selectedFile);
     if (user.bio) form.append("bio", user.bio);
     if (user.bio === '') form.append("bio", '');
-
+// ✅ Add new fields
+if (user.state) form.append("state", user.state);
+if (user.city) form.append("city", user.city);
 
     try {
       await axios.put(
@@ -438,6 +442,43 @@ const ProfileInv: React.FC = () => {
                 </span>
               )}
             </div>
+
+            <div className="flex flex-col">
+  <span className="text-xs text-[#808080]">State</span>
+  {editing ? (
+    <input
+      type="text"
+      name="state"
+      value={user.state || ""}
+      onChange={handleEditChange}
+      className="text-base text-[#e0e0e0] bg-[#3a3a3a] rounded px-2 py-1"
+      placeholder="Enter your state"
+    />
+  ) : (
+    <span className="text-base text-[#e0e0e0]">
+      {user.state || "—"}
+    </span>
+  )}
+</div>
+
+<div className="flex flex-col">
+  <span className="text-xs text-[#808080]">City</span>
+  {editing ? (
+    <input
+      type="text"
+      name="city"
+      value={user.city || ""}
+      onChange={handleEditChange}
+      className="text-base text-[#e0e0e0] bg-[#3a3a3a] rounded px-2 py-1"
+      placeholder="Enter your city"
+    />
+  ) : (
+    <span className="text-base text-[#e0e0e0]">
+      {user.city || "—"}
+    </span>
+  )}
+</div>
+
             <div className="flex flex-col">
               <span className="text-xs text-[#808080]">Role</span>
               <span className="text-base text-[#e0e0e0] capitalize">
@@ -534,4 +575,4 @@ const ProfileInv: React.FC = () => {
   );
 };
 
-export default ProfileInv;
+export default ProfileIH;
