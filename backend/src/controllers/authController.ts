@@ -4,79 +4,12 @@ import User from "../models/user";
 import generateToken from "../utils/generateToken";
 
 // ========================== REGISTER ==========================
-// export const register = async (req: Request, res: Response) => {
-//   try {
-//     const { 
-//       name, 
-//       email, 
-//       password, 
-//       role, 
-//       primaryPhone, 
-//       secondaryPhone,
-//       categories,
-//       bio   // ✅ include bio from request
-//     } = req.body;
 
-//     const profileImage = req.file ? req.file.filename : "";
-
-//     if (!name || !email || !password || !role) {
-//       return res.status(400).json({ message: "Missing required fields" });
-//     }
-
-//     // Normalize role
-//     const normalizedRole = role === "ideaholder" ? "idealogist" : role;
-
-//     // ✅ Bio required only for investors
-//     if (normalizedRole === "investor" && (!bio || bio.trim() === "")) {
-//       return res.status(400).json({ message: "Investor must provide a bio" });
-//     }
-
-//     // Parse categories
-//     let parsedCategories: string[] = [];
-//     if (categories) {
-//       try {
-//         parsedCategories = JSON.parse(categories);
-//         if (!Array.isArray(parsedCategories)) {
-//           return res.status(400).json({ message: "Categories must be an array" });
-//         }
-//       } catch (err) {
-//         return res.status(400).json({ message: "Invalid categories format" });
-//       }
-//     }
-
-//     const exists = await User.findOne({ where: { email } });
-//     if (exists) {
-//       return res.status(409).json({ message: "Email already registered" });
-//     }
-
-//     const hash = await bcrypt.hash(password, 10);
-
-//     const user = await User.create({ 
-//       name, 
-//       email, 
-//       password: hash, 
-//       role: normalizedRole, 
-//       primaryPhone, 
-//       secondaryPhone, 
-//       category: parsedCategories, 
-//       profileImage,
-//       bio: normalizedRole === "investor" ? bio : null  // ✅ only store for investors
-//     });
-
-//     return res.status(201).json({
-//       message: "Registered successfully",
-//       user
-//     });
-//   } catch (error) {
-//     console.error("Register error:", error);
-//     return res.status(500).json({ message: "Internal server error" });
-//   }
-// };
 export const register = async (req: Request, res: Response) => {
   try {
-    const { 
+    const {
       name, email, password, role, primaryPhone, secondaryPhone,
-      categories, bio, state, city   // ✅ include state & city
+      categories, bio, state, city, maxInvestment, minInvestment   // ✅ include state & city
     } = req.body;
 
     const profileImage = req.file ? req.file.filename : "";
@@ -113,18 +46,20 @@ export const register = async (req: Request, res: Response) => {
 
     const hash = await bcrypt.hash(password, 10);
 
-    const user = await User.create({ 
-      name, 
-      email, 
-      password: hash, 
-      role: normalizedRole, 
-      primaryPhone, 
-      secondaryPhone, 
-      category: parsedCategories, 
+    const user = await User.create({
+      name,
+      email,
+      password: hash,
+      role: normalizedRole,
+      primaryPhone,
+      secondaryPhone,
+      category: parsedCategories,
       profileImage,
       bio: normalizedRole === "investor" ? bio : null,
       state,  // ✅ store state
-      city    // ✅ store city
+      city,    // ✅ store city
+      maxInvestment: normalizedRole === "investor" ? maxInvestment : null,
+      minInvestment: normalizedRole === "investor" ? minInvestment : null,
     });
 
     return res.status(201).json({
@@ -177,12 +112,12 @@ export const login = async (req: Request, res: Response) => {
 
     return res.status(200).json({
       token,
-      user: { 
-        id: user.id, 
-        name: user.name, 
-        email: user.email, 
-        role: user.role, 
-        category: user.category || null 
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        category: user.category || null
       },
       investors // empty if role != idealogist
     });
@@ -232,7 +167,7 @@ export const updateProfile = async (req: Request & { user?: any }, res: Response
   try {
     if (!req.user) return res.status(401).json({ message: "Unauthorized" });
 
-    const { name, email, primaryPhone, secondaryPhone, category, bio, password,state,city } = req.body;
+    const { name, email, primaryPhone, secondaryPhone, category, bio, password, state, city, maxInvestment, minInvestment } = req.body;
     const profileImage = req.file ? req.file.filename : undefined;
 
     // ✅ Parse categories if it's a JSON string
@@ -260,7 +195,9 @@ export const updateProfile = async (req: Request & { user?: any }, res: Response
       category: parsedCategories, // ✅ Correctly store as array
       bio,
       state,
-      city
+      city,
+      maxInvestment,
+      minInvestment
     };
 
     if (password) {

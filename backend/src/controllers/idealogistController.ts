@@ -76,6 +76,8 @@ export const getMatchingInvestors = async (
         "secondaryPhone",
         "role",
         "bio",
+          "minInvestment",   // 🔹 added
+        "maxInvestment", 
       ],
       include: [
         {
@@ -152,6 +154,8 @@ export const getMatchingInvestors = async (
         secondaryPhone: i.secondaryPhone,
         profileImage: i.profileImage,
         bio: i.bio,
+           minInvestment: i.minInvestment,   // 🔹 added
+        maxInvestment: i.maxInvestment,   // 🔹 added
         category: matchingCategories,
         status,
         hasActiveSubscription: investorHasActiveSubscription, // ✅ frontend will use this

@@ -30,6 +30,8 @@ interface FormData {
   bio: string;
   state: string;
   city: string;
+  minInvestment?: string;   // ✅ added
+  maxInvestment?: string;   // ✅ added
 }
 
 const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
@@ -46,7 +48,9 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
     profileImage: null,
     bio: '',
     state: '',
-    city: ''
+    city: '',
+    minInvestment: '',
+    maxInvestment: ''
   });
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Partial<FormData>>({});
@@ -123,6 +127,14 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
     if (formData.role === "investor" && !formData.bio.trim()) newErrors.bio = "Bio is required for investors";
     if (!formData.state) newErrors.state = "State is required";
     if (!formData.city) newErrors.city = "City is required";
+    if (formData.role === "investor") {
+      // if (!formData.bio.trim()) newErrors.bio = "Bio is required for investors";
+      if (!formData.minInvestment) newErrors.minInvestment = "Minimum amount is required";
+      if (!formData.maxInvestment) newErrors.maxInvestment = "Maximum amount is required";
+      else if (Number(formData.minInvestment) > Number(formData.maxInvestment)) {
+        newErrors.maxInvestment = "Maximum must be greater than Minimum";
+      }
+    }
 
     setErrors(newErrors);
 
@@ -152,7 +164,12 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
       formDataToSend.append("state", formData.state);  // ✅ Add this
       formDataToSend.append("city", formData.city);    // ✅ Add this
       if (formData.profileImage) formDataToSend.append("profileImage", formData.profileImage);
-      if (formData.role === "investor") formDataToSend.append("bio", formData.bio);
+      // if (formData.role === "investor") formDataToSend.append("bio", formData.bio);
+      if (formData.role === "investor") {
+        formDataToSend.append("bio", formData.bio);
+        formDataToSend.append("minInvestment", formData.minInvestment || "");
+        formDataToSend.append("maxInvestment", formData.maxInvestment || "");
+      }
 
       await axiosInstance.post("/auth/register", formDataToSend, {
         headers: { "Content-Type": "multipart/form-data" }
@@ -412,6 +429,47 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
                 {errors.bio && <p className="text-red-500 text-sm mt-1">{errors.bio}</p>}
               </div>
             )}
+
+            {formData.role === 'investor' && (
+              <>
+                {/* Min Investment */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Minimum Investment Amount *
+                  </label>
+                  <input
+                    type="number"
+                    name="minInvestment"
+                    value={formData.minInvestment}
+                    onChange={handleChange}
+                    placeholder="Enter minimum amount"
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 
+          dark:bg-gray-700 dark:border-gray-600 dark:text-white 
+          ${errors.minInvestment ? 'border-red-500' : 'border-gray-300'}`}
+                  />
+                  {errors.minInvestment && <p className="text-red-500 text-sm mt-1">{errors.minInvestment}</p>}
+                </div>
+
+                {/* Max Investment */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Maximum Investment Amount *
+                  </label>
+                  <input
+                    type="number"
+                    name="maxInvestment"
+                    value={formData.maxInvestment}
+                    onChange={handleChange}
+                    placeholder="Enter maximum amount"
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 
+          dark:bg-gray-700 dark:border-gray-600 dark:text-white 
+          ${errors.maxInvestment ? 'border-red-500' : 'border-gray-300'}`}
+                  />
+                  {errors.maxInvestment && <p className="text-red-500 text-sm mt-1">{errors.maxInvestment}</p>}
+                </div>
+              </>
+            )}
+
 
             {/* Submit */}
             <button

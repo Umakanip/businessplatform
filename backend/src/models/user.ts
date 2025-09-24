@@ -22,6 +22,8 @@ interface UserAttributes {
   viewCount?: number;
   state?: string;        // ✅ new
   city?: string;         // ✅ new
+   maxInvestment?: number;   // ✅ new
+  minInvestment?: number; 
 }
 
 type UserCreation = Optional<UserAttributes, "id" | "connect">;
@@ -46,6 +48,8 @@ public viewCount?: number;
    // ✅ Make state and city public
   public state?: string;
   public city?: string;
+  public maxInvestment?: number;   // ✅ new
+  public minInvestment?: number; 
 }
 
 User.init(
@@ -64,6 +68,8 @@ User.init(
     viewCount: { type: DataTypes.INTEGER.UNSIGNED, allowNull: false, defaultValue: 0 },
     state: { type: DataTypes.STRING(100), allowNull: true },  // ✅ new
     city: { type: DataTypes.STRING(100), allowNull: true },   // ✅ new
+     maxInvestment: { type: DataTypes.INTEGER, allowNull: true },
+    minInvestment: { type: DataTypes.INTEGER, allowNull: true },
   },
   { sequelize, modelName: "User", tableName: "users", timestamps: true }
 );
