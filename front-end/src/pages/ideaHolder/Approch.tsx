@@ -20,7 +20,7 @@ type Profile = {
   category: string[];
   profileImage: string | null;
   status?: "pending" | "accepted" | "rejected" | "none";
-   hasActiveSubscription?: boolean;
+  hasActiveSubscription?: boolean;
 };
 
 type ProfileDetail = Profile & {
@@ -28,6 +28,8 @@ type ProfileDetail = Profile & {
   secondaryPhone?: string;
   role?: string;
   bio?: string;
+  minInvestment?: number;
+  maxInvestment?: number;
 };
 
 const IhApproch: React.FC = () => {
@@ -66,7 +68,7 @@ const IhApproch: React.FC = () => {
           headers: { Authorization: `Bearer ${token}` },
         });
         const allProfiles: Profile[] = res.data.investors || [];
-        
+
         // Step 2: Use the new flags from the backend
         setProfiles(allProfiles);
         setIdealogistHasPaidSubscription(res.data.idealogistHasPaidSubscription);
@@ -145,7 +147,7 @@ const IhApproch: React.FC = () => {
             : [];
           // ✅ New locking logic: lock if idealogist is NOT subscribed
           const isLocked =
-  !idealogistHasPaidSubscription || !profile.hasActiveSubscription;
+            !idealogistHasPaidSubscription || !profile.hasActiveSubscription;
 
           return (
             <div
@@ -297,11 +299,10 @@ const IhApproch: React.FC = () => {
                           });
                         }
                       }}
-                      className={`w-full font-semibold py-2 rounded-full shadow text-sm mt-2 flex items-center justify-center gap-2 ${
-                        isLocked
-                          ? "bg-gradient-to-r from-purple-600 to-blue-600 text-white cursor-not-allowed "
-                          : "bg-gradient-to-r from-purple-600 to-blue-600 text-white"
-                      }`}
+                      className={`w-full font-semibold py-2 rounded-full shadow text-sm mt-2 flex items-center justify-center gap-2 ${isLocked
+                        ? "bg-gradient-to-r from-purple-600 to-blue-600 text-white cursor-not-allowed "
+                        : "bg-gradient-to-r from-purple-600 to-blue-600 text-white"
+                        }`}
                     >
                       {isLocked ? (
                         <>
@@ -338,7 +339,8 @@ const IhApproch: React.FC = () => {
                   <img
                     src={`http://localhost:5000/uploads/${selectedProfile.profileImage}`}
                     alt={selectedProfile.name}
-                    className={`w-24 h-24 rounded-full object-cover border-4 border-white shadow-lg ${!idealogistHasPaidSubscription ? "blur-md" : ""}`}
+                    className={`w-24 h-24 rounded-full object-cover border-4 border-white shadow-lg ${!idealogistHasPaidSubscription ? "blur-md" : ""
+                      }`}
                   />
                 ) : (
                   <AvatarWithFirstLetter
@@ -357,12 +359,12 @@ const IhApproch: React.FC = () => {
 
               {/* Action Buttons */}
               <div className="flex items-center justify-center gap-3 mt-4">
-                {/* View Contact Button (always visible) */}
+                {/* Toggle Contact Button */}
                 <button
-                  onClick={() => setShowContact(true)}
+                  onClick={() => setShowContact(!showContact)}
                   className="px-4 py-2 rounded-md text-sm font-medium bg-white text-blue-700 border border-gray-200 hover:bg-gray-50 shadow-sm transition"
                 >
-                  View Contact
+                  {showContact ? "Close Contact" : "View Contact"}
                 </button>
 
                 {/* View Plans Button (only for locked profiles) */}
@@ -376,11 +378,42 @@ const IhApproch: React.FC = () => {
                 )}
               </div>
 
-              {/* Name + Role */}
-              <h2 className="text-lg font-semibold text-white mt-4">
-                {selectedProfile.name}
-              </h2>
-              <p className="text-blue-100 text-sm">{selectedProfile.role}</p>
+              {/* 👉 Swap Content */}
+              {showContact ? (
+                <div className="mt-4 space-y-2 text-white text-sm">
+                  <div className="flex items-center justify-center space-x-2">
+                    <FontAwesomeIcon icon={faEnvelope} className="text-blue-200" />
+                    <span>
+                      {idealogistHasPaidSubscription
+                        ? selectedProfile.email
+                        : maskEmail(selectedProfile.email)}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-center space-x-2">
+                    <FontAwesomeIcon icon={faPhone} className="text-blue-200" />
+                    <span>
+                      {idealogistHasPaidSubscription
+                        ? selectedProfile.primaryPhone || "-"
+                        : maskPhone(selectedProfile.primaryPhone)}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-center space-x-2">
+                    <FontAwesomeIcon icon={faPhone} className="text-blue-200" />
+                    <span>
+                      {idealogistHasPaidSubscription
+                        ? selectedProfile.secondaryPhone || "-"
+                        : maskPhone(selectedProfile.secondaryPhone)}
+                    </span>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <h2 className="text-lg font-semibold text-white mt-4">
+                    {selectedProfile.name}
+                  </h2>
+                  <p className="text-blue-100 text-sm">{selectedProfile.role}</p>
+                </>
+              )}
             </div>
 
             {/* Body (white clean section) */}
@@ -405,52 +438,18 @@ const IhApproch: React.FC = () => {
                   ))}
                 </div>
               </div>
-            </div>
-          </div>
-        </div>
-      )}
 
-      {/* ✅ Separate Contact Popup */}
-      {showContact && selectedProfile && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 relative">
-            <button
-              onClick={() => setShowContact(false)}
-              className="absolute top-4 right-4 text-gray-700 text-lg"
-            >
-              <FontAwesomeIcon icon={faTimes} />
-            </button>
-
-            <h3 className="text-xl font-bold mb-4 text-gray-800">Contact Information</h3>
-
-            <div className="space-y-3">
-              {/* Email */}
-              <div className="flex items-center space-x-3 text-gray-700">
-                <FontAwesomeIcon icon={faEnvelope} className="text-blue-600" />
-                <span>
-                  {idealogistHasPaidSubscription
-                    ? selectedProfile.email
-                    : maskEmail(selectedProfile.email)}
-                </span>
-              </div>
-
-              {/* Phones */}
-              <div className="flex items-center space-x-3 text-gray-700">
-                <FontAwesomeIcon icon={faPhone} className="text-blue-600" />
-                <span>
-                  {idealogistHasPaidSubscription
-                    ? selectedProfile.primaryPhone || "-"
-                    : maskPhone(selectedProfile.primaryPhone)}
-                </span>
-              </div>
-
-              <div className="flex items-center space-x-3 text-gray-700">
-                <FontAwesomeIcon icon={faPhone} className="text-blue-600" />
-                <span>
-                  {idealogistHasPaidSubscription
-                    ? selectedProfile.secondaryPhone || "-"
-                    : maskPhone(selectedProfile.secondaryPhone)}
-                </span>
+              {/* 🔹 Investment Range */}
+              <div className="flex items-start space-x-2 text-gray-700 text-sm">
+                <FontAwesomeIcon icon={faCrown} className="mt-0.5 text-green-600" />
+                <p>
+                  Investment Range:{" "}
+                  <span className="font-semibold text-gray-900">
+                    {selectedProfile.minInvestment ? `₹${selectedProfile.minInvestment}` : "-"}{" "}
+                    -{" "}
+                    {selectedProfile.maxInvestment ? `₹${selectedProfile.maxInvestment}` : "-"}
+                  </span>
+                </p>
               </div>
             </div>
           </div>

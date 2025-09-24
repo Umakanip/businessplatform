@@ -315,143 +315,127 @@ const InvApproch: React.FC = () => {
       </div>
 
       {/* Modal */}
-      {showModal && selectedProfile && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl max-w-md w-full overflow-hidden relative">
-            {/* Header (blue top bar) */}
-            <div className="bg-blue-700 p-6 text-center relative">
-              <button
-                onClick={() => setShowModal(false)}
-                className="absolute top-4 right-4 text-white hover:text-gray-200"
-              >
-                <FontAwesomeIcon icon={faTimes} />
-              </button>
+{/* Modal */}
+{showModal && selectedProfile && (
+  <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+    <div className="bg-white rounded-xl shadow-xl max-w-md w-full overflow-hidden relative">
+      {/* Header (blue top bar) */}
+      <div className="bg-blue-700 p-6 text-center relative">
+        <button
+          onClick={() => setShowModal(false)}
+          className="absolute top-4 right-4 text-white hover:text-gray-200"
+        >
+          <FontAwesomeIcon icon={faTimes} />
+        </button>
 
-              {/* Avatar */}
-              <div className="relative w-24 h-24 mx-auto">
-                {selectedProfile.profileImage ? (
-                  <img
-                    src={`http://localhost:5000/uploads/${selectedProfile.profileImage}`}
-                    alt={selectedProfile.name}
-                    className={`w-24 h-24 rounded-full object-cover border-4 border-white shadow-lg ${!investorHasPaidSubscription || !selectedProfile.hasActiveSubscription ? "blur-md" : ""
-                      }`}
-                  />
-                ) : (
-                  <AvatarWithFirstLetter
-                    name={selectedProfile.name}
-                    isLocked={!investorHasPaidSubscription || !selectedProfile.hasActiveSubscription}
-                  />
-                )}
+        {/* Avatar */}
+        <div className="relative w-24 h-24 mx-auto">
+          {selectedProfile.profileImage ? (
+            <img
+              src={`http://localhost:5000/uploads/${selectedProfile.profileImage}`}
+              alt={selectedProfile.name}
+              className={`w-24 h-24 rounded-full object-cover border-4 border-white shadow-lg ${
+                !investorHasPaidSubscription || !selectedProfile.hasActiveSubscription ? "blur-md" : ""
+              }`}
+            />
+          ) : (
+            <AvatarWithFirstLetter
+              name={selectedProfile.name}
+              isLocked={!investorHasPaidSubscription || !selectedProfile.hasActiveSubscription}
+            />
+          )}
 
-                {/* 🔒 lock overlay when locked */}
-                {(!investorHasPaidSubscription || !selectedProfile.hasActiveSubscription) && (
-                  <div className="absolute inset-0 bg-black/40 backdrop-blur-sm rounded-full flex items-center justify-center">
-                    <FontAwesomeIcon icon={faLock} className="text-white text-lg" />
-                  </div>
-                )}
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex items-center justify-center gap-3 mt-4">
-                {/* View Contact Button (always visible) */}
-                <button
-                  onClick={() => setShowContact(true)}
-                  className="px-4 py-2 rounded-md text-sm font-medium bg-white text-blue-700 border border-gray-200 hover:bg-gray-50 shadow-sm transition"
-                >
-                  View Contact
-                </button>
-
-                {/* View Plans Button (only for locked profiles) */}
-                {(!investorHasPaidSubscription || !selectedProfile.hasActiveSubscription) && (
-                  <button
-                    onClick={() => navigate("/inv/subscription")}
-                    className="px-4 py-2 rounded-md text-sm font-medium bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow hover:opacity-90 transition"
-                  >
-                    View Plans
-                  </button>
-                )}
-              </div>
-
-              {/* Name + Role */}
-              <h2 className="text-lg font-semibold text-white mt-4">
-                {selectedProfile.name}
-              </h2>
-              <p className="text-blue-100 text-sm">{selectedProfile.role}</p>
+          {/* 🔒 lock overlay */}
+          {(!investorHasPaidSubscription || !selectedProfile.hasActiveSubscription) && (
+            <div className="absolute inset-0 bg-black/40 backdrop-blur-sm rounded-full flex items-center justify-center">
+              <FontAwesomeIcon icon={faLock} className="text-white text-lg" />
             </div>
-
-            {/* Body (white clean section) */}
-            <div className="p-5">
-              {/* Bio */}
-              <div className="flex items-start space-x-2 text-gray-700 text-sm mb-3">
-                <FontAwesomeIcon icon={faUserTag} className="mt-0.5 text-blue-600" />
-                <p>{selectedProfile.bio || "No bio available"}</p>
-              </div>
-
-              {/* Category */}
-              <div className="flex items-start space-x-2 text-gray-700 text-sm">
-                <FontAwesomeIcon icon={faLayerGroup} className="mt-0.5 text-blue-600" />
-                <div className="flex flex-wrap gap-2">
-                  {selectedProfile.category.map((cat) => (
-                    <span
-                      key={cat}
-                      className="bg-blue-50 text-blue-700 text-xs px-2 py-0.5 rounded-full border border-blue-100"
-                    >
-                      {cat}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
+          )}
         </div>
-      )}
 
-      {/* ✅ Separate Contact Popup */}
-      {showContact && selectedProfile && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 relative">
+        {/* Action Buttons */}
+        <div className="flex items-center justify-center gap-3 mt-4">
+          <button
+            onClick={() => setShowContact(!showContact)}
+            className="px-4 py-2 rounded-md text-sm font-medium bg-white text-blue-700 border border-gray-200 hover:bg-gray-50 shadow-sm transition"
+          >
+            {showContact ? "Close Contact" : "View Contact"}
+          </button>
+
+          {(!investorHasPaidSubscription || !selectedProfile.hasActiveSubscription) && (
             <button
-              onClick={() => setShowContact(false)}
-              className="absolute top-4 right-4 text-gray-700 text-lg"
+              onClick={() => navigate("/inv/subscription")}
+              className="px-4 py-2 rounded-md text-sm font-medium bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow hover:opacity-90 transition"
             >
-              <FontAwesomeIcon icon={faTimes} />
+              View Plans
             </button>
+          )}
+        </div>
 
-            <h3 className="text-xl font-bold mb-4 text-gray-800">Contact Information</h3>
-
-            <div className="space-y-3">
-              {/* Email */}
-              <div className="flex items-center space-x-3 text-gray-700">
-                <FontAwesomeIcon icon={faEnvelope} className="text-blue-600" />
-                <span>
-                  {investorHasPaidSubscription && selectedProfile.hasActiveSubscription
-                    ? selectedProfile.email
-                    : maskEmail(selectedProfile.email)}
-                </span>
-              </div>
-
-              {/* Phones */}
-              <div className="flex items-center space-x-3 text-gray-700">
-                <FontAwesomeIcon icon={faPhone} className="text-blue-600" />
-                <span>
-                  {investorHasPaidSubscription && selectedProfile.hasActiveSubscription
-                    ? selectedProfile.primaryPhone || "-"
-                    : maskPhone(selectedProfile.primaryPhone)}
-                </span>
-              </div>
-
-              <div className="flex items-center space-x-3 text-gray-700">
-                <FontAwesomeIcon icon={faPhone} className="text-blue-600" />
-                <span>
-                  {investorHasPaidSubscription && selectedProfile.hasActiveSubscription
-                    ? selectedProfile.secondaryPhone || "-"
-                    : maskPhone(selectedProfile.secondaryPhone)}
-                </span>
-              </div>
+        {/* Swap Content: Name/Role <-> Contact Info */}
+        {showContact ? (
+          <div className="mt-4 space-y-2 text-white text-sm">
+            <div className="flex items-center justify-center space-x-2">
+              <FontAwesomeIcon icon={faEnvelope} className="text-blue-200" />
+              <span>
+                {investorHasPaidSubscription && selectedProfile.hasActiveSubscription
+                  ? selectedProfile.email
+                  : maskEmail(selectedProfile.email)}
+              </span>
+            </div>
+            <div className="flex items-center justify-center space-x-2">
+              <FontAwesomeIcon icon={faPhone} className="text-blue-200" />
+              <span>
+                {investorHasPaidSubscription && selectedProfile.hasActiveSubscription
+                  ? selectedProfile.primaryPhone || "-"
+                  : maskPhone(selectedProfile.primaryPhone)}
+              </span>
+            </div>
+            <div className="flex items-center justify-center space-x-2">
+              <FontAwesomeIcon icon={faPhone} className="text-blue-200" />
+              <span>
+                {investorHasPaidSubscription && selectedProfile.hasActiveSubscription
+                  ? selectedProfile.secondaryPhone || "-"
+                  : maskPhone(selectedProfile.secondaryPhone)}
+              </span>
             </div>
           </div>
+        ) : (
+          <>
+            <h2 className="text-lg font-semibold text-white mt-4">
+              {selectedProfile.name}
+            </h2>
+            <p className="text-blue-100 text-sm">{selectedProfile.role}</p>
+          </>
+        )}
+      </div>
+
+      {/* Body (white clean section) */}
+      <div className="p-5">
+        {/* Bio */}
+        <div className="flex items-start space-x-2 text-gray-700 text-sm mb-3">
+          <FontAwesomeIcon icon={faUserTag} className="mt-0.5 text-blue-600" />
+          <p>{selectedProfile.bio || "No bio available"}</p>
         </div>
-      )}
+
+        {/* Category */}
+        <div className="flex items-start space-x-2 text-gray-700 text-sm">
+          <FontAwesomeIcon icon={faLayerGroup} className="mt-0.5 text-blue-600" />
+          <div className="flex flex-wrap gap-2">
+            {selectedProfile.category.map((cat) => (
+              <span
+                key={cat}
+                className="bg-blue-50 text-blue-700 text-xs px-2 py-0.5 rounded-full border border-blue-100"
+              >
+                {cat}
+              </span>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
     </div>
   );
 };
