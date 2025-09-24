@@ -128,7 +128,7 @@ const InvSubscriptionStatus: React.FC = () => {
                Subscriptionfeatures.
             </p>
             <button 
-            onClick={() => navigate("/inv/subscription")}
+            onClick={() => navigate("/inv/invpricing")}
             className="px-8 py-3 rounded-lg font-semibold bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 transition-all shadow-lg text-white">
               View Plans
             </button>

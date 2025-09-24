@@ -49,11 +49,11 @@ const App: React.FC = () => {
         <Route path="/auth" element={<AuthContainer />} />
         <Route path="/payment" element={<PaymentPage />} />
         <Route path="/connect" element={<ConnectPage />} />
-        <Route path="/subscription" element={<Pricing />} />
 
         {/* Idea Holder Layout with Nested Routes */}
         <Route path="/ih" element={<MainLayout role="idealogist" />}>
           <Route path="subscription" element={<Subscription />} />
+        <Route path="ihpricing" element={<Pricing />} />
           <Route path="connections" element={<Connections />} />
           <Route path="notifications" element={<NotificationsIH />} />
           <Route path="profile" element={<ProfileIH />} />
@@ -64,8 +64,8 @@ const App: React.FC = () => {
 
         {/* Investor Layout with Nested Routes */}
         <Route path="/inv" element={<MainLayout role="investor" />}>
-          <Route path="inv/subscription" element={<InvSubscriptionStatus/>} />
-          <Route path="subscription" element={<InvPricing />} />
+          <Route path="subscription" element={<InvSubscriptionStatus/>} />
+          <Route path="invpricing" element={<InvPricing />} />
           <Route path="connections" element={<InvConnections />} />
           <Route path="notifications" element={<NotificationsInv />} />
           <Route path="profile" element={<ProfileInv />} />
