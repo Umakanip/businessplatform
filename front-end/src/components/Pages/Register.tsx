@@ -438,7 +438,7 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
                     Minimum Investment Amount *
                   </label>
                   <input
-                    type="number"
+                  
                     name="minInvestment"
                     value={formData.minInvestment}
                     onChange={handleChange}
@@ -456,7 +456,7 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
                     Maximum Investment Amount *
                   </label>
                   <input
-                    type="number"
+                    
                     name="maxInvestment"
                     value={formData.maxInvestment}
                     onChange={handleChange}
