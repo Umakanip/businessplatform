@@ -60,6 +60,7 @@ export const subscribe = async (req: AuthRequest, res: Response) => {
 
     await Payment.create({
       subscriptionId: sub.id,
+      userId: user.id,
       amount,
       status: "success",
     });
