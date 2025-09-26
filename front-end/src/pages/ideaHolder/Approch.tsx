@@ -370,7 +370,7 @@ const IhApproch: React.FC = () => {
                 {/* View Plans Button (only for locked profiles) */}
                 {!idealogistHasPaidSubscription && (
                   <button
-                    onClick={() => navigate("/subscription")}
+                    onClick={() => navigate("/ih/subscription")}
                     className="px-4 py-2 rounded-md text-sm font-medium bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow hover:opacity-90 transition"
                   >
                     View Plans
