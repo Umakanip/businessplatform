@@ -10,6 +10,7 @@ import {
   faSignOutAlt,
   faPlus,
 } from "@fortawesome/free-solid-svg-icons";
+import { State, City } from "country-state-city";
 
 // Define the UserProfile interface
 interface UserProfile {
@@ -22,8 +23,10 @@ interface UserProfile {
   category: string[];
   profileImage?: string;
   bio?: string;
-  state?: string;   // ✅ new
-  city?: string;    // ✅ new
+  state?: string;
+  city?: string;
+  maxInvestment?: number;
+  minInvestment?: number;
 }
 
 const ProfileInv: React.FC = () => {
@@ -121,12 +124,24 @@ const ProfileInv: React.FC = () => {
   }, [selectedFile]);
 
   // Handle input changes
-  const handleEditChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    if (!user) return;
-    setUser({ ...user, [e.target.name]: e.target.value });
-  };
+// Handle input changes
+const handleEditChange = (
+  e: React.ChangeEvent<
+    HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+  >
+) => {
+  if (!user) return;
+  const { name, value } = e.target;
+
+  // Convert numbers properly
+  if (name === "minInvestment" || name === "maxInvestment") {
+    setUser({ ...user, [name]: value === "" ? undefined : Number(value) });
+  } else {
+    setUser({ ...user, [name]: value });
+  }
+};
+
+
 
   const getSelectedCategoriesText = () => {
     if (!user || !Array.isArray(user.category) || user.category.length === 0)
@@ -156,6 +171,10 @@ const ProfileInv: React.FC = () => {
       user.secondaryPhone !== initialUserData.current.secondaryPhone ||
       JSON.stringify(user.category.sort()) !== JSON.stringify(initialUserData.current.category.sort()) ||
       user.bio !== initialUserData.current.bio ||
+      user.state !== initialUserData.current.state ||        // ✅ add
+      user.city !== initialUserData.current.city ||          // ✅ add
+      user.minInvestment !== initialUserData.current.minInvestment ||  // ✅ add
+      user.maxInvestment !== initialUserData.current.maxInvestment ||  // ✅ add
       newPassword.length > 0 ||
       selectedFile !== null;
 
@@ -176,9 +195,14 @@ const ProfileInv: React.FC = () => {
     if (selectedFile) form.append("profileImage", selectedFile);
     if (user.bio) form.append("bio", user.bio);
     if (user.bio === '') form.append("bio", '');
-// ✅ Add new fields
-if (user.state) form.append("state", user.state);
-if (user.city) form.append("city", user.city);
+    // ✅ Add new fields
+    if (user.state) form.append("state", user.state);
+    if (user.city) form.append("city", user.city);
+    if (user.minInvestment !== undefined)
+      form.append("minInvestment", String(user.minInvestment));
+    if (user.maxInvestment !== undefined)
+      form.append("maxInvestment", String(user.maxInvestment));
+
 
     try {
       await axios.put(
@@ -196,7 +220,7 @@ if (user.city) form.append("city", user.city);
       setIsBioEditing(false);
       setNewPassword("");
       setSelectedFile(null);
-      
+
       // Show success message only if changes were made
       setShowSuccess(true);
       setTimeout(() => setShowSuccess(false), 2500);
@@ -310,46 +334,46 @@ if (user.city) form.append("city", user.city);
             <h3 className="text-lg font-semibold text-white">
               Profile Details
             </h3>
-           <div className="flex items-center gap-2">
-  <span className="w-2.5 h-2.5 bg-green-500 rounded-full shadow-[0_0_5px_rgba(40,167,69,1)]"></span>
-  {editing ? (
-    <>
-      <button
-        onClick={handleSave}
-        className="bg-green-500 text-white px-4 py-2 rounded-lg text-sm flex items-center gap-2 hover:bg-green-600 transition"
-      >
-        <FontAwesomeIcon icon={faSave} /> Save
-      </button>
-      <button
-        onClick={() => {
-          if (initialUserData.current) setUser(initialUserData.current);
-          setEditing(false);
-          setIsBioEditing(false);
-          setSelectedFile(null);
-          setNewPassword("");
-        }}
-        className="bg-gray-500 text-white px-4 py-2 rounded-lg text-sm flex items-center gap-2 hover:bg-gray-600 transition"
-      >
-        Cancel
-      </button>
-    </>
-  ) : (
-    <>
-      <button
-        onClick={handleEditClick}
-        className="bg-pink-500 text-white px-4 py-2 rounded-lg text-sm flex items-center gap-2 hover:bg-pink-600 transition"
-      >
-        <FontAwesomeIcon icon={faEdit} /> Edit
-      </button>
-      <button
-        onClick={handleLogout}
-        className="bg-red-500 text-white px-4 py-2 rounded-lg text-sm flex items-center gap-2 hover:bg-red-600 transition"
-      >
-        <FontAwesomeIcon icon={faSignOutAlt} /> Logout
-      </button>
-    </>
-  )}
-</div>
+            <div className="flex items-center gap-2">
+              <span className="w-2.5 h-2.5 bg-green-500 rounded-full shadow-[0_0_5px_rgba(40,167,69,1)]"></span>
+              {editing ? (
+                <>
+                  <button
+                    onClick={handleSave}
+                    className="bg-green-500 text-white px-4 py-2 rounded-lg text-sm flex items-center gap-2 hover:bg-green-600 transition"
+                  >
+                    <FontAwesomeIcon icon={faSave} /> Save
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (initialUserData.current) setUser(initialUserData.current);
+                      setEditing(false);
+                      setIsBioEditing(false);
+                      setSelectedFile(null);
+                      setNewPassword("");
+                    }}
+                    className="bg-gray-500 text-white px-4 py-2 rounded-lg text-sm flex items-center gap-2 hover:bg-gray-600 transition"
+                  >
+                    Cancel
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button
+                    onClick={handleEditClick}
+                    className="bg-pink-500 text-white px-4 py-2 rounded-lg text-sm flex items-center gap-2 hover:bg-pink-600 transition"
+                  >
+                    <FontAwesomeIcon icon={faEdit} /> Edit
+                  </button>
+                  <button
+                    onClick={handleLogout}
+                    className="bg-red-500 text-white px-4 py-2 rounded-lg text-sm flex items-center gap-2 hover:bg-red-600 transition"
+                  >
+                    <FontAwesomeIcon icon={faSignOutAlt} /> Logout
+                  </button>
+                </>
+              )}
+            </div>
 
           </div>
 
@@ -381,9 +405,8 @@ if (user.city) form.append("city", user.city);
                 className="w-full text-left px-4 py-2 bg-[#3a3a3a] rounded-lg border border-[#444] cursor-pointer"
               >
                 <span
-                  className={`${
-                    user.category.length === 0 ? "text-gray-500" : "text-[#e0e0e0]"
-                  }`}
+                  className={`${user.category.length === 0 ? "text-gray-500" : "text-[#e0e0e0]"
+                    }`}
                 >
                   {getSelectedCategoriesText()}
                 </span>
@@ -444,40 +467,81 @@ if (user.city) form.append("city", user.city);
             </div>
 
             <div className="flex flex-col">
-  <span className="text-xs text-[#808080]">State</span>
-  {editing ? (
-    <input
-      type="text"
-      name="state"
-      value={user.state || ""}
-      onChange={handleEditChange}
-      className="text-base text-[#e0e0e0] bg-[#3a3a3a] rounded px-2 py-1"
-      placeholder="Enter your state"
-    />
-  ) : (
-    <span className="text-base text-[#e0e0e0]">
-      {user.state || "—"}
-    </span>
-  )}
-</div>
+              <span className="text-xs text-[#808080]">State</span>
+              {editing ? (
+                <select
+                  name="state"
+                  value={user.state || ""}
+                  onChange={handleEditChange}
+                  className="text-base text-[#e0e0e0] bg-[#3a3a3a] rounded px-2 py-2"
+                >
+                  <option value="">Select your state</option>
+                  {State.getStatesOfCountry("IN").map((s) => (
+                    <option key={s.isoCode} value={s.name}>
+                      {s.name}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <span className="text-base text-[#e0e0e0]">
+                  {user.state || "—"}
+                </span>
+              )}
+            </div>
 
-<div className="flex flex-col">
-  <span className="text-xs text-[#808080]">City</span>
-  {editing ? (
-    <input
-      type="text"
-      name="city"
-      value={user.city || ""}
-      onChange={handleEditChange}
-      className="text-base text-[#e0e0e0] bg-[#3a3a3a] rounded px-2 py-1"
-      placeholder="Enter your city"
-    />
-  ) : (
-    <span className="text-base text-[#e0e0e0]">
-      {user.city || "—"}
-    </span>
-  )}
-</div>
+
+            <div className="flex flex-col">
+              <span className="text-xs text-[#808080]">City</span>
+              {editing ? (
+                <input
+                  type="text"
+                  name="city"
+                  value={user.city || ""}
+                  onChange={handleEditChange}
+                  className="text-base text-[#e0e0e0] bg-[#3a3a3a] rounded px-2 py-1"
+                  placeholder="Enter your city"
+                />
+              ) : (
+                <span className="text-base text-[#e0e0e0]">
+                  {user.city || "—"}
+                </span>
+              )}
+            </div>
+            <div className="flex flex-col">
+              <span className="text-xs text-[#808080]">Minimum Investment</span>
+              {editing ? (
+                <input
+                  type="number"
+                  name="minInvestment"
+                  value={user.minInvestment ?? ""}
+                  onChange={handleEditChange}
+                  className="text-base text-[#e0e0e0] bg-[#3a3a3a] rounded px-2 py-1"
+                  placeholder="Enter min investment"
+                />
+              ) : (
+                <span className="text-base text-[#e0e0e0]">
+                  {user.minInvestment ? `₹${user.minInvestment}` : "—"}
+                </span>
+              )}
+            </div>
+
+            <div className="flex flex-col">
+              <span className="text-xs text-[#808080]">Maximum Investment</span>
+              {editing ? (
+                <input
+                  type="number"
+                  name="maxInvestment"
+                  value={user.maxInvestment ?? ""}
+                  onChange={handleEditChange}
+                  className="text-base text-[#e0e0e0] bg-[#3a3a3a] rounded px-2 py-1"
+                  placeholder="Enter max investment"
+                />
+              ) : (
+                <span className="text-base text-[#e0e0e0]">
+                  {user.maxInvestment ? `₹${user.maxInvestment}` : "—"}
+                </span>
+              )}
+            </div>
 
             <div className="flex flex-col">
               <span className="text-xs text-[#808080]">Role</span>
