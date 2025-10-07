@@ -20,7 +20,8 @@ type Profile = {
   category: string[];
   profileImage: string | null;
   status?: "pending" | "accepted" | "rejected" | "none";
-  hasActiveSubscription?: boolean;
+  // NOTE: hasActiveSubscription will be from the perspective of the Investor (the profile being displayed)
+  hasActiveSubscription?: boolean; 
 };
 
 type ProfileDetail = Profile & {
@@ -32,18 +33,26 @@ type ProfileDetail = Profile & {
   maxInvestment?: number;
 };
 
+// Interface for the Idealogist's (current user's) subscription status
+type SubscriptionStatus = {
+  active: boolean;
+  plan: "lite" | "standard" | "premium" | null;
+};
+
 const IhApproch: React.FC = () => {
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedProfile, setSelectedProfile] = useState<ProfileDetail | null>(
     null
   );
+    const [idealogistHasPaidSubscription, setIdealogistHasPaidSubscription] = useState(false); // ✅ New state for idealogist
+
   const [showModal, setShowModal] = useState(false);
-  const [idealogistHasPaidSubscription, setIdealogistHasPaidSubscription] = useState(false); // ✅ New state for idealogist
+  // Renamed state to reflect the current user's (Idealogist's) subscription status
+  const [userSubscription, setUserSubscription] = useState<SubscriptionStatus>({ active: false, plan: null }); 
   const [showContact, setShowContact] = useState(false);
   const navigate = useNavigate();
 
-  // mask helpers (keep as is)
   const maskEmail = (email: string): string => {
     const [user, domain] = email.split("@");
     if (user.length <= 2) return "*".repeat(user.length) + "@" + domain;
@@ -63,19 +72,52 @@ const IhApproch: React.FC = () => {
       try {
         const token = localStorage.getItem("token");
 
-        // Step 1: Fetch data from the backend
+        // 1. Fetch all profiles
         const res = await axiosInstance.get("/idealogists/matching-investors", {
           headers: { Authorization: `Bearer ${token}` },
         });
         const allProfiles: Profile[] = res.data.investors || [];
 
-        // Step 2: Use the new flags from the backend
-        setProfiles(allProfiles);
-        setIdealogistHasPaidSubscription(res.data.idealogistHasPaidSubscription);
+        // 2. Fetch current user's subscription
+        const subRes = await axiosInstance.get("/subscriptions/status", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const sub: SubscriptionStatus = subRes.data;
+        setUserSubscription(sub);
+        
+        const total = allProfiles.length;
+        let allowedCount = 0;
+
+        // 3. Determine allowed count based on the user's plan
+        if (sub?.active) {
+          if (sub.plan === "lite") {
+            allowedCount = Math.ceil(total * 0.3);
+          } else if (sub.plan === "standard") {
+            allowedCount = Math.ceil(total * 0.6);
+          } else if (sub.plan === "premium") {
+            allowedCount = total; // Full access
+          }
+        } else {
+          // 🛑 CRITICAL CHANGE: If no active subscription, show ALL profiles but mark them as locked.
+          // To achieve this, we set allowedCount to total but we will use the `sub.active` flag 
+          // to determine 'isLocked' in the rendering logic.
+          allowedCount = total;
+        }
+
+        // 4. Filter or Slice profiles to only show the "allowed" set
+        // If the user has a subscription, we show only the allowed percentage.
+        // If the user has NO subscription, we show all, so the user sees locked profiles and can upgrade.
+        const profilesToShow = sub?.active 
+            ? allProfiles.slice(0, allowedCount)
+            : allProfiles;
+        
+        // The profiles array now only contains the ones we want to display (either the allowed subset, or all if no subscription)
+        setProfiles(profilesToShow);
+        
       } catch (error) {
         Swal.fire({
           title: "Error",
-          text: "Failed to fetch investors.",
+          text: "Failed to fetch investors or subscription.",
           icon: "error",
           confirmButtonColor: "#d33",
         });
@@ -92,10 +134,17 @@ const IhApproch: React.FC = () => {
   const handleViewProfile = async (id: number) => {
     const profile = profiles.find((p) => p.id === id);
     if (profile) {
+      // 🛑 Check if the user is allowed to view the full profile and interact
+      const isLocked = !userSubscription.active;
+      
+
+      // If allowed (active subscription), set selected profile and open modal
       setSelectedProfile(profile);
       setShowModal(true);
+      setShowContact(false); // Reset contact view
 
       try {
+        // Increment view count (only if not locked, based on the backend logic/design)
         const token = localStorage.getItem("token");
         if (token) {
           await axiosInstance.post(
@@ -110,6 +159,7 @@ const IhApproch: React.FC = () => {
       }
     }
   };
+
 
   const AvatarWithFirstLetter = ({ name, isLocked }: { name: string; isLocked: boolean }) => {
     const getFirstLetter = (name: string) => {
@@ -129,6 +179,13 @@ const IhApproch: React.FC = () => {
     return <p className="text-center py-10">Loading suggestions...</p>;
   }
 
+  // 🛑 The main locking logic: A profile is locked if the user has NO active subscription.
+  // This satisfies your requirement: "subcription panala nalu profile show aganum ella profile um show aganum but locked la irukanum"
+  // NOTE: If the profiles list is filtered based on plan (lite/standard), 
+  // then the lock logic here is only for the "no subscription" case.
+  const isGlobalLocked = !userSubscription.active;
+  const isPremiumUser = userSubscription.active && userSubscription.plan === "premium";
+
   return (
     <div className="bg-gray-100 min-h-screen">
       {/* Header */}
@@ -137,7 +194,10 @@ const IhApproch: React.FC = () => {
           More suggestions for you
         </h1>
         <p className="text-gray-500 text-sm">
-          Total {profiles.length} profiles available
+          {userSubscription.active 
+            ? `Total ${profiles.length} profiles available for your ${userSubscription.plan} plan`
+            : `Total ${profiles.length} profiles. Upgrade to unlock all features.`
+          }
         </p>
       </div>
       <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
@@ -145,9 +205,9 @@ const IhApproch: React.FC = () => {
           const categoriesToShow = Array.isArray(profile.category)
             ? profile.category.slice(0, 2)
             : [];
-          // ✅ New locking logic: lock if idealogist is NOT subscribed
-          const isLocked =
-            !idealogistHasPaidSubscription || !profile.hasActiveSubscription;
+          
+          // The profile on the card is locked if the current user (idealogist) has no active subscription.
+          const isLocked = isGlobalLocked; 
 
           return (
             <div
@@ -158,7 +218,7 @@ const IhApproch: React.FC = () => {
               <div className="absolute top-0 right-0 w-24 h-24 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 transform translate-x-1/3 -translate-y-1/3 opacity-50"></div>
 
               {/* Crown Icon for Premium Users */}
-              {idealogistHasPaidSubscription && (
+              {isPremiumUser && (
                 <div className="absolute top-2 right-2 text-yellow-500 z-10">
                   <FontAwesomeIcon
                     icon={faCrown}
@@ -321,6 +381,7 @@ const IhApproch: React.FC = () => {
         })}
       </div>
 
+      {/* Profile Modal */}
       {showModal && selectedProfile && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-xl max-w-md w-full overflow-hidden relative">
