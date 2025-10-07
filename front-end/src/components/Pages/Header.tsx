@@ -117,15 +117,15 @@ const Header: React.FC = () => {
 
             {/* Desktop Navigation */}
             <nav className="hidden md:flex space-x-8">
-              <a href="#features" className="text-sm sm:text-base font-bold text-gray-600 ">
+              {/* <a href="#features" className="text-sm sm:text-base font-bold text-gray-600 ">
                 Features
               </a>
               <a href="#roles" className="text-sm sm:text-base font-bold text-gray-600 ">
                 Roles
-              </a>
-              <a href="#Subscription" className="text-sm sm:text-base font-bold text-gray-600 ">
+              </a> */}
+              {/* <a href="#Subscription" className="text-sm sm:text-base font-bold text-gray-600 ">
                 Pricing
-              </a>
+              </a> */}
             </nav>
 
             {/* Right Side Desktop */}

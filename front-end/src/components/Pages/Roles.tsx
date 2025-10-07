@@ -1,110 +1,123 @@
 import React from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faBolt, faFileAlt, faHandPointer, faStar } from "@fortawesome/free-solid-svg-icons";
+import {
+  faBolt,
+  faFileAlt,
+  faHandPointer,
+  faStar,
+} from "@fortawesome/free-solid-svg-icons";
 
 const Roles: React.FC = () => {
   return (
     <section
       id="roles"
-      className="w-full min-h-screen flex flex-col lg:flex-row"
+      className="w-full min-h-screen flex flex-col lg:flex-row font-[Poppins]"
     >
+      {/* Left Side – Idea Holders */}
       {/* Left Side - White Background */}
       <div className="flex-1 bg-white py-20 px-8 flex items-center">
         <div className="max-w-xl mx-auto">
-          <p className="text-sm font-semibold text-gray-800 mb-2">Got an idea?</p>
-          <h2 className="text-3xl md:text-4xl font-extrabold text-gray-900 mb-8">
-        Idea holders 
-          </h2>
+          <p className="text-sm font-semibold text-gray-800 mb-2">Have a Brilliant Idea?</p>
+          <h2 className="text-3xl md:text-4xl font-extrabold text-gray-900 mb-8"> Idea Holders </h2>
 
-          <div className="space-y-6">
-            <div className="flex items-start">
-              <div className="w-10 h-10 rounded-full bg-pink-200 flex items-center justify-center mr-4">
-                <FontAwesomeIcon icon={faBolt} className="text-pink-600 text-lg" />
+          <div className="space-y-8">
+            {/* Point 1 */}
+            <div className="flex items-start group">
+              <div className="w-12 h-12 rounded-full bg-gradient-to-r from-pink-400 to-pink-600 flex items-center justify-center text-white shadow-md mr-5 transform group-hover:scale-110 transition-transform duration-300">
+                <FontAwesomeIcon icon={faBolt} className="text-xl" />
               </div>
-              <p className="text-gray-700">
-                Connect directly with verified investors – no middlemen.
+              <p className="text-gray-700 leading-relaxed">
+                You’ve got the idea. We help you find investors who believe in your
+                vision and can make it real.
               </p>
             </div>
 
-            <div className="flex items-start">
-              <div className="w-10 h-10 rounded-full bg-pink-200 flex items-center justify-center mr-4">
-                <FontAwesomeIcon icon={faFileAlt} className="text-pink-600 text-lg" />
+            {/* Point 2 */}
+            <div className="flex items-start group">
+              <div className="w-12 h-12 rounded-full bg-gradient-to-r from-pink-400 to-pink-600 flex items-center justify-center text-white shadow-md mr-5 transform group-hover:scale-110 transition-transform duration-300">
+                <FontAwesomeIcon icon={faFileAlt} className="text-xl" />
               </div>
-              <p className="text-gray-700">
-                Showcase everything upfront – idea details, funding needs, and vision.
+              <p className="text-gray-700 leading-relaxed">
+                Create a detailed idea profile — show your concept, goals, and
+                investment needs clearly.
               </p>
             </div>
 
-            <div className="flex items-start">
-              <div className="w-10 h-10 rounded-full bg-pink-200 flex items-center justify-center mr-4">
-                <FontAwesomeIcon icon={faHandPointer} className="text-pink-600 text-lg" />
+            {/* Point 3 */}
+            <div className="flex items-start group">
+              <div className="w-12 h-12 rounded-full bg-gradient-to-r from-pink-400 to-pink-600 flex items-center justify-center text-white shadow-md mr-5 transform group-hover:scale-110 transition-transform duration-300">
+                <FontAwesomeIcon icon={faHandPointer} className="text-xl" />
               </div>
-              <p className="text-gray-700">
-                No long proposals – your profile is enough. One click to connect.
+              <p className="text-gray-700 leading-relaxed">
+                Get instant visibility among verified investors who are actively
+                searching for new ideas.
               </p>
             </div>
 
-            <div className="flex items-start">
-              <div className="w-10 h-10 rounded-full bg-pink-200 flex items-center justify-center mr-4">
-                <FontAwesomeIcon icon={faStar} className="text-pink-600 text-lg" />
+            {/* Point 4 */}
+            <div className="flex items-start group">
+              <div className="w-12 h-12 rounded-full bg-gradient-to-r from-pink-400 to-pink-600 flex items-center justify-center text-white shadow-md mr-5 transform group-hover:scale-110 transition-transform duration-300">
+                <FontAwesomeIcon icon={faStar} className="text-xl" />
               </div>
-              <p className="text-gray-700">
-                Unique opportunities with serious investors you won’t find elsewhere.
+              <p className="text-gray-700 leading-relaxed">
+                All connections are paid and verified — ensuring real
+                collaborations, not casual chats.
               </p>
             </div>
           </div>
-
-          
         </div>
       </div>
 
       {/* Right Side - Pink Background */}
       <div className="flex-1 bg-pink-50 py-20 px-8 flex items-center">
-        <div className="max-w-xl mx-auto">
-          <p className="text-sm font-semibold text-gray-800 mb-2">Need ideas?</p>
-          <h2 className="text-3xl md:text-4xl font-extrabold text-gray-900 mb-8">
-            Investor
-          </h2>
+        <div className="max-w-xl mx-auto"> <p className="text-sm font-semibold text-gray-800 mb-2">Looking to Invest?</p>
+          <h2 className="text-3xl md:text-4xl font-extrabold text-gray-900 mb-8"> Investor </h2>
 
-          <div className="space-y-6">
-            <div className="flex items-start">
-              <div className="w-10 h-10 rounded-full bg-pink-200 flex items-center justify-center mr-4">
-                <FontAwesomeIcon icon={faBolt} className="text-pink-600 text-lg" />
+          <div className="space-y-8">
+            {/* Point 1 */}
+            <div className="flex items-start group">
+              <div className="w-12 h-12 rounded-full bg-gradient-to-r from-pink-500 to-pink-700 flex items-center justify-center text-white shadow-md mr-5 transform group-hover:scale-110 transition-transform duration-300">
+                <FontAwesomeIcon icon={faBolt} className="text-xl" />
               </div>
-              <p className="text-gray-700">
-                Access a community of 10K+ startup-ready idea holders.
+              <p className="text-gray-700 leading-relaxed">
+                Have the funds but need the right project? Discover innovative
+                ideas ready for execution.
               </p>
             </div>
 
-            <div className="flex items-start">
-              <div className="w-10 h-10 rounded-full bg-pink-200 flex items-center justify-center mr-4">
-                <FontAwesomeIcon icon={faFileAlt} className="text-pink-600 text-lg" />
+            {/* Point 2 */}
+            <div className="flex items-start group">
+              <div className="w-12 h-12 rounded-full bg-gradient-to-r from-pink-500 to-pink-700 flex items-center justify-center text-white shadow-md mr-5 transform group-hover:scale-110 transition-transform duration-300">
+                <FontAwesomeIcon icon={faFileAlt} className="text-xl" />
               </div>
-              <p className="text-gray-700">
-                Everything you need to kickstart – filters, profiles, and criteria setup in minutes.
+              <p className="text-gray-700 leading-relaxed">
+                Filter by category, budget, or experience level — find ideas that
+                match your investment goals.
               </p>
             </div>
 
-            <div className="flex items-start">
-              <div className="w-10 h-10 rounded-full bg-pink-200 flex items-center justify-center mr-4">
-                <FontAwesomeIcon icon={faHandPointer} className="text-pink-600 text-lg" />
+            {/* Point 3 */}
+            <div className="flex items-start group">
+              <div className="w-12 h-12 rounded-full bg-gradient-to-r from-pink-500 to-pink-700 flex items-center justify-center text-white shadow-md mr-5 transform group-hover:scale-110 transition-transform duration-300">
+                <FontAwesomeIcon icon={faHandPointer} className="text-xl" />
               </div>
-              <p className="text-gray-700">
-                Free matching system, or integrate with your own tools.
+              <p className="text-gray-700 leading-relaxed">
+                Connect directly with creators through paid sessions — no middlemen,
+                no wasted time.
               </p>
             </div>
 
-            <div className="flex items-start">
-              <div className="w-10 h-10 rounded-full bg-pink-200 flex items-center justify-center mr-4">
-                <FontAwesomeIcon icon={faStar} className="text-pink-600 text-lg" />
+            {/* Point 4 */}
+            <div className="flex items-start group">
+              <div className="w-12 h-12 rounded-full bg-gradient-to-r from-pink-500 to-pink-700 flex items-center justify-center text-white shadow-md mr-5 transform group-hover:scale-110 transition-transform duration-300">
+                <FontAwesomeIcon icon={faStar} className="text-xl" />
               </div>
-              <p className="text-gray-700">
-                AI-based matching scans 500+ ideas and shortlists the best for you in days.
+              <p className="text-gray-700 leading-relaxed">
+                Our AI-based matching system recommends the most promising ideas for
+                your investment range.
               </p>
             </div>
           </div>
-
-          
         </div>
       </div>
     </section>
