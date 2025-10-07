@@ -77,6 +77,7 @@ const IhApproch: React.FC = () => {
           headers: { Authorization: `Bearer ${token}` },
         });
         const allProfiles: Profile[] = res.data.investors || [];
+        setIdealogistHasPaidSubscription(res.data.idealogistHasPaidSubscription);
 
         // 2. Fetch current user's subscription
         const subRes = await axiosInstance.get("/subscriptions/status", {
